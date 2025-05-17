@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -23,19 +22,23 @@ const AdminDashboard = ({ user, onLogout }) => {
   const [errorApproved, setErrorApproved] = useState("");
   const [activeTab, setActiveTab] = useState("pending");
 
-  const handleError = (err, setError) => {
-    const status = err.response?.status;
-    if (status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      onLogout();
-      toast.error("Session expired. Please log in again.");
-      navigate("/login");
-    } else {
-      toast.error("Something went wrong");
-      setError("Something went wrong");
-    }
-  };
+  // Memoize handleError to avoid stale closures and fix ESLint warning
+  const handleError = useCallback(
+    (err, setError) => {
+      const status = err.response?.status;
+      if (status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        onLogout();
+        toast.error("Session expired. Please log in again.");
+        navigate("/login");
+      } else {
+        toast.error("Something went wrong");
+        setError("Something went wrong");
+      }
+    },
+    [navigate, onLogout]
+  );
 
   const fetchPendingUsers = useCallback(async () => {
     setLoadingUsers(true);
@@ -52,7 +55,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     } finally {
       setLoadingUsers(false);
     }
-  }, [navigate, onLogout]);
+  }, [handleError]);
 
   const fetchPendingEnrollments = useCallback(async () => {
     setLoadingEnrollments(true);
@@ -72,7 +75,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     } finally {
       setLoadingEnrollments(false);
     }
-  }, [navigate, onLogout]);
+  }, [handleError]);
 
   const fetchApprovedEnrollments = useCallback(async () => {
     setLoadingApproved(true);
@@ -92,7 +95,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     } finally {
       setLoadingApproved(false);
     }
-  }, [navigate, onLogout]);
+  }, [handleError]);
 
   const handleApproveUser = async (userId) => {
     try {
