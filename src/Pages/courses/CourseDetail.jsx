@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link} from "react-router-dom";
 import "./CourseDetail.css";
 
 
@@ -929,7 +929,7 @@ const courseData = {
 
 const CourseDetail = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const course = courseData[id];
   const user = JSON.parse(localStorage.getItem("user"));
 
