@@ -239,22 +239,22 @@ const CourseCreator = React.lazy(() =>
 );
 const CourseDetail = React.lazy(() =>
   retryLazy(() => import("./Pages/courses/CourseDetail"))
-));
+);
 const Profile = React.lazy(() =>
   retryLazy(() => import("./Pages/users/Profile"))
-));
+);
 const AdminDashboard = React.lazy(() =>
   retryLazy(() => import("./Pages/AdminDashboard"))
-));
+);
 const Payment = React.lazy(() =>
   retryLazy(() => import("./Pages/payments/Payment"))
-));
+);
 const Success = React.lazy(() =>
   retryLazy(() => import("./Pages/payments/Success"))
-));
+);
 const Cancel = React.lazy(() =>
   retryLazy(() => import("./Pages/payments/Cancel"))
-));
+);
 const NotFound = React.lazy(() => retryLazy(() => import("./Pages/NotFound")));
 
 // Axios Interceptor for Authorization
