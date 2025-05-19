@@ -10,12 +10,12 @@ import "./Payment.css";
 const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
 
 const courseDetails = {
-  7: { title: "Algebra 1", price: 200 },
-  8: { title: "Algebra 2", price: 200 },
-  9: { title: "Pre-Calculus", price: 200 },
-  10: { title: "Calculus", price: 250 },
-  11: { title: "Geometry & Trigonometry", price: 250 },
-  12: { title: "Statistics & Probability", price: 250 },
+  7: { title: "Algebra 1", price: 1200 },
+  8: { title: "Algebra 2", price: 1200 },
+  9: { title: "Pre-Calculus", price: 1200 },
+  10: { title: "Calculus", price: 1250 },
+  11: { title: "Geometry & Trigonometry", price: 1250 },
+  12: { title: "Statistics & Probability", price: 1250 },
 };
 
 const Payment = () => {

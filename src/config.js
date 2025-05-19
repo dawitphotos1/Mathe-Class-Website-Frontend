@@ -3,7 +3,7 @@ import axios from "axios";
 
 // ✅ Backend API base URL (Render deployment or local fallback)
 export const API_BASE_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:5000/api/users";
+  process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 // ✅ Stripe public key (fallback if .env not set)
 export const STRIPE_PUBLIC_KEY =
