@@ -1,7 +1,7 @@
 import React from "react";
-import { useParams, Link} from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import "./CourseDetail.css";
-
 
 // 🔁 Map slugs to numeric IDs for Stripe pricing
 const slugToIdMap = {
@@ -926,17 +926,32 @@ const courseData = {
   // "Pre-Calculus": { title: "Pre-Calculus ", contents: [...] }
 };
 
-
 const CourseDetail = () => {
   const { id } = useParams();
-  // const navigate = useNavigate();
-  const course = courseData[id];
+  const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
-
   const isStudent = user?.role === "student";
   const courseNumericId = slugToIdMap[id];
 
-  if (!course) return <div className="error">❌ Course not found.</div>;
+  const course = courseData[id];
+
+  const handleEnrollClick = () => {
+    if (!user || !isStudent) {
+      toast.error("Only students can enroll. Please log in as a student.");
+      return navigate("/login");
+    }
+
+    if (!courseNumericId) {
+      toast.error("Missing required course details for Stripe checkout.");
+      return;
+    }
+
+    navigate(`/payment/${courseNumericId}`);
+  };
+
+  if (!course) {
+    return <div className="error">❌ Course not found.</div>;
+  }
 
   return (
     <div className="course-detail">
@@ -962,9 +977,9 @@ const CourseDetail = () => {
 
       <div className="course-footer">
         {isStudent && (
-          <Link to={`/payment/${courseNumericId}`} className="btn-enroll">
+          <button className="btn-enroll" onClick={handleEnrollClick}>
             Enroll Now
-          </Link>
+          </button>
         )}
         <Link to="/courses" className="btn-back">
           ← Back to Courses
