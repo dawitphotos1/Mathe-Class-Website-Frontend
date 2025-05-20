@@ -21,7 +21,7 @@ const Login = ({ setUser }) => {
 
     try {
       const { data } = await axios.post(
-        `${API_BASE_URL}/login`,
+        `${API_BASE_URL}/api/v1/auth/login`,
         { email: email.toLowerCase().trim(), password },
         { headers: { "Content-Type": "application/json" } }
       );

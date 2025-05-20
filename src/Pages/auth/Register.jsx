@@ -74,11 +74,15 @@ const Register = ({ setUser }) => {
         subject: role !== "admin" ? subject.trim() : null,
       };
 
-      const response = await axios.post(`${API_BASE_URL}/register`, userData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await axios.post(
+        `${API_BASE_URL}/api/v1/auth/register`,
+        userData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (response.data.message.includes("pending")) {
         toast.info(response.data.message);
