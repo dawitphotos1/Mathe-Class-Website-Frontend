@@ -104,13 +104,40 @@ const CourseCard = ({ course, user }) => {
   };
 
   const handleEnroll = async () => {
+    const token = localStorage.getItem("token");
+  
+    if (!token) {
+      toast.error("Please log in to enroll.");
+      return;
+    }
+  
+    // ✅ Add this to debug what you're sending:
+    console.log("Enrolling with:", {
+      courseId: course.id,
+      courseTitle: course.title,
+      coursePrice: course.price,
+    });
+  
     try {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        toast.error("Please log in to enroll.");
-        return;
-      }
+      const res = await axios.post(
+        `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
+        {
+          courseId: course.id,
+          courseTitle: course.title,
+          coursePrice: course.price,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+  
+      window.location.href = res.data.url;
+    } catch (err) {
+      console.error("Stripe error:", err.response || err);
+      toast.error(err.response?.data?.error || "Failed to initiate payment.");
+    }
+  };
+  
 
       const res = await axios.post(
         `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
