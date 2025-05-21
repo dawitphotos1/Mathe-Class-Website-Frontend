@@ -992,8 +992,6 @@
 // export default CourseDetail;
 
 
-
-
 import React from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -1719,7 +1717,7 @@ const courseData = {
         unit: "Unit 2: Quadrilaterals & Other Polygons",
         lessons: [
           "2.1 Polygon Angle Sum Theorem",
-          "2.2 Interior and Exterior Angles of Regular WPolygons",
+          "2.2 Interior and Exterior Angles of Regular Polygons",
           "2.3 Parallelograms",
           "2.4 Rhombuses, Rectangles, and Squares",
           "2.5 Trapezoids and Kites",
@@ -1933,12 +1931,17 @@ const CourseDetail = () => {
   const handleEnrollClick = async () => {
     console.log("Enroll - User:", user);
     console.log("Enroll - Course ID:", courseNumericId);
+    console.log(
+      "Enroll - Token:",
+      localStorage.getItem("token")?.substring(0, 20) + "..."
+    );
     if (!user || !isStudent) {
       toast.error("Only students can enroll. Please log in as a student.");
       return navigate("/login");
     }
 
     if (!courseNumericId) {
+      console.error("Invalid course ID for slug:", id);
       toast.error("Missing required course details for enrollment.");
       return;
     }
@@ -1951,9 +1954,14 @@ const CourseDetail = () => {
     }
 
     try {
+      console.log(
+        "Enroll - Sending request to:",
+        `${API_BASE_URL}/api/v1/payments/create-checkout-session`
+      );
+      console.log("Enroll - Payload:", { courseId: String(courseNumericId) });
       const response = await axios.post(
         `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
-        { courseId: courseNumericId },
+        { courseId: String(courseNumericId) },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
