@@ -153,7 +153,6 @@
 
 
 
-
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
@@ -202,6 +201,50 @@ const CourseViewer = () => {
     fetchCourse();
   }, [id]);
 
+  const handleEnroll = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      toast.error("You must be logged in to enroll.");
+      return;
+    }
+
+    if (!course?.id) {
+      toast.error("Course ID is missing.");
+      console.error("Course data:", course);
+      return;
+    }
+
+    try {
+      console.log("Sending enrollment request with:", {
+        courseId: course.id,
+        token,
+      });
+
+      const response = await axios.post(
+        `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
+        { courseId: course.id },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        }
+      );
+
+      if (response.data?.url) {
+        window.location.href = response.data.url;
+      } else {
+        toast.error("No redirect URL returned from server.");
+      }
+    } catch (error) {
+      console.error("Enrollment error:", error.response?.data || error);
+      toast.error(
+        error.response?.data?.error || "Failed to initiate payment session"
+      );
+    }
+  };
+
   if (loading) {
     return (
       <div className="loading">
@@ -231,34 +274,6 @@ const CourseViewer = () => {
     unitCount,
     lessonCount,
   } = course;
-
-  const handleEnroll = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      toast.error("You must be logged in to enroll.");
-      return;
-    }
-
-    try {
-      const response = await axios.post(
-        `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
-        { courseId: course.id },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      window.location.href = response.data.url;
-    } catch (error) {
-      console.error("Enrollment error:", error.response?.data || error);
-      toast.error(
-        error.response?.data?.error || "Failed to initiate payment session"
-      );
-    }
-  };
-  
 
   return (
     <div className="course-viewer">
@@ -332,4 +347,3 @@ const CourseViewer = () => {
 };
 
 export default CourseViewer;
-
