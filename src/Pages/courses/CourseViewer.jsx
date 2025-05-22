@@ -200,7 +200,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { loadStripe } from "@stripe/stripe-js";
-import { API_BASE_URL } from "../config";
+import { API_BASE_URL } from "../../config";
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
