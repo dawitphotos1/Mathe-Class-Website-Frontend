@@ -195,45 +195,74 @@
 // export default CourseViewer;
 
 
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { loadStripe } from "@stripe/stripe-js";
-import { API_BASE_URL } from "../../config";
+import { API_BASE_URL, STRIPE_PUBLIC_KEY } from "../../config"; // Use STRIPE_PUBLIC_KEY
 
-// Initialize Stripe
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
+const stripePromise = loadStripe(STRIPE_PUBLIC_KEY); // Update to STRIPE_PUBLIC_KEY
 
-const CourseView = () => {
+const CourseViewer = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch course data (replace with your actual API call)
   useEffect(() => {
     const fetchCourse = async () => {
       try {
         const token = localStorage.getItem("token");
+        console.log("Fetching course:", {
+          courseId,
+          token: token ? `${token.substring(0, 20)}...` : "None",
+        });
         if (!token) {
           toast.error("Please log in to view courses");
           navigate("/login");
           return;
         }
 
-        // Mock API call (replace with real endpoint, e.g., /api/v1/courses/:id)
         const response = await axios.get(
           `${API_BASE_URL}/api/v1/courses/${courseId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        setCourse(response.data); // Example: { id, name, price }
+        console.log("Course fetch response:", response.data);
+
+        // Normalize data (adjust based on Courses table schema)
+        const courseData = {
+          id: response.data.id,
+          name:
+            response.data.name ||
+            response.data.title ||
+            response.data.courseTitle,
+          price: parseFloat(response.data.price || response.data.coursePrice),
+        };
+
+        if (
+          !courseData.id ||
+          !courseData.name ||
+          isNaN(courseData.price) ||
+          courseData.price <= 0
+        ) {
+          throw new Error(
+            "Invalid course data: missing id, name, or valid price"
+          );
+        }
+
+        setCourse(courseData);
         setLoading(false);
       } catch (err) {
-        console.error("Fetch course error:", err);
-        toast.error("Failed to load course");
+        console.error("Fetch course error:", {
+          message: err.message,
+          status: err.response?.status,
+          data: err.response?.data,
+        });
+        toast.error(err.response?.data?.error || "Failed to load course");
         setLoading(false);
       }
     };
@@ -243,7 +272,7 @@ const CourseView = () => {
   const handleEnroll = async () => {
     const token = localStorage.getItem("token");
     console.log("Enroll Now clicked:", {
-      courseId,
+      courseId: course?.id,
       courseName: course?.name,
       coursePrice: course?.price,
       token: token ? `${token.substring(0, 20)}...` : "None",
@@ -255,19 +284,23 @@ const CourseView = () => {
       return;
     }
 
-    if (!course) {
-      toast.error("Course data not loaded");
+    if (!course || !course.id || !course.name || !course.price) {
+      console.error("Course data incomplete:", course);
+      toast.error("Course data not loaded properly");
       return;
     }
 
     try {
+      const payload = {
+        courseId: course.id,
+        courseName: course.name,
+        coursePrice: course.price,
+      };
+      console.log("Sending checkout request:", payload);
+
       const response = await axios.post(
         `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
-        {
-          courseId: course.id,
-          courseName: course.name,
-          coursePrice: course.price,
-        },
+        payload,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -305,7 +338,7 @@ const CourseView = () => {
   return (
     <div className="course-view-container">
       <h2>{course.name}</h2>
-      <p>Price: ${course.price}</p>
+      <p>Price: ${course.price.toFixed(2)}</p>
       <button onClick={handleEnroll} className="enroll-button">
         Enroll Now
       </button>
@@ -313,4 +346,4 @@ const CourseView = () => {
   );
 };
 
-export default CourseView;
+export default CourseViewer;
