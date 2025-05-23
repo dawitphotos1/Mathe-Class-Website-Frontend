@@ -153,7 +153,6 @@
 
 
 
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
@@ -173,11 +172,6 @@ const CourseViewer = () => {
     const fetchCourse = async () => {
       try {
         const token = localStorage.getItem("token");
-        console.log("Fetching course:", {
-          courseId,
-          token: token ? `${token.substring(0, 20)}...` : "None",
-        });
-
         if (!token) {
           toast.error("Please log in to view courses");
           navigate("/login");
@@ -191,11 +185,9 @@ const CourseViewer = () => {
           }
         );
 
-        console.log("Course fetch response:", response.data);
-
         const courseData = {
           id: response.data.id,
-          name: response.data.name, // ✅ Use actual backend field
+          name: response.data.name,
           price: parseFloat(response.data.price),
         };
 
@@ -205,20 +197,14 @@ const CourseViewer = () => {
           isNaN(courseData.price) ||
           courseData.price <= 0
         ) {
-          throw new Error(
-            "Invalid course data: missing id, name, or valid price"
-          );
+          throw new Error("Invalid course data");
         }
 
         setCourse(courseData);
         setLoading(false);
       } catch (err) {
-        console.error("Fetch course error:", {
-          message: err.message,
-          status: err.response?.status,
-          data: err.response?.data,
-        });
-        toast.error(err.response?.data?.error || "Failed to load course");
+        console.error("Fetch course error:", err);
+        toast.error("Failed to load course");
         setLoading(false);
       }
     };
@@ -227,36 +213,26 @@ const CourseViewer = () => {
 
   const handleEnroll = async () => {
     const token = localStorage.getItem("token");
-    console.log("Enroll Now clicked:", {
-      courseId: course?.id,
-      courseName: course?.name,
-      coursePrice: course?.price,
-      token: token ? `${token.substring(0, 20)}...` : "None",
-    });
-
     if (!token) {
       toast.error("Please log in to enroll");
       navigate("/login");
       return;
     }
 
-    if (!course || !course.id || !course.name || !course.price) {
-      console.error("Course data incomplete:", course);
-      toast.error("Course data not loaded properly");
-      return;
-    }
+    console.log("✅ Sending to checkout:", {
+      courseId: course?.id,
+      courseName: course?.name,
+      coursePrice: course?.price,
+    });
 
     try {
-      const payload = {
-        courseId: course.id,
-        courseName: course.name, // ✅ Correct field name
-        coursePrice: course.price,
-      };
-      console.log("Sending checkout request:", payload);
-
       const response = await axios.post(
         `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
-        payload,
+        {
+          courseId: course.id,
+          courseName: String(course.name),
+          coursePrice: parseFloat(course.price),
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -266,22 +242,12 @@ const CourseViewer = () => {
         }
       );
 
-      console.log("Checkout session response:", response.data);
       const stripe = await stripePromise;
-      const { error } = await stripe.redirectToCheckout({
+      await stripe.redirectToCheckout({
         sessionId: response.data.sessionId,
       });
-
-      if (error) {
-        console.error("Stripe redirect error:", error);
-        toast.error(`Failed to redirect to checkout: ${error.message}`);
-      }
     } catch (err) {
-      console.error("Enroll error:", {
-        message: err.message,
-        status: err.response?.status,
-        data: err.response?.data,
-      });
+      console.error("❌ Enroll error:", err.response?.data || err.message);
       toast.error(
         err.response?.data?.error || "Failed to create checkout session"
       );
