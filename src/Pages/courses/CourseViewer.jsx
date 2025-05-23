@@ -195,21 +195,18 @@ const CourseViewer = () => {
 
         const courseData = {
           id: response.data.id,
-          title:
-            response.data.title ||
-            response.data.name ||
-            response.data.courseTitle,
-          price: parseFloat(response.data.price || response.data.coursePrice),
+          name: response.data.name, // ✅ Use actual backend field
+          price: parseFloat(response.data.price),
         };
 
         if (
           !courseData.id ||
-          !courseData.title ||
+          !courseData.name ||
           isNaN(courseData.price) ||
           courseData.price <= 0
         ) {
           throw new Error(
-            "Invalid course data: missing id, title, or valid price"
+            "Invalid course data: missing id, name, or valid price"
           );
         }
 
@@ -232,7 +229,7 @@ const CourseViewer = () => {
     const token = localStorage.getItem("token");
     console.log("Enroll Now clicked:", {
       courseId: course?.id,
-      courseName: course?.title,
+      courseName: course?.name,
       coursePrice: course?.price,
       token: token ? `${token.substring(0, 20)}...` : "None",
     });
@@ -243,7 +240,7 @@ const CourseViewer = () => {
       return;
     }
 
-    if (!course || !course.id || !course.title || !course.price) {
+    if (!course || !course.id || !course.name || !course.price) {
       console.error("Course data incomplete:", course);
       toast.error("Course data not loaded properly");
       return;
@@ -252,7 +249,7 @@ const CourseViewer = () => {
     try {
       const payload = {
         courseId: course.id,
-        courseName: course.title,
+        courseName: course.name, // ✅ Correct field name
         coursePrice: course.price,
       };
       console.log("Sending checkout request:", payload);
@@ -296,7 +293,7 @@ const CourseViewer = () => {
 
   return (
     <div className="course-view-container">
-      <h2>{course.title}</h2>
+      <h2>{course.name}</h2>
       <p>Price: ${course.price.toFixed(2)}</p>
       <button onClick={handleEnroll} className="enroll-button">
         Enroll Now
