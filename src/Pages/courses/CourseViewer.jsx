@@ -152,7 +152,6 @@
 // export default CourseViewer;
 
 
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
@@ -185,52 +184,65 @@ const CourseViewer = () => {
           }
         );
 
-        const courseData = {
-          id: response.data.id,
-          name: response.data.name,
-          price: parseFloat(response.data.price),
+        const courseData = response.data;
+
+        const formatted = {
+          id: courseData.id,
+          name: courseData.name || courseData.title || "Untitled Course",
+          price: parseFloat(courseData.price),
         };
 
         if (
-          !courseData.id ||
-          !courseData.name ||
-          isNaN(courseData.price) ||
-          courseData.price <= 0
+          !formatted.id ||
+          !formatted.name ||
+          isNaN(formatted.price) ||
+          formatted.price <= 0
         ) {
           throw new Error("Invalid course data");
         }
 
-        setCourse(courseData);
+        setCourse(formatted);
         setLoading(false);
       } catch (err) {
-        console.error("Fetch course error:", err);
+        console.error(
+          "❌ Fetch course error:",
+          err.response?.data || err.message
+        );
         toast.error("Failed to load course");
         setLoading(false);
       }
     };
+
     fetchCourse();
   }, [courseId, navigate]);
 
   const handleEnroll = async () => {
     const token = localStorage.getItem("token");
+
     if (!token) {
       toast.error("Please log in to enroll");
       navigate("/login");
       return;
     }
 
+    if (!course || !course.id || !course.name || isNaN(course.price)) {
+      console.error("🚫 Invalid course object:", course);
+      toast.error("Course data not loaded properly");
+      return;
+    }
+
     console.log("✅ Sending to checkout:", {
-      courseId: course?.id,
-      courseName: course?.name,
-      coursePrice: course?.price,
+      courseId: course.id,
+      courseName: course.name,
+      coursePrice: course.price,
     });
 
     try {
       const response = await axios.post(
         `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
         {
-          courseId: course.id,
-          courseName: String(course.name),
+          courseId: String(course.id),
+          courseName: course.name,
           coursePrice: parseFloat(course.price),
         },
         {
@@ -248,9 +260,7 @@ const CourseViewer = () => {
       });
     } catch (err) {
       console.error("❌ Enroll error:", err.response?.data || err.message);
-      toast.error(
-        err.response?.data?.error || "Failed to create checkout session"
-      );
+      toast.error(err.response?.data?.error || "Enrollment failed");
     }
   };
 
