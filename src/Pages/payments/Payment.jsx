@@ -1,22 +1,9 @@
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { loadStripe } from "@stripe/stripe-js";
-import { API_BASE_URL, STRIPE_PUBLIC_KEY } from "../../config";
+import { API_BASE_URL } from "../../config";
 import { toast } from "react-toastify";
 import "./Payment.css";
-
-const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
-
-const courseDetails = {
-  7: { title: "Algebra 1", price: 1200 },
-  8: { title: "Algebra 2", price: 1200 },
-  9: { title: "Pre-Calculus", price: 1200 },
-  10: { title: "Calculus", price: 1250 },
-  11: { title: "Geometry & Trigonometry", price: 1250 },
-  12: { title: "Statistics & Probability", price: 1250 },
-};
 
 const Payment = () => {
   const { courseId } = useParams();
@@ -41,33 +28,70 @@ const Payment = () => {
       return;
     }
 
-    const course = courseDetails[courseId];
-    if (!course) {
-      toast.error("Invalid course selected");
-      setError("Invalid course selected");
-      return;
-    }
+    const fetchCourse = async () => {
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/api/v1/courses/${courseId}`
+        );
+        if (response.data.success) {
+          setCourseInfo({
+            id: response.data.id,
+            title: response.data.title,
+            price: Number(response.data.price),
+          });
+        } else {
+          throw new Error(response.data.error || "Failed to fetch course");
+        }
+      } catch (err) {
+        const errorMessage =
+          err.response?.data?.error || "Invalid course selected";
+        setError(errorMessage);
+        toast.error(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    setCourseInfo(course);
-    setLoading(false);
+    if (courseId) {
+      fetchCourse();
+    } else {
+      setError("Invalid course ID");
+      toast.error("Invalid course ID");
+      setLoading(false);
+    }
   }, [courseId, navigate]);
 
   const handleConfirmPayment = async () => {
+    if (!courseInfo) {
+      toast.error("Course information not available");
+      return;
+    }
+
     setRedirecting(true);
     try {
       const token = localStorage.getItem("token");
-      const user = JSON.parse(localStorage.getItem("user"));
+      if (!token) {
+        toast.error("Please log in to proceed with payment");
+        navigate("/login");
+        return;
+      }
+
+      console.log(
+        "Payment - Sending request to:",
+        `${API_BASE_URL}/api/v1/payments/create-checkout-session`
+      );
+      console.log("Payment - Payload:", {
+        courseId: String(courseId),
+        courseName: courseInfo.title,
+        coursePrice: courseInfo.price,
+      });
 
       const response = await axios.post(
         `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
         {
-          courseId,
-          userData: {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-          },
+          courseId: String(courseId),
+          courseName: courseInfo.title,
+          coursePrice: courseInfo.price,
         },
         {
           headers: {
@@ -77,15 +101,8 @@ const Payment = () => {
         }
       );
 
-      const stripe = await stripePromise;
-      const { error: stripeError } = await stripe.redirectToCheckout({
-        sessionId: response.data.id,
-      });
-
-      if (stripeError) {
-        setError(stripeError.message);
-        toast.error(stripeError.message);
-      }
+      // Redirect to Stripe checkout URL
+      window.location.href = response.data.url;
     } catch (err) {
       const errorMessage =
         err.response?.data?.error || "Failed to initiate payment";

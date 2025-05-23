@@ -52,3 +52,5 @@ coverage/
 
 # Firebase configuration (if sensitive)
 src/firebase.js
+# Local Netlify folder
+.netlify
