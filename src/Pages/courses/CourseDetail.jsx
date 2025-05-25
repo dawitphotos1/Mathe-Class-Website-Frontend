@@ -4,7 +4,6 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { API_BASE_URL } from "../../config";
 import "./CourseDetail.css";
-
 // 🔁 Map slugs to numeric IDs for Stripe pricing
 const slugToIdMap = {
   "algebra-1": 7,
@@ -20,6 +19,7 @@ const courseData = {
     title: "Algebra 1",
     description:
       "Master the fundamentals of algebra through engaging lessons, visuals, and real-world applications.",
+    price: 1200.00,
     contents: [
       {
         unit: "Unit 0 - Review of Prerequisite Skills",
@@ -156,6 +156,7 @@ const courseData = {
     title: "Algebra 2",
     description:
       "Explore equations, functions, systems, matrices, radicals, polynomials, logarithms, conics, sequences, and trigonometry.",
+    price: 1200.00,
     contents: [
       {
         unit: "Chapter 1: Equations and Inequalities",
@@ -330,6 +331,7 @@ const courseData = {
     title: "Pre-Calculus",
     description:
       "This two-semester course prepares students for calculus through a deep study of algebra, trigonometry, and analytical geometry.",
+    price: 1200.00, // Added price
     contents: [
       {
         unit: "Unit 1: Algebraic Functions",
@@ -454,6 +456,7 @@ const courseData = {
     title: "Calculus",
     description:
       "A comprehensive AP-level calculus course covering limits, derivatives, integrals, differential equations, and applications — aligned with both AB and BC curriculum tracks.",
+    price: 1250.00,
     contents: [
       {
         unit: "Unit 0 – Calc Prerequisites",
@@ -641,6 +644,7 @@ const courseData = {
     title: "Geometry & Trigonometry",
     description:
       "A complete course covering foundational geometry, triangle properties, right triangle trigonometry, quadrilaterals, circles, polygons, 3D figures, and transformations.",
+    price: 1250.00,
     contents: [
       {
         unit: "Part 1 – Geometry",
@@ -787,6 +791,7 @@ const courseData = {
     title: "Statistics & Probability",
     description:
       "This course introduces students to the principles of statistics and probability including data analysis, measures of center and spread, modeling distributions, bivariate data, study design, and combinatorics.",
+    price: 1250.00,
     contents: [
       {
         unit: "Unit 1: Analyzing Categorical Data",
@@ -924,30 +929,30 @@ const courseData = {
     ],
   },
 };
-
 const CourseDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
   const isStudent = user?.role === "student";
   const courseNumericId = slugToIdMap[id];
-
   const course = courseData[id];
 
   const handleEnrollClick = async () => {
-    console.log("Enroll - User:", user);
+    console.log("Attempting to Enroll - User:", user);
     console.log("Enroll - Course ID:", courseNumericId);
     console.log(
       "Enroll - Token:",
-      localStorage.getItem("token")?.substring(0, 20) + "..."
+      localStorage.getItem("token")?.slice(0, 10) + "..."
     );
+
     if (!user || !isStudent) {
       toast.error("Only students can enroll. Please log in as a student.");
       return navigate("/login");
     }
 
-    if (!courseNumericId) {
-      console.error("Invalid course ID for slug:", id);
+    if (!courseNumericId || !course?.title || !course.price) {
+      // Changed from coursePrice to course.price
+      console.error("Invalid course data:", { courseNumericId, course });
       toast.error("Missing required course details for enrollment.");
       return;
     }
@@ -955,8 +960,7 @@ const CourseDetail = () => {
     const token = localStorage.getItem("token");
     if (!token) {
       toast.error("Please log in to enroll");
-      navigate("/login");
-      return;
+      return navigate("/login");
     }
 
     try {
@@ -964,18 +968,26 @@ const CourseDetail = () => {
         "Enroll - Sending request to:",
         `${API_BASE_URL}/api/v1/payments/create-checkout-session`
       );
-      console.log("Enroll - Payload:", { courseId: String(courseNumericId) });
+      console.log("Enroll payload:", {
+        courseId: String(courseNumericId),
+        courseName: course.title,
+        coursePrice: parseFloat(course.price),
+      });
       const response = await axios.post(
         `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
-        { courseId: String(courseNumericId) },
+        {
+          courseId: String(courseNumericId),
+          courseName: course.title,
+          coursePrice: course.price,
+        },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
       window.location.href = response.data.url;
     } catch (err) {
-      console.error("Enroll error:", err.response?.data);
-      toast.error(err.response?.data?.error || "Failed to initiate enrollment");
+      console.error("Enroll error:", err.response?.data?.error || err);
+      toast.error(err.response?.data?.error || "Failed to enroll");
     }
   };
 
@@ -988,11 +1000,12 @@ const CourseDetail = () => {
       <div className="course-header">
         <h1>{course.title}</h1>
         <p className="course-description">{course.description}</p>
+        <p className="course-price">Price: ${course.price?.toFixed(2)}</p>
       </div>
 
       <div className="course-content">
         {course.contents.map((section, index) => (
-          <div className="unit-card" key={index}>
+          <div className="unit" key={index}>
             <h2 className="unit-title">{section.unit}</h2>
             <ul className="lesson-list">
               {section.lessons.map((lesson, idx) => (
