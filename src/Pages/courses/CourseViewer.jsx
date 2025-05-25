@@ -186,13 +186,15 @@ const CourseViewer = () => {
           }
         );
 
-        const courseData = response.data;
+        console.log("🎯 Full course object fetched:", response.data);
 
         const formatted = {
-          id: courseData.id,
-          name: courseData.title, // ✅ Use the correct field name
-          price: parseFloat(courseData.price),
+          id: response.data.id,
+          name: response.data.title, // ✅ Must match actual backend field
+          price: parseFloat(response.data.price),
         };
+
+        console.log("✅ Prepared course data:", formatted);
 
         if (
           !formatted.id ||
