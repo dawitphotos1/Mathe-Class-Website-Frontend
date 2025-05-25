@@ -152,6 +152,8 @@
 // export default CourseViewer;
 
 
+
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
@@ -188,7 +190,7 @@ const CourseViewer = () => {
 
         const formatted = {
           id: courseData.id,
-          name: courseData.name || courseData.title || "Untitled Course",
+          name: courseData.title, // ✅ Use the correct field name
           price: parseFloat(courseData.price),
         };
 
