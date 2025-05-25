@@ -189,8 +189,8 @@ const CourseViewer = () => {
         const { id, title, price } = response.data;
 
         const formatted = {
-          id,
-          name: title,
+          id: id?.toString(), // Ensure it's a string
+          name: title?.toString(), // Ensure it's a string
           price: parseFloat(price),
         };
 
@@ -230,14 +230,19 @@ const CourseViewer = () => {
       return;
     }
 
+    // ✅ Show exact payload before sending
+    const payload = {
+      courseId: course.id,
+      courseName: course.name,
+      coursePrice: course.price,
+    };
+
+    console.log("✅ Sending checkout payload:", payload);
+
     try {
       const response = await axios.post(
         `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
-        {
-          courseId: String(course.id),
-          courseName: course.name,
-          coursePrice: parseFloat(course.price),
-        },
+        payload,
         {
           headers: {
             Authorization: `Bearer ${token}`,
