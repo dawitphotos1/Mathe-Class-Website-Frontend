@@ -153,7 +153,6 @@
 
 
 
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
@@ -186,22 +185,18 @@ const CourseViewer = () => {
           }
         );
 
-        console.log("🎯 Full course object fetched:", response.data);
+        // ✅ Extract only the needed data
+        const { id, title, price } = response.data;
 
         const formatted = {
-          id: response.data.id,
-          name: response.data.title, // ✅ Must match actual backend field
-          price: parseFloat(response.data.price),
+          id,
+          name: title,
+          price: parseFloat(price),
         };
 
-        console.log("✅ Prepared course data:", formatted);
+        console.log("✅ Final course data:", formatted);
 
-        if (
-          !formatted.id ||
-          !formatted.name ||
-          isNaN(formatted.price) ||
-          formatted.price <= 0
-        ) {
+        if (!formatted.id || !formatted.name || isNaN(formatted.price)) {
           throw new Error("Invalid course data");
         }
 
@@ -234,12 +229,6 @@ const CourseViewer = () => {
       toast.error("Course data not loaded properly");
       return;
     }
-
-    console.log("✅ Sending to checkout:", {
-      courseId: course.id,
-      courseName: course.name,
-      coursePrice: course.price,
-    });
 
     try {
       const response = await axios.post(
