@@ -1,20 +1,19 @@
-// Mathe-Class-Website-Frontend/src/Pages/courses/CourseDetail.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { API_BASE_URL, STRIPE_PUBLIC_KEY } from "../../config";
+import { API_BASE_URL } from "../../config";
 import "./CourseDetail.css";
 
-// Inverse mapping for accessing courseData by ID
-const idToCourse = {
-  7: "algebra-1",
-  8: "algebra-2",
-  9: "pre-calculus",
-  10: "calculus",
-  11: "geometry-trigonometry",
-  12: "statistics-probability",
+const slugToIdMap = {
+  "algebra-1": 7,
+  "algebra-2": 8,
+  "pre-calculus": 9,
+  calculus: 10,
+  "geometry-trigonometry": 11,
+  "statistics-probability": 12,
 };
+
 const courseData = {
   "algebra-1": {
     contents: [
@@ -908,165 +907,91 @@ const courseData = {
 const CourseDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [course, setCourse] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      }
-    } catch (err) {
-      console.error("Error parsing user data:", err);
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-      toast.error("Session invalid. Please log in again.");
-      navigate("/login");
-    }
-  }, [navigate]);
-
+  const user = JSON.parse(localStorage.getItem("user"));
   const isStudent = user?.role === "student";
+  const [course, setCourse] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          throw new Error("Please log in to view course details");
-        }
-
         const response = await axios.get(
-          `${API_BASE_URL}/api/v1/courses/${id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          `${API_BASE_URL}/api/v1/courses/${slugToIdMap[id]}`
         );
-
         if (!response.data.success) {
           throw new Error(response.data.error || "Failed to fetch course");
         }
-
         const backendCourse = response.data;
-        const courseSlug = idToCourse[id] || "";
-        const contents = courseData[courseSlug]?.contents || [];
-        const unitCount = contents.length;
-        const lessonCount = contents.reduce(
-          (acc, curr) => acc + curr.lessons.length,
-          0
-        );
-
         setCourse({
           id: backendCourse.id,
           title: backendCourse.title,
-          price: parseFloat(backendCourse.price) || 0.0,
-          description: backendCourse.description || "No description available.",
-          contents,
-          teacher: backendCourse.teacher || { name: "Unknown Instructor" },
-          unitCount,
-          lessonCount,
+          price: backendCourse.price,
+          description: backendCourse.description,
+          contents: courseData[id]?.contents || [],
+          teacher: backendCourse.teacher || { name: "Unknown" },
+          unitCount: backendCourse.unitCount || 0,
+          lessonCount: backendCourse.lessonCount || 0,
         });
         setError(null);
       } catch (err) {
-        console.error("Fetch course error:", {
-          message: err.message,
-          status: err.response?.status,
-          data: err.response?.data,
-        });
-        const errorMsg =
-          err.response?.status === 401
-            ? "Session expired. Please log in again."
-            : err.response?.status === 404
-            ? "Course not found"
-            : err.response?.data?.error || "Failed to load course";
-        setError(errorMsg);
-        toast.error(errorMsg);
-        if (err.response?.status === 401) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          navigate("/login");
-        }
-      } finally {
-        setLoading(false);
+        console.error("Fetch course error:", err);
+        setError(err.response?.data?.details || "Failed to load course");
+        toast.error("Failed to load course");
       }
     };
-
     fetchCourse();
-  }, [id, navigate]);
+  }, [id]);
 
   const handleEnrollClick = async () => {
-    if (!user) {
-      toast.error("Please log in to enroll");
-      navigate("/login");
-      return;
+    if (!user || !isStudent) {
+      toast.error("Only students can enroll. Please log in as a student.");
+      return navigate("/login");
     }
 
-    if (!isStudent) {
-      toast.error("Only students can enroll");
-      return;
-    }
-
-    if (!course?.id || !course.title || isNaN(course.price)) {
+    if (!course?.id || !course.title || !course.price) {
       console.error("Invalid course data:", course);
-      toast.error("Missing course details");
+      toast.error("Missing course details.");
       return;
     }
 
     const token = localStorage.getItem("token");
     if (!token) {
       toast.error("Please log in to enroll");
-      navigate("/login");
-      return;
+      return navigate("/login");
     }
 
     try {
-      const { loadStripe } = await import("@stripe/stripe-js");
-      const stripe = await loadStripe(STRIPE_PUBLIC_KEY);
-      if (!stripe) {
-        throw new Error("Failed to initialize Stripe");
-      }
-
-      const payload = {
+      console.log("Enroll payload:", {
         courseId: String(course.id),
         courseName: course.title,
-        coursePrice: course.price,
-      };
-      console.log("Enroll payload:", payload);
-
+        coursePrice: parseFloat(course.price),
+      });
+      const { loadStripe } = await import("@stripe/stripe-js");
+      const stripe = await loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
       const response = await axios.post(
         `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
-        payload,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
+          courseId: String(course.id),
+          courseName: course.title,
+          coursePrice: parseFloat(course.price),
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-
       await stripe.redirectToCheckout({ sessionId: response.data.sessionId });
     } catch (err) {
-      console.error("Enroll error:", {
-        message: err.message,
-        data: err.response?.data,
-      });
-      toast.error(err.response?.data?.error || "Enrollment failed");
+      console.error("Enroll error:", err.response?.data || err);
+      toast.error(err.response?.data?.error || "Failed to enroll");
     }
   };
-
-  if (loading) {
-    return <div className="loading">Loading course details...</div>;
-  }
 
   if (error) {
     return <div className="error">❌ Error: {error}</div>;
   }
 
   if (!course) {
-    return <div className="error">❌ Course not found</div>;
+    return <div className="error">❌ Loading...</div>;
   }
 
   return (
@@ -1076,30 +1001,22 @@ const CourseDetail = () => {
         <p className="course-description">{course.description}</p>
         <p className="course-price">Price: ${course.price.toFixed(2)}</p>
         <p className="course-teacher">Teacher: {course.teacher.name}</p>
-        <p className="course-stats">Units: {course.unitCount}</p>
-        <p className="course-stats">Lessons: {course.lessonCount}</p>
+        <p className="course-units">Units: {course.unitCount}</p>
+        <p className="course-lessons">Lessons: {course.lessonCount}</p>
       </div>
       <div className="course-content">
-        {course.contents.length > 0 ? (
-          course.contents.map((section, index) => (
-            <div className="unit" key={index}>
-              <h3 className="unit-title">{section.unit}</h3>
-              <ul className="lesson-list">
-                {section.lessons.length > 0 ? (
-                  section.lessons.map((lesson, idx) => (
-                    <li key={idx} className="lesson-item">
-                      {lesson}
-                    </li>
-                  ))
-                ) : (
-                  <li className="lesson-item">No lessons available</li>
-                )}
-              </ul>
-            </div>
-          ))
-        ) : (
-          <p>No course content available</p>
-        )}
+        {course.contents.map((section, index) => (
+          <div className="unit" key={index}>
+            <h2 className="unit-title">{section.unit}</h2>
+            <ul className="lesson-list">
+              {section.lessons.map((lesson, idx) => (
+                <li key={idx} className="lesson-item">
+                  {lesson}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
       <div className="course-footer">
         {isStudent && (
