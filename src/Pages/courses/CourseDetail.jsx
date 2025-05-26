@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { API_BASE_URL } from "../../config";
 import "./CourseDetail.css";
-// 🔁 Map slugs to numeric IDs for Stripe pricing
+
 const slugToIdMap = {
   "algebra-1": 7,
   "algebra-2": 8,
@@ -16,10 +16,6 @@ const slugToIdMap = {
 
 const courseData = {
   "algebra-1": {
-    title: "Algebra 1",
-    description:
-      "Master the fundamentals of algebra through engaging lessons, visuals, and real-world applications.",
-    price: 1200.00,
     contents: [
       {
         unit: "Unit 0 - Review of Prerequisite Skills",
@@ -151,12 +147,7 @@ const courseData = {
       },
     ],
   },
-
   "algebra-2": {
-    title: "Algebra 2",
-    description:
-      "Explore equations, functions, systems, matrices, radicals, polynomials, logarithms, conics, sequences, and trigonometry.",
-    price: 1200.00,
     contents: [
       {
         unit: "Chapter 1: Equations and Inequalities",
@@ -328,10 +319,6 @@ const courseData = {
     ],
   },
   "pre-calculus": {
-    title: "Pre-Calculus",
-    description:
-      "This two-semester course prepares students for calculus through a deep study of algebra, trigonometry, and analytical geometry.",
-    price: 1200.00, // Added price
     contents: [
       {
         unit: "Unit 1: Algebraic Functions",
@@ -453,10 +440,6 @@ const courseData = {
     ],
   },
   calculus: {
-    title: "Calculus",
-    description:
-      "A comprehensive AP-level calculus course covering limits, derivatives, integrals, differential equations, and applications — aligned with both AB and BC curriculum tracks.",
-    price: 1250.00,
     contents: [
       {
         unit: "Unit 0 – Calc Prerequisites",
@@ -641,10 +624,6 @@ const courseData = {
     ],
   },
   "geometry-trigonometry": {
-    title: "Geometry & Trigonometry",
-    description:
-      "A complete course covering foundational geometry, triangle properties, right triangle trigonometry, quadrilaterals, circles, polygons, 3D figures, and transformations.",
-    price: 1250.00,
     contents: [
       {
         unit: "Part 1 – Geometry",
@@ -786,12 +765,7 @@ const courseData = {
       },
     ],
   },
-
   "statistics-probability": {
-    title: "Statistics & Probability",
-    description:
-      "This course introduces students to the principles of statistics and probability including data analysis, measures of center and spread, modeling distributions, bivariate data, study design, and combinatorics.",
-    price: 1250.00,
     contents: [
       {
         unit: "Unit 1: Analyzing Categorical Data",
@@ -929,31 +903,54 @@ const courseData = {
     ],
   },
 };
+
 const CourseDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
   const isStudent = user?.role === "student";
-  const courseNumericId = slugToIdMap[id];
-  const course = courseData[id];
+  const [course, setCourse] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchCourse = async () => {
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/api/v1/courses/${slugToIdMap[id]}`
+        );
+        if (!response.data.success) {
+          throw new Error(response.data.error || "Failed to fetch course");
+        }
+        const backendCourse = response.data;
+        setCourse({
+          id: backendCourse.id,
+          title: backendCourse.title,
+          price: backendCourse.price,
+          description: backendCourse.description,
+          contents: courseData[id]?.contents || [],
+          teacher: backendCourse.teacher || { name: "Unknown" },
+          unitCount: backendCourse.unitCount || 0,
+          lessonCount: backendCourse.lessonCount || 0,
+        });
+        setError(null);
+      } catch (err) {
+        console.error("Fetch course error:", err);
+        setError(err.response?.data?.details || "Failed to load course");
+        toast.error("Failed to load course");
+      }
+    };
+    fetchCourse();
+  }, [id]);
 
   const handleEnrollClick = async () => {
-    console.log("Attempting to Enroll - User:", user);
-    console.log("Enroll - Course ID:", courseNumericId);
-    console.log(
-      "Enroll - Token:",
-      localStorage.getItem("token")?.slice(0, 10) + "..."
-    );
-
     if (!user || !isStudent) {
       toast.error("Only students can enroll. Please log in as a student.");
       return navigate("/login");
     }
 
-    if (!courseNumericId || !course?.title || !course.price) {
-      // Changed from coursePrice to course.price
-      console.error("Invalid course data:", { courseNumericId, course });
-      toast.error("Missing required course details for enrollment.");
+    if (!course?.id || !course.title || !course.price) {
+      console.error("Invalid course data:", course);
+      toast.error("Missing course details.");
       return;
     }
 
@@ -964,35 +961,37 @@ const CourseDetail = () => {
     }
 
     try {
-      console.log(
-        "Enroll - Sending request to:",
-        `${API_BASE_URL}/api/v1/payments/create-checkout-session`
-      );
       console.log("Enroll payload:", {
-        courseId: String(courseNumericId),
+        courseId: String(course.id),
         courseName: course.title,
         coursePrice: parseFloat(course.price),
       });
+      const { loadStripe } = await import("@stripe/stripe-js");
+      const stripe = await loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
       const response = await axios.post(
         `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
         {
-          courseId: String(courseNumericId),
+          courseId: String(course.id),
           courseName: course.title,
-          coursePrice: course.price,
+          coursePrice: parseFloat(course.price),
         },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      window.location.href = response.data.url;
+      await stripe.redirectToCheckout({ sessionId: response.data.sessionId });
     } catch (err) {
-      console.error("Enroll error:", err.response?.data?.error || err);
+      console.error("Enroll error:", err.response?.data || err);
       toast.error(err.response?.data?.error || "Failed to enroll");
     }
   };
 
+  if (error) {
+    return <div className="error">❌ Error: {error}</div>;
+  }
+
   if (!course) {
-    return <div className="error">❌ Course not found.</div>;
+    return <div className="error">❌ Loading...</div>;
   }
 
   return (
@@ -1000,9 +999,11 @@ const CourseDetail = () => {
       <div className="course-header">
         <h1>{course.title}</h1>
         <p className="course-description">{course.description}</p>
-        <p className="course-price">Price: ${course.price?.toFixed(2)}</p>
+        <p className="course-price">Price: ${course.price.toFixed(2)}</p>
+        <p className="course-teacher">Teacher: {course.teacher.name}</p>
+        <p className="course-units">Units: {course.unitCount}</p>
+        <p className="course-lessons">Lessons: {course.lessonCount}</p>
       </div>
-
       <div className="course-content">
         {course.contents.map((section, index) => (
           <div className="unit" key={index}>
@@ -1017,7 +1018,6 @@ const CourseDetail = () => {
           </div>
         ))}
       </div>
-
       <div className="course-footer">
         {isStudent && (
           <button className="btn-enroll" onClick={handleEnrollClick}>

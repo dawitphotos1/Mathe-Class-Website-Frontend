@@ -87,12 +87,11 @@
 
 
 
-
 import React from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { API_BASE_URL } from "../../config";
 import { toast } from "react-toastify";
+import { API_BASE_URL } from "../../config";
 import "./CourseCard.css";
 
 const CourseCard = ({ course, user }) => {
@@ -115,7 +114,6 @@ const CourseCard = ({ course, user }) => {
 
   const handleEnroll = async () => {
     const token = localStorage.getItem("token");
-
     if (!token || !user) {
       toast.error("Please log in to enroll.");
       return;
@@ -133,6 +131,8 @@ const CourseCard = ({ course, user }) => {
         courseName: course.title,
         coursePrice: parseFloat(course.price),
       });
+      const { loadStripe } = await import("@stripe/stripe-js");
+      const stripe = await loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
       const res = await axios.post(
         `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
         {
@@ -142,7 +142,7 @@ const CourseCard = ({ course, user }) => {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      window.location.href = res.data.url;
+      await stripe.redirectToCheckout({ sessionId: res.data.sessionId });
     } catch (err) {
       console.error("❌ Stripe error:", err.response?.data || err);
       toast.error(err.response?.data?.error || "Failed to initiate payment.");
@@ -161,21 +161,25 @@ const CourseCard = ({ course, user }) => {
         <p className="course-description">{course.description}</p>
         <div className="course-meta">
           <span className={`difficulty-badge ${course.difficulty}`}>
-            {course.difficulty}
+            {course.difficulty || "Unknown"}
           </span>
           <span className="price">${course.price}</span>
         </div>
         <div className="action-buttons">
-          <Link to={`/courses/${course.id}`} className="btn btn-primary">
+          <Link
+            to={`/course/${course.title
+              .toLowerCase()
+              .replace(/ & /g, "-")
+              .replace(/ /g, "-")}`}
+            className="btn btn-primary"
+          >
             View Course
           </Link>
-
           {user?.role === "student" && (
             <button className="btn btn-primary" onClick={handleEnroll}>
               Enroll Now
             </button>
           )}
-
           {user?.id === course.teacherId && (
             <button className="btn btn-outline" onClick={handleDelete}>
               Delete
