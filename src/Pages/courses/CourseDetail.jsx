@@ -999,7 +999,7 @@ const CourseDetail = () => {
       <div className="course-header">
         <h1>{course.title}</h1>
         <p className="course-description">{course.description}</p>
-        <p className="course-price">Price: ${course.price.toFixed(2)}</p>
+        <p className="course-price">Price: ${Number(course.price || 0).toFixed(2)}</p>
         <p className="course-teacher">Teacher: {course.teacher.name}</p>
         <p className="course-units">Units: {course.unitCount}</p>
         <p className="course-lessons">Lessons: {course.lessonCount}</p>
