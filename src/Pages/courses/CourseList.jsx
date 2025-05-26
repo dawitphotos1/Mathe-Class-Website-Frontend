@@ -100,6 +100,8 @@
 // export default CourseList;
 
 
+
+
 // Mathe-Class-Website-Frontend/src/Pages/courses/CourseList.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -126,18 +128,45 @@ const CourseList = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/v1/courses`);
-        setCourses(response.data.courses);
-        setLoading(false);
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+        console.log("Fetching courses from:", `${API_BASE_URL}/api/v1/courses`);
+        const response = await axios.get(`${API_BASE_URL}/api/v1/courses`, {
+          headers,
+        });
+
+        if (!response.data.success) {
+          throw new Error(response.data.error || "Failed to fetch courses");
+        }
+
+        const fetchedCourses = response.data.courses || [];
+        console.log("Courses fetched:", fetchedCourses);
+        setCourses(fetchedCourses);
+        setError(null);
       } catch (err) {
-        console.error("Error fetching courses:", err);
-        setError(err.response?.data?.error || "Failed to fetch courses");
-        toast.error(err.response?.data?.error || "Failed to fetch courses");
+        console.error("Error fetching courses:", {
+          message: err.message,
+          status: err.response?.status,
+          data: err.response?.data,
+        });
+        const errorMsg =
+          err.response?.status === 401
+            ? "Please log in to view courses"
+            : err.response?.data?.error || "Failed to fetch courses";
+        setError(errorMsg);
+        toast.error(errorMsg);
+        if (err.response?.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/login");
+        }
+      } finally {
         setLoading(false);
       }
     };
     fetchCourses();
-  }, []);
+  }, [navigate]);
 
   const handleCourseClick = (id) => {
     navigate(`/courses/${id}`);
@@ -179,7 +208,7 @@ const CourseList = () => {
             </div>
           ))
         ) : (
-          <p>No courses available</p>
+          <p>No courses available. Please try again later.</p>
         )}
       </div>
     </div>
