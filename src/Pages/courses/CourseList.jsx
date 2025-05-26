@@ -100,8 +100,6 @@
 // export default CourseList;
 
 
-
-
 // Mathe-Class-Website-Frontend/src/Pages/courses/CourseList.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -148,40 +146,41 @@ const CourseList = () => {
   const formatPrice = (price) =>
     price == null || isNaN(price) ? "N/A" : Number(price).toFixed(2);
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div className="error">{error}</div>;
+  if (loading) {
+    return <div className="loading">Loading courses...</div>;
+  }
+
+  if (error) {
+    return <div className="error">❌ Error: {error}</div>;
+  }
 
   return (
     <div className="course-list">
-      <h2>Available Courses</h2>
-      <div className="courses-grid">
-        {courses.map((course) => (
-          <div
-            key={course.id}
-            className="course-card"
-            onClick={() => handleCourseClick(course.id)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === "Enter" && handleCourseClick(course.id)}
-            data-testid={`course-${course.id}`}
-          >
-            <img
-              src={
-                courseImages[course.title] || "/math-logos/default-course.jpg"
-              }
-              alt={course.title}
-              className="course-image"
-            />
-            <div className="course-info">
+      <h1>Available Courses</h1>
+      <div className="course-grid">
+        {courses.length > 0 ? (
+          courses.map((course) => (
+            <div
+              key={course.id}
+              className="course-card"
+              onClick={() => handleCourseClick(course.id)}
+            >
+              <img
+                src={courseImages[course.title] || "/math-logos/default.png"}
+                alt={course.title}
+                className="course-image"
+              />
               <h3>{course.title}</h3>
-              <p>{course.description || "No description available."}</p>
-              <p className="course-price">
-                Price: ${formatPrice(course.price)}
+              <p className="course-description">{course.description}</p>
+              <p className="course-price">Price: ${formatPrice(course.price)}</p>
+              <p className="course-teacher">
+                Teacher: {course.teacher?.name || "Unknown"}
               </p>
-              <button className="btn btn-primary">View Course</button>
             </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <p>No courses available</p>
+        )}
       </div>
     </div>
   );
