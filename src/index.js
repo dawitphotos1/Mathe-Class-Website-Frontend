@@ -3,7 +3,7 @@
 // import { createRoot } from "react-dom/client";
 // import { BrowserRouter } from "react-router-dom";
 // import axios from "axios";
-// import { ToastContainer, toast } from "react-toastify"; // Added toast import
+// import { ToastContainer, toast } from "react-toastify";
 // import "react-toastify/dist/ReactToastify.css";
 // import App from "./App";
 // import "./index.css";
@@ -36,7 +36,7 @@
 //         localStorage.removeItem("user");
 //         toast.error("Session expired. Please log in again.");
 //         window.location.href = "/login";
-//       }, 3000); // 3s delay for debugging
+//       }, 3000);
 //     } else if (error.code === "ERR_NETWORK") {
 //       console.log("Network error detected");
 //       toast.error("Network Error: Cannot connect to the server.");
@@ -45,6 +45,18 @@
 //     return Promise.reject(error);
 //   }
 // );
+
+// // Register Firebase service worker
+// if ("serviceWorker" in navigator) {
+//   navigator.serviceWorker
+//     .register("/firebase-messaging-sw.js")
+//     .then((registration) => {
+//       console.log("Firebase Service Worker registered:", registration);
+//     })
+//     .catch((err) => {
+//       console.error("Firebase Service Worker registration failed:", err);
+//     });
+// }
 
 // const root = createRoot(document.getElementById("root"));
 // root.render(
@@ -55,6 +67,9 @@
 // );
 
 
+
+
+// Mathe-Class-Website-Frontend/src/index.js
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
@@ -103,7 +118,11 @@ axios.interceptors.response.use(
 );
 
 // Register Firebase service worker
-if ("serviceWorker" in navigator) {
+if (
+  typeof window !== "undefined" &&
+  "serviceWorker" in navigator &&
+  !navigator.userAgent.includes("Node.js")
+) {
   navigator.serviceWorker
     .register("/firebase-messaging-sw.js")
     .then((registration) => {
