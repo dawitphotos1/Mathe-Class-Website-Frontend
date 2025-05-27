@@ -10,6 +10,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import Loading from "./components/Loading";
 import Contact from "./components/Contact"; // ✅ Correct import
 import Login from "./Pages/auth/Login"; // Assuming Login is here
+import PaymentSuccess from "./Pages/payments/PaymentSuccess"; // adjust path
+import PaymentCancel from "./Pages/payments/PaymentCancel"; // adjust path
 import "./App.css";
 
 // Retry wrapper for lazy loading
@@ -140,6 +142,8 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/register" element={<Register setUser={setUser} />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/payment-cancel" element={<PaymentCancel />} />
             <Route path="/login" element={<Login setUser={setUser} />} />
             <Route path="/courses" element={<CourseList />} />
             <Route path="/courses/:id" element={<CourseViewer />} />
