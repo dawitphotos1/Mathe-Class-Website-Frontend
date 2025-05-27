@@ -6,6 +6,7 @@
 //   "pk_test_51RGp1MPDOYB6WrY6eEc1GEtGRURKU9mcQ7zfNSefzRUJr9CTNEhrUamWbMK8e70ufxqLIof2PmBu1syoI8xwlgFi00T9XUdTSm";
 
 
+// src/config.js
 
 export const API_BASE_URL = process.env.REACT_APP_API_URL;
 
