@@ -213,12 +213,13 @@ const TeacherDashboard = () => {
             >
               ❌ Reject
             </button>
+            {/* ❌ Removed Delete button for teachers */}
           </div>
         )}
       </div>
     ));
   };
-
+  
   return (
     <div className="teacher-dashboard">
       <h1>Welcome, Teacher 👩‍🏫</h1>
