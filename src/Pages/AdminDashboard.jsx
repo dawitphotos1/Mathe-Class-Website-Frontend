@@ -422,7 +422,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `${API_BASE_URL}/api/v1/admin/enrollments/pending`,
+        `${API_BASE_URL}/api/v1/enrollments/pending`,
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
@@ -442,7 +442,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `${API_BASE_URL}/api/v1/admin/enrollments/approved`,
+        `${API_BASE_URL}/api/v1/enrollments/approved`,
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
