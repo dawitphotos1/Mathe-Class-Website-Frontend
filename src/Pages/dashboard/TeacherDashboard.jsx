@@ -115,144 +115,114 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "../../config";
 import { toast } from "react-toastify";
-import CourseEnrollments from "../courses/CourseEnrollmentList";
 import "./TeacherDashboard.css";
 
 const TeacherDashboard = () => {
-  const [pending, setPending] = useState([]);
-  const [approved, setApproved] = useState([]);
-  const [rejected, setRejected] = useState([]);
+  const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [userRole, setUserRole] = useState("");
 
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (user && user.role) {
-      setUserRole(user.role);
-    }
-    fetchAllStudents();
-  }, []);
-
-  const fetchAllStudents = async () => {
+  const fetchEnrollments = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const headers = { Authorization: `Bearer ${token}` };
-
-      const [pendingRes, approvedRes, rejectedRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/api/v1/users/pending`, { headers }),
-        axios.get(`${API_BASE_URL}/api/v1/users/approved`, { headers }),
-        axios.get(`${API_BASE_URL}/api/v1/users/rejected`, { headers }),
-      ]);
-
-      setPending(pendingRes.data);
-      setApproved(approvedRes.data);
-      setRejected(rejectedRes.data);
+      const res = await axios.get(
+        `${API_BASE_URL}/api/v1/admin/enrollments/pending`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setEnrollments(res.data);
     } catch (err) {
-      console.error("Error fetching student data:", err);
-      toast.error("Failed to load student data");
+      console.error("Failed to fetch enrollments", err);
+      toast.error("Could not load course enrollments");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleApprove = async (userId) => {
+  const handleApprove = async (userId, courseId) => {
     try {
       await axios.post(
-        `${API_BASE_URL}/api/v1/users/approve/${userId}`,
-        {},
+        `${API_BASE_URL}/api/v1/enrollments/approve`,
+        { userId, courseId },
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-      toast.success("Student approved");
-      fetchAllStudents();
-    } catch (err) {
-      console.error("Approve error:", err);
-      toast.error("Failed to approve student");
+      toast.success("Enrollment approved");
+      fetchEnrollments();
+    } catch {
+      toast.error("Failed to approve");
     }
   };
 
-  const handleReject = async (userId) => {
+  const handleReject = async (userId, courseId) => {
     try {
       await axios.post(
-        `${API_BASE_URL}/api/v1/users/reject/${userId}`,
-        {},
+        `${API_BASE_URL}/api/v1/enrollments/reject`,
+        { userId, courseId },
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-      toast.warn("Student rejected");
-      fetchAllStudents();
-    } catch (err) {
-      console.error("Reject error:", err);
-      toast.error("Failed to reject student");
+      toast.warn("Enrollment rejected");
+      fetchEnrollments();
+    } catch {
+      toast.error("Failed to reject");
     }
   };
 
-  const renderStudentList = (students, showActions = false) => {
-    if (students.length === 0) return <p>No students</p>;
-
-    return students.map((student) => (
-      <div key={student.id} className="student-card">
-        <div className="student-info">
-          <strong>{student.name}</strong> ({student.email})<br />
-          Subject: {student.subject || "N/A"}
-        </div>
-        {showActions && (
-          <div className="actions">
-            <button
-              className="btn-approve"
-              onClick={() => handleApprove(student.id)}
-            >
-              ✅ Approve
-            </button>
-            <button
-              className="btn-reject"
-              onClick={() => handleReject(student.id)}
-            >
-              ❌ Reject
-            </button>
-            {/* 🚫 NO DELETE BUTTON even if accidentally left in earlier */}
-            {userRole === "admin" && (
-              <button className="btn-delete" disabled>
-                🗑️ Delete (Admin Only)
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-    ));
-  };
+  useEffect(() => {
+    fetchEnrollments();
+  }, []);
 
   return (
     <div className="teacher-dashboard">
-      <h1>Welcome, {userRole === "admin" ? "Admin" : "Teacher"} 👩‍🏫</h1>
-
-      <section className="pending-students-section">
-        <h2>⏳ Pending Student Approvals</h2>
-        {loading ? <p>Loading...</p> : renderStudentList(pending, true)}
-      </section>
-
-      <section className="approved-students-section">
-        <h2>✅ Approved Students</h2>
-        {renderStudentList(approved)}
-      </section>
-
-      <section className="rejected-students-section">
-        <h2>❌ Rejected Students</h2>
-        {renderStudentList(rejected)}
-      </section>
-
-      <hr />
+      <h1>Welcome, Teacher 👩‍🏫</h1>
 
       <section className="course-enrollments-section">
-        <h2>📚 Course Enrollment Requests</h2>
-        <CourseEnrollments />
+        <h2>📚 Pending Course Enrollments</h2>
+        {loading ? (
+          <p>Loading...</p>
+        ) : enrollments.length === 0 ? (
+          <p>No pending enrollments</p>
+        ) : (
+          <table className="user-table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Email</th>
+                <th>Course</th>
+                <th>Requested</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {enrollments.map((e) => (
+                <tr key={`${e.userId}-${e.courseId}`}>
+                  <td>{e.user?.name}</td>
+                  <td>{e.user?.email}</td>
+                  <td>{e.course?.title}</td>
+                  <td>{new Date(e.accessGrantedAt).toLocaleString()}</td>
+                  <td>
+                    <button
+                      className="btn-approve"
+                      onClick={() => handleApprove(e.userId, e.courseId)}
+                    >
+                      ✅ Approve
+                    </button>
+                    <button
+                      className="btn-reject"
+                      onClick={() => handleReject(e.userId, e.courseId)}
+                    >
+                      ❌ Reject
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </section>
     </div>
   );
