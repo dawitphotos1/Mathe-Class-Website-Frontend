@@ -111,12 +111,11 @@
 
 // export default TeacherDashboard;
 
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "../../config";
 import { toast } from "react-toastify";
-import CourseEnrollments from "../courses/CourseEnrollmentList"; // ✅ Confirm this file name exists
+import CourseEnrollments from "../courses/CourseEnrollmentList";
 import "./TeacherDashboard.css";
 
 const TeacherDashboard = () => {
@@ -124,6 +123,15 @@ const TeacherDashboard = () => {
   const [approved, setApproved] = useState([]);
   const [rejected, setRejected] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [userRole, setUserRole] = useState("");
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user && user.role) {
+      setUserRole(user.role);
+    }
+    fetchAllStudents();
+  }, []);
 
   const fetchAllStudents = async () => {
     setLoading(true);
@@ -186,11 +194,7 @@ const TeacherDashboard = () => {
     }
   };
 
-  useEffect(() => {
-    fetchAllStudents();
-  }, []);
-
-  const renderStudentList = (students, actions = false) => {
+  const renderStudentList = (students, showActions = false) => {
     if (students.length === 0) return <p>No students</p>;
 
     return students.map((student) => (
@@ -199,7 +203,7 @@ const TeacherDashboard = () => {
           <strong>{student.name}</strong> ({student.email})<br />
           Subject: {student.subject || "N/A"}
         </div>
-        {actions && (
+        {showActions && (
           <div className="actions">
             <button
               className="btn-approve"
@@ -213,16 +217,21 @@ const TeacherDashboard = () => {
             >
               ❌ Reject
             </button>
-            {/* ❌ Removed Delete button for teachers */}
+            {/* 🚫 NO DELETE BUTTON even if accidentally left in earlier */}
+            {userRole === "admin" && (
+              <button className="btn-delete" disabled>
+                🗑️ Delete (Admin Only)
+              </button>
+            )}
           </div>
         )}
       </div>
     ));
   };
-  
+
   return (
     <div className="teacher-dashboard">
-      <h1>Welcome, Teacher 👩‍🏫</h1>
+      <h1>Welcome, {userRole === "admin" ? "Admin" : "Teacher"} 👩‍🏫</h1>
 
       <section className="pending-students-section">
         <h2>⏳ Pending Student Approvals</h2>
