@@ -111,6 +111,10 @@
 
 // export default TeacherDashboard;
 
+
+
+
+// ✅ TeacherDashboard.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "../../config";
@@ -126,7 +130,7 @@ const TeacherDashboard = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.get(
-        `${API_BASE_URL}/api/v1/admin/enrollments/pending`,
+        `${API_BASE_URL}/api/v1/enrollments/pending`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -179,7 +183,6 @@ const TeacherDashboard = () => {
   return (
     <div className="teacher-dashboard">
       <h1>Welcome, Teacher 👩‍🏫</h1>
-
       <section className="course-enrollments-section">
         <h2>📚 Pending Course Enrollments</h2>
         {loading ? (
