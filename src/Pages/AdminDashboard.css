@@ -1,4 +1,4 @@
-
+/* 
 .dashboard-container {
   min-height: 100vh;
   background: linear-gradient(to right, #43cea2, #185a9d);
@@ -114,7 +114,7 @@
   font-size: 1.2rem;
 }
 
-/* =========================================== */
+
 
 .tab-buttons {
   display: flex;
@@ -133,4 +133,89 @@
 .tab.active {
   background: #f72585;
   color: white;
+} */
+
+
+
+
+
+.dashboard-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+.enrollments-section {
+  margin-top: 2rem;
+}
+
+.enrollment-list {
+  list-style: none;
+  padding: 0;
+}
+
+.enrollment-item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #f9f9f9;
+}
+
+.enrollment-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.btn {
+  padding: 0.6rem 1.2rem;
+  border-radius: 50px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: #4361ee;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #3f37c9;
+  transform: translateY(-2px);
+}
+
+.btn-danger {
+  background: #ef233c;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #d90429;
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+}
+
+.error {
+  text-align: center;
+  padding: 1rem;
+  color: #ef233c;
+  background: #ffe6e6;
+  border: 1px solid #ff4d4d;
+  border-radius: 4px;
 }
