@@ -530,7 +530,7 @@ const AdminDashboard = ({ user, onLogout }) => {
       );
       toast.success("Enrollment approved");
       fetchPendingEnrollments();
-      // fetchApprovedEnrollments();
+      fetchApprovedEnrollments();
     } catch (err) {
       handleError(err, setErrorEnrollments);
     }
@@ -542,10 +542,10 @@ const AdminDashboard = ({ user, onLogout }) => {
     if (user.role === "admin") {
       fetchPendingUsers();
       fetchPendingEnrollments();
-      // fetchApprovedEnrollments();
+      fetchApprovedEnrollments();
     } else if (user.role === "teacher") {
       fetchPendingEnrollments();
-      // fetchApprovedEnrollments();
+      fetchApprovedEnrollments();
     }
   }, [
     user,
