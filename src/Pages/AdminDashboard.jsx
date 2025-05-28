@@ -374,13 +374,14 @@ const AdminDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
 
   const [pendingUsers, setPendingUsers] = useState([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
-  const [errorUsers, setErrorUsers] = useState("");
-
   const [pendingEnrollments, setPendingEnrollments] = useState([]);
   const [approvedEnrollments, setApprovedEnrollments] = useState([]);
+
+  const [loadingUsers, setLoadingUsers] = useState(false);
   const [loadingEnrollments, setLoadingEnrollments] = useState(false);
   const [loadingApproved, setLoadingApproved] = useState(false);
+
+  const [errorUsers, setErrorUsers] = useState("");
   const [errorEnrollments, setErrorEnrollments] = useState("");
   const [errorApproved, setErrorApproved] = useState("");
 
@@ -408,11 +409,11 @@ const AdminDashboard = ({ user, onLogout }) => {
     setErrorUsers("");
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${API_BASE_URL}/api/v1/users/pending`, {
+      const res = await axios.get(`${API_BASE_URL}/api/v1/users/pending`, {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
-      setPendingUsers(response.data);
+      setPendingUsers(res.data);
     } catch (err) {
       handleError(err, setErrorUsers);
     } finally {
@@ -425,14 +426,14 @@ const AdminDashboard = ({ user, onLogout }) => {
     setErrorEnrollments("");
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
+      const res = await axios.get(
         `${API_BASE_URL}/api/v1/enrollments/pending`,
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         }
       );
-      setPendingEnrollments(response.data);
+      setPendingEnrollments(res.data);
     } catch (err) {
       handleError(err, setErrorEnrollments);
     } finally {
@@ -445,14 +446,14 @@ const AdminDashboard = ({ user, onLogout }) => {
     setErrorApproved("");
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
+      const res = await axios.get(
         `${API_BASE_URL}/api/v1/enrollments/approved`,
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         }
       );
-      setApprovedEnrollments(response.data);
+      setApprovedEnrollments(res.data);
     } catch (err) {
       handleError(err, setErrorApproved);
     } finally {
@@ -497,10 +498,7 @@ const AdminDashboard = ({ user, onLogout }) => {
   };
 
   const handleDeleteUser = async (userId) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this user?"
-    );
-    if (!confirmed) return;
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
     try {
       const token = localStorage.getItem("token");
       await axios.delete(`${API_BASE_URL}/api/v1/users/${userId}`, {
@@ -539,11 +537,12 @@ const AdminDashboard = ({ user, onLogout }) => {
   useEffect(() => {
     if (!user) return;
 
+    // Load content based on role
     if (user.role === "admin") {
       fetchPendingUsers();
-      fetchPendingEnrollments();
-      fetchApprovedEnrollments();
-    } else if (user.role === "teacher") {
+    }
+
+    if (["admin", "teacher"].includes(user.role)) {
       fetchPendingEnrollments();
       fetchApprovedEnrollments();
     }
@@ -568,7 +567,7 @@ const AdminDashboard = ({ user, onLogout }) => {
           Logout
         </button>
 
-        {/* Pending Users - Admin Only */}
+        {/* Admin Only: Pending User Approvals */}
         {user.role === "admin" && (
           <>
             <h3>Pending User Approvals</h3>
@@ -662,8 +661,8 @@ const AdminDashboard = ({ user, onLogout }) => {
                     <th>Student</th>
                     <th>Email</th>
                     <th>Course</th>
-                    <th>Access Requested</th>
-                    <th>Action</th>
+                    <th>Requested At</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -677,13 +676,13 @@ const AdminDashboard = ({ user, onLogout }) => {
                       </td>
                       <td>
                         <button
+                          className="btn-primary"
                           onClick={() =>
                             handleApproveEnrollment(
                               enroll.userId,
                               enroll.courseId
                             )
                           }
-                          className="btn-primary"
                         >
                           Approve
                         </button>
@@ -708,7 +707,7 @@ const AdminDashboard = ({ user, onLogout }) => {
                     <th>Student</th>
                     <th>Email</th>
                     <th>Course</th>
-                    <th>Access Granted At</th>
+                    <th>Access Granted</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -733,5 +732,3 @@ const AdminDashboard = ({ user, onLogout }) => {
 };
 
 export default AdminDashboard;
-
-
