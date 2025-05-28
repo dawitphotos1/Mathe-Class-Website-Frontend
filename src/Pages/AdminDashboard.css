@@ -64,6 +64,7 @@
 }
 
 .btn-primary,
+.btn-warning,
 .btn-secondary,
 .btn-danger {
   padding: 0.5rem 1rem;
@@ -72,6 +73,9 @@
   cursor: pointer;
   margin-right: 0.5rem;
   font-size: 0.9rem;
+  width: 120px; /* Set fixed width */
+  text-align: center;
+  display: inline-block;
 }
 
 .btn-primary {
@@ -90,6 +94,21 @@
 
 .btn-secondary:hover {
   background-color: #e0e0e0;
+}
+
+.btn-warning {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-right: 0.5rem;
+  font-size: 0.9rem;
+  background-color: #ffc107; /* Bootstrap-like warning color */
+  color: #212529;
+}
+
+.btn-warning:hover {
+  background-color: #e0a800;
 }
 
 .btn-danger {
