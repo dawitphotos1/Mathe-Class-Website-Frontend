@@ -943,48 +943,50 @@ const CourseDetail = () => {
   }, [id]);
 
   const handleEnrollClick = async () => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const isStudent = user?.role === "student";
+  
     if (!user || !isStudent) {
       toast.error("Only students can enroll. Please log in as a student.");
       return navigate("/login");
     }
-
+  
     if (!course?.id || !course.title || !course.price) {
       console.error("Invalid course data:", course);
       toast.error("Missing course details.");
       return;
     }
-
+  
     const token = localStorage.getItem("token");
     if (!token) {
       toast.error("Please log in to enroll");
       return navigate("/login");
     }
-
+  
     try {
-      console.log("Enroll payload:", {
+      const payload = {
         courseId: String(course.id),
         courseName: course.title,
         coursePrice: parseFloat(course.price),
-      });
+      };
+  
       const { loadStripe } = await import("@stripe/stripe-js");
       const stripe = await loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
+      if (!stripe) throw new Error("Stripe not loaded. Check API key.");
+  
       const response = await axios.post(
         `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
-        {
-          courseId: String(course.id),
-          courseName: course.title,
-          coursePrice: parseFloat(course.price),
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
+  
       await stripe.redirectToCheckout({ sessionId: response.data.sessionId });
     } catch (err) {
       console.error("Enroll error:", err.response?.data || err);
       toast.error(err.response?.data?.error || "Failed to enroll");
     }
   };
+  
 
   if (error) {
     return <div className="error">❌ Error: {error}</div>;
