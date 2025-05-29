@@ -35,16 +35,36 @@ const PaymentSuccess = () => {
           }
         );
 
-        toast.success(
-          "✅ Payment successful! Your enrollment is pending approval."
-        );
-        setTimeout(() => navigate("/dashboard"), 3000);
+        if (res.data?.success) {
+          toast.success(
+            "✅ Payment successful! Your enrollment is pending approval."
+          );
+          setTimeout(() => navigate("/dashboard"), 3000);
+        } else {
+          throw new Error(res.data?.error || "Unknown error");
+        }
       } catch (err) {
-        console.error("Enrollment confirmation error:", err);
-        toast.error(
-          "❌ Failed to confirm your enrollment. Please contact support."
-        );
-        setTimeout(() => navigate("/courses"), 3000);
+        console.error("❌ Enrollment confirmation error:", err);
+
+        if (err.response) {
+          // Server responded with a status other than 2xx
+          console.error("🔍 Server responded with:", err.response.data);
+          toast.error(
+            `❌ ${err.response.data.error || "Enrollment confirmation failed"}`
+          );
+        } else if (err.request) {
+          // Request was made but no response
+          console.error("🔌 No response from server:", err.request);
+          toast.error(
+            "❌ No response from the server. Please try again later."
+          );
+        } else {
+          // Something went wrong setting up the request
+          console.error("⚠️ Request setup error:", err.message);
+          toast.error("❌ Unexpected error. Please try again.");
+        }
+
+        setTimeout(() => navigate("/courses"), 4000);
       }
     };
 
