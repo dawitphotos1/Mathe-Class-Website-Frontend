@@ -1,5 +1,5 @@
-
 // Mathe-Class-Website-Frontend/src/Pages/courses/CourseViewer.jsx
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
@@ -10,12 +10,15 @@ import { API_BASE_URL, STRIPE_PUBLIC_KEY } from "../../config";
 const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
 
 const CourseViewer = () => {
-  const { id: courseId } = useParams(); // Renamed for clarity
+  const { id: courseId } = useParams();
   const navigate = useNavigate();
+
   const [course, setCourse] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loadingCourse, setLoadingCourse] = useState(true);
+  const [enrolling, setEnrolling] = useState(false);
   const [error, setError] = useState(null);
 
+  // ✅ Fetch course on load
   useEffect(() => {
     const fetchCourse = async () => {
       try {
@@ -42,25 +45,23 @@ const CourseViewer = () => {
           teacher: courseData.teacher?.name || "Unknown",
         };
 
-        console.log("✅ Fetched course data:", formatted);
-
         if (!formatted.id || !formatted.name) {
           throw new Error("Invalid course data");
         }
 
         setCourse(formatted);
-        setLoading(false);
+        setLoadingCourse(false);
       } catch (err) {
         console.error("❌ Fetch course error:", err.response?.data || err.message);
         setError(err.response?.data?.error || "Failed to load course");
-        toast.error(err.response?.data?.error || "Failed to load course");
-        setLoading(false);
+        setLoadingCourse(false);
       }
     };
 
     fetchCourse();
   }, [courseId, navigate]);
 
+  // ✅ Handle enrollment via Stripe
   const handleEnroll = async () => {
     const token = localStorage.getItem("token");
 
@@ -76,15 +77,15 @@ const CourseViewer = () => {
       return;
     }
 
-    const payload = {
-      courseId: course.id,
-      courseName: course.name,
-      coursePrice: course.price,
-    };
-
-    console.log("✅ Sending checkout payload:", payload);
+    setEnrolling(true);
 
     try {
+      const payload = {
+        courseId: course.id,
+        courseName: course.name,
+        coursePrice: course.price,
+      };
+
       const response = await axios.post(
         `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
         payload,
@@ -104,12 +105,15 @@ const CourseViewer = () => {
     } catch (err) {
       console.error("❌ Enroll error:", err.response?.data || err.message);
       toast.error(err.response?.data?.error || "Enrollment failed");
+      setEnrolling(false);
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div className="error">{error}</div>;
-  if (!course) return <div>Course not found</div>;
+  // ✅ UI Rendering
+
+  if (loadingCourse) return <div>Loading course...</div>;
+  if (error) return <div className="error">❌ {error}</div>;
+  if (!course) return <div>⚠️ Course not found</div>;
 
   return (
     <div className="course-view-container">
@@ -117,8 +121,12 @@ const CourseViewer = () => {
       <p>{course.description}</p>
       <p>Price: ${course.price.toFixed(2)}</p>
       <p>Instructor: {course.teacher}</p>
-      <button onClick={handleEnroll} className="enroll-button">
-        Enroll Now
+      <button
+        onClick={handleEnroll}
+        className="enroll-button"
+        disabled={enrolling}
+      >
+        {enrolling ? "⏳ Enrolling..." : "Enroll Now"}
       </button>
     </div>
   );
