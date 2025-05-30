@@ -13,6 +13,8 @@ const PaymentSuccess = () => {
   useEffect(() => {
     const confirmEnrollment = async () => {
       const sessionId = searchParams.get("session_id");
+      console.log("Confirming enrollment for session ID:", sessionId);
+
       const token = localStorage.getItem("token");
 
       if (!sessionId) {
