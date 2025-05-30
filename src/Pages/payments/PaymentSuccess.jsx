@@ -40,9 +40,10 @@ const PaymentSuccess = () => {
           }
         );
 
-        if (res.data?.success) {
+        if (res.status === 200 && res.data?.success) {
           toast.success("✅ Payment successful! Enrollment pending approval.");
           setConfirmed(true);
+          setError("");
         } else {
           throw new Error(res.data?.error || "Unknown error");
         }
@@ -50,17 +51,14 @@ const PaymentSuccess = () => {
         console.error("❌ Enrollment confirmation error:", err);
 
         if (err.response) {
-          console.error("🔍 Server responded with:", err.response.data);
           toast.error(
             `❌ ${err.response.data.error || "Enrollment confirmation failed"}`
           );
           setError(err.response.data.error || "Confirmation failed.");
         } else if (err.request) {
-          console.error("🔌 No response from server:", err.request);
           toast.error("❌ No response from the server. Please try again.");
           setError("Server did not respond.");
         } else {
-          console.error("⚠️ Request setup error:", err.message);
           toast.error("❌ Unexpected error. Please try again.");
           setError("Unexpected error.");
         }
@@ -78,12 +76,19 @@ const PaymentSuccess = () => {
 
       {confirmed ? (
         <>
-          <p>You can now explore other courses or return to the dashboard.</p>
+          <p style={{ fontWeight: "bold", marginTop: "1rem" }}>
+            ✅ You are not redirected automatically. Use the buttons below to
+            continue.
+          </p>
           <div style={{ marginTop: "1rem" }}>
             <button className="btn" onClick={() => navigate("/courses")}>
               📚 View Courses
             </button>
-            <button className="btn" onClick={() => navigate("/dashboard")} style={{ marginLeft: "10px" }}>
+            <button
+              className="btn"
+              onClick={() => navigate("/dashboard")}
+              style={{ marginLeft: "10px" }}
+            >
               🏠 Go to Dashboard
             </button>
           </div>
@@ -96,7 +101,7 @@ const PaymentSuccess = () => {
           </button>
         </>
       ) : (
-        <p>Verifying your enrollment...</p>
+        <p>🔄 Verifying your enrollment, please wait...</p>
       )}
     </div>
   );
