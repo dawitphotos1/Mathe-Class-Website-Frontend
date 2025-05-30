@@ -1,63 +1,65 @@
+
+// src/pages/courses/StudentCourses.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "../../config";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const StudentCourses = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchEnrolledCourses = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
+    const fetchMyCourses = async () => {
       try {
-        const res = await axios.get(
-          `${API_BASE_URL}/api/v1/enrollments/my-courses`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const token = localStorage.getItem("token");
+        if (!token) {
+          toast.error("Please login to view your courses");
+          return navigate("/login");
+        }
 
-        setCourses(res.data.courses);
+        const res = await axios.get(`${API_BASE_URL}/api/v1/enrollments/my-courses`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setCourses(res.data.courses || []);
       } catch (err) {
-        console.error("❌ Error loading student courses:", err);
-        toast.error("Failed to load your enrolled courses");
+        console.error("❌ Failed to load courses:", err);
+        toast.error("Failed to load your courses.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchEnrolledCourses();
-  }, []);
+    fetchMyCourses();
+  }, [navigate]);
 
-  if (loading) return <div>Loading your courses...</div>;
-
-  if (courses.length === 0) return <div>You have no enrolled courses yet.</div>;
+  if (loading) return <div className="loading">Loading your enrolled courses...</div>;
 
   return (
     <div className="student-courses">
-      <h2>📚 My Enrolled Courses</h2>
-      <ul>
-        {courses.map((course) => (
-          <li key={course.id}>
-            <h3>{course.title}</h3>
-            <p>{course.description}</p>
-            <p>
-              <strong>Price:</strong> ${course.price}
-            </p>
-            <p>
-              <strong>Enrolled At:</strong>{" "}
-              {new Date(course.enrolledAt).toLocaleDateString()}
-            </p>
-          </li>
-        ))}
-      </ul>
+      <h2>📘 My Enrolled Courses</h2>
+      {courses.length === 0 ? (
+        <p>You are not enrolled in any course yet.</p>
+      ) : (
+        <ul className="course-list">
+          {courses.map((course) => (
+            <li key={course.id} className="course-card">
+              <h3>{course.title}</h3>
+              <p>{course.description}</p>
+              <p>💰 ${course.price}</p>
+              <p>✅ Enrolled on: {new Date(course.enrolledAt).toLocaleDateString()}</p>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };
 
 export default StudentCourses;
+

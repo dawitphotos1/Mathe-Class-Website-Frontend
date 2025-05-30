@@ -12,6 +12,7 @@ import Contact from "./components/Contact"; // ✅ Correct import
 import Login from "./Pages/auth/Login"; // Assuming Login is here
 import PaymentSuccess from "./Pages/payments/PaymentSuccess"; // adjust path
 import PaymentCancel from "./Pages/payments/PaymentCancel"; // adjust path
+import StudentCourses from "./Pages/courses/StudentCourses";
 import "./App.css";
 
 // Retry wrapper for lazy loading
@@ -153,6 +154,14 @@ function App() {
               element={
                 <ProtectedRoute user={user} allowedRoles={["teacher"]}>
                   <CourseCreator />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-courses"
+              element={
+                <ProtectedRoute user={user} allowedRoles={["student"]}>
+                  <StudentCourses />
                 </ProtectedRoute>
               }
             />
