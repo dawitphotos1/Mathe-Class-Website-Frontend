@@ -205,11 +205,9 @@
 
 
 
-// ✅ Updated App.jsx
 import React, { useState, useEffect, Suspense } from "react";
-import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { API_BASE_URL } from "./config";
 
@@ -222,22 +220,23 @@ import Login from "./Pages/auth/Login";
 import PaymentSuccess from "./Pages/payments/PaymentSuccess";
 import PaymentCancel from "./Pages/payments/PaymentCancel";
 import StudentCourses from "./Pages/courses/StudentCourses";
+import Unauthorized from "./Pages/Unauthorized";
 import "./App.css";
 
 // Lazy-loaded pages
 const Home = React.lazy(() => import("./Pages/Home"));
 const Register = React.lazy(() => import("./Pages/auth/Register"));
 const CourseList = React.lazy(() => import("./Pages/courses/CourseList"));
+const AdminDashboard = React.lazy(() => import("./Pages/AdminDashboard"));
+
 const CourseViewer = React.lazy(() => import("./Pages/courses/CourseViewer"));
 const CourseCreator = React.lazy(() => import("./Pages/courses/CourseCreator"));
 const CourseDetail = React.lazy(() => import("./Pages/courses/CourseDetail"));
 const Profile = React.lazy(() => import("./Pages/users/Profile"));
-const AdminDashboard = React.lazy(() => import("./Pages/AdminDashboard"));
 const Payment = React.lazy(() => import("./Pages/payments/Payment"));
 const Cancel = React.lazy(() => import("./Pages/payments/Cancel"));
 const NotFound = React.lazy(() => import("./Pages/NotFound"));
 
-// Axios interceptor for token
 axios.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -248,14 +247,6 @@ axios.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
-
-function AppWrapper() {
-  return (
-    <Router>
-      <App />
-    </Router>
-  );
-}
 
 function App() {
   const [user, setUser] = useState(null);
@@ -326,6 +317,7 @@ function App() {
             <Route path="/course/:id" element={<CourseDetail />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-cancel" element={<PaymentCancel />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
             <Route
               path="/create-course"
               element={
@@ -346,7 +338,10 @@ function App() {
             <Route
               path="/profile"
               element={
-                <ProtectedRoute user={user} allowedRoles={["teacher", "student", "admin"]}>
+                <ProtectedRoute
+                  user={user}
+                  allowedRoles={["teacher", "student", "admin"]}
+                >
                   <Profile />
                 </ProtectedRoute>
               }
@@ -377,4 +372,4 @@ function App() {
   );
 }
 
-export default AppWrapper;
+export default App;
