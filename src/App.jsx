@@ -4,14 +4,15 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { API_BASE_URL } from "./config";
+
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Loading from "./components/Loading";
-import Contact from "./components/Contact"; // ✅ Correct import
-import Login from "./Pages/auth/Login"; // Assuming Login is here
-import PaymentSuccess from "./Pages/payments/PaymentSuccess"; // adjust path
-import PaymentCancel from "./Pages/payments/PaymentCancel"; // adjust path
+import Contact from "./components/Contact";
+import Login from "./Pages/auth/Login";
+import PaymentSuccess from "./Pages/payments/PaymentSuccess"; // ✅ working file
+import PaymentCancel from "./Pages/payments/PaymentCancel"; // ✅ working file
 import StudentCourses from "./Pages/courses/StudentCourses";
 import "./App.css";
 
@@ -34,7 +35,7 @@ const retryLazy = (factory, retries = 3, interval = 1000) => {
   });
 };
 
-// Lazy imports
+// Lazy-loaded pages
 const Home = React.lazy(() => retryLazy(() => import("./Pages/Home")));
 const Register = React.lazy(() =>
   retryLazy(() => import("./Pages/auth/Register"))
@@ -60,15 +61,12 @@ const AdminDashboard = React.lazy(() =>
 const Payment = React.lazy(() =>
   retryLazy(() => import("./Pages/payments/Payment"))
 );
-const Success = React.lazy(() =>
-  retryLazy(() => import("./Pages/payments/Success"))
-);
 const Cancel = React.lazy(() =>
   retryLazy(() => import("./Pages/payments/Cancel"))
 );
 const NotFound = React.lazy(() => retryLazy(() => import("./Pages/NotFound")));
 
-// Axios Interceptor for Authorization
+// Axios interceptor for token
 axios.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -143,12 +141,12 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/register" element={<Register setUser={setUser} />} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
-            <Route path="/payment-cancel" element={<PaymentCancel />} />
             <Route path="/login" element={<Login setUser={setUser} />} />
             <Route path="/courses" element={<CourseList />} />
             <Route path="/courses/:id" element={<CourseViewer />} />
             <Route path="/course/:id" element={<CourseDetail />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/payment-cancel" element={<PaymentCancel />} />
             <Route
               path="/create-course"
               element={
@@ -193,7 +191,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/success" element={<Success />} />
             <Route path="/cancel" element={<Cancel />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
