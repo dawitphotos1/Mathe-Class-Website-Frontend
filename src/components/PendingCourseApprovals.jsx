@@ -27,9 +27,9 @@ const PendingCourseApprovals = () => {
   const handleApprove = async (userId, courseId) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.put(
-        `${API_BASE_URL}/api/v1/admin/approve-enrollment/${userId}/${courseId}`,
-        {},
+      const res = await axios.post(
+        `${API_BASE_URL}/api/v1/enrollments/approve`,
+        { userId, courseId },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -39,10 +39,11 @@ const PendingCourseApprovals = () => {
         prev.filter((e) => !(e.userId === userId && e.courseId === courseId))
       );
     } catch (err) {
+      console.error("❌ Approve failed:", err.response?.data || err.message);
       toast.error("Approval failed");
     }
   };
-
+  
   return (
     <div className="dashboard-card">
       <h3>Pending Course Enrollments</h3>
