@@ -1,110 +1,152 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { toast } from "react-toastify";
 import { API_BASE_URL } from "../../config";
+import { toast } from "react-toastify";
+import "./Payment.css";
 
-const PaymentSuccess = () => {
+const Payment = () => {
+  const { courseId } = useParams();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [confirmed, setConfirmed] = useState(false);
+  const [courseInfo, setCourseInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const confirmEnrollment = async () => {
-      const sessionId = searchParams.get("session_id");
-      console.log("Confirming enrollment for session ID:", sessionId);
+    const user = JSON.parse(localStorage.getItem("user"));
 
-      const token = localStorage.getItem("token");
+    // Check if user is logged in and has valid role
+    if (!user || !user.id || !user.email) {
+      toast.error("User not logged in or incomplete user data.");
+      navigate("/login");
+      return;
+    }
 
-      if (!sessionId) {
-        toast.error("❌ No session ID found. Please try again.");
-        setError("Missing session ID.");
-        return;
+    if (user.role !== "student") {
+      toast.error("Only students can enroll in courses.");
+      navigate("/courses");
+      return;
+    }
+
+    // Fetch course information
+    const fetchCourse = async () => {
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/api/v1/courses/${courseId}`
+        );
+
+        if (response.data.success) {
+          setCourseInfo({
+            id: response.data.id,
+            title: response.data.title,
+            price: Number(response.data.price), // Ensure price is a number
+          });
+        } else {
+          throw new Error(response.data.error || "Failed to fetch course");
+        }
+      } catch (err) {
+        const errorMessage =
+          err.response?.data?.error || "Invalid course selected";
+        setError(errorMessage);
+        toast.error(errorMessage);
+      } finally {
+        setLoading(false);
       }
+    };
 
+    // Ensure courseId is valid
+    if (courseId) {
+      fetchCourse();
+    } else {
+      setError("Invalid course ID");
+      toast.error("Invalid course ID");
+      setLoading(false);
+    }
+  }, [courseId, navigate]);
+
+  const handleConfirmPayment = async () => {
+    if (!courseInfo) {
+      toast.error("Course information not available");
+      return;
+    }
+
+    setRedirecting(true);
+    try {
+      const token = localStorage.getItem("token");
       if (!token) {
-        toast.error("❌ Please log in again to confirm enrollment.");
+        toast.error("Please log in to proceed with payment");
         navigate("/login");
         return;
       }
 
-      try {
-        const res = await axios.post(
-          `${API_BASE_URL}/api/v1/enrollments/confirm`,
-          { session_id: sessionId },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+      console.log(
+        "Payment - Sending request to:",
+        `${API_BASE_URL}/api/v1/payments/create-checkout-session`
+      );
+      console.log("Payment - Payload:", {
+        courseId: String(courseId),
+        courseName: courseInfo.title,
+        coursePrice: courseInfo.price,
+      });
 
-        if (res.status === 200 && res.data?.success) {
-          toast.success("✅ Payment successful! Enrollment pending approval.");
-          setConfirmed(true);
-          setError("");
-        } else {
-          throw new Error(res.data?.error || "Unknown error");
+      const response = await axios.post(
+        `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
+        {
+          courseId: String(courseId),
+          courseName: courseInfo.title,
+          coursePrice: courseInfo.price,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
-      } catch (err) {
-        console.error("❌ Enrollment confirmation error:", err);
+      );
 
-        if (err.response) {
-          toast.error(
-            `❌ ${err.response.data.error || "Enrollment confirmation failed"}`
-          );
-          setError(err.response.data.error || "Confirmation failed.");
-        } else if (err.request) {
-          toast.error("❌ No response from the server. Please try again.");
-          setError("Server did not respond.");
-        } else {
-          toast.error("❌ Unexpected error. Please try again.");
-          setError("Unexpected error.");
-        }
+      // Check if the URL exists in the response
+      if (response.data?.url) {
+        window.location.href = response.data.url;
+      } else {
+        throw new Error("No redirect URL received from payment server.");
       }
-    };
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.error || "Failed to initiate payment";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setRedirecting(false);
+    }
+  };
 
-    confirmEnrollment();
-  }, [navigate, searchParams]);
+  if (loading) return <div className="spinner">⏳ Loading course info...</div>;
+  if (error) return <div className="error">{error}</div>;
 
   return (
-    <div className="payment-success">
-      <h2>🎉 Payment Confirmation</h2>
-      <p>Your payment was successful.</p>
-      <p>Your course enrollment is now pending teacher/admin approval.</p>
+    <div className="payment-container">
+      <h2>Course Payment</h2>
+      <p>
+        <strong>Course:</strong> {courseInfo.title}
+      </p>
+      <p>
+        <strong>Price:</strong> ${courseInfo.price.toFixed(2)}
+      </p>
 
-      {confirmed ? (
-        <>
-          <p style={{ fontWeight: "bold", marginTop: "1rem" }}>
-            ✅ You are not redirected automatically. Use the buttons below to
-            continue.
-          </p>
-          <div style={{ marginTop: "1rem" }}>
-            <button className="btn" onClick={() => navigate("/courses")}>
-              📚 View Courses
-            </button>
-            <button
-              className="btn"
-              onClick={() => navigate("/dashboard")}
-              style={{ marginLeft: "10px" }}
-            >
-              🏠 Go to Dashboard
-            </button>
-          </div>
-        </>
-      ) : error ? (
-        <>
-          <p className="error-message">⚠️ {error}</p>
-          <button className="btn" onClick={() => navigate("/support")}>
-            Contact Support
-          </button>
-        </>
+      {redirecting ? (
+        <div className="spinner">🔁 Redirecting to Stripe...</div>
       ) : (
-        <p>🔄 Verifying your enrollment, please wait...</p>
+        <button
+          onClick={handleConfirmPayment}
+          className="btn-pay"
+          disabled={redirecting} // Disable button during redirect
+        >
+          Pay Now
+        </button>
       )}
     </div>
   );
 };
 
-export default PaymentSuccess;
+export default Payment;
