@@ -156,7 +156,6 @@
 
 
 
-
 .dashboard-container {
   padding: 2rem;
   font-family: "Segoe UI", sans-serif;
@@ -239,4 +238,70 @@ h2, h3 {
 
 .logout-btn {
   float: right;
+}
+
+.summary-cards {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.summary-card {
+  background-color: #f1f1f1;
+  padding: 1rem;
+  border-radius: 8px;
+  min-width: 180px;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.filter-boxes {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filter-boxes input {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  flex: 1;
+}
+
+
+
+
+.dashboard-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.filter-boxes {
+  margin-bottom: 1rem;
+}
+
+.filter-boxes input {
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  width: 100%;
+  max-width: 300px;
+}
+
+select {
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.btn-secondary {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
 }
