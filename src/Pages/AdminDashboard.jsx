@@ -194,7 +194,7 @@ const AdminDashboard = ({ onLogout }) => {
           {user.role === "admin" && (
             <button
               className={activeTab === "pendingUsers" ? "tab-active" : ""}
-              onClick={() => setActiveTab("Pending Users")}
+              onClick={() => setActiveTab("PendingUsers")}
             >
               👤 Pending Users
             </button>
