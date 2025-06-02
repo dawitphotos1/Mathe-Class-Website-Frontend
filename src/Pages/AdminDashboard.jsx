@@ -628,10 +628,15 @@ const AdminDashboard = ({ onLogout }) => {
       fetchPendingUsers();
     }
   }, [activeTab, user]);
+
+  useEffect(() => {
+    if (["admin", "teacher"].includes(user?.role)) {
+      if (activeTab === "pendingEnrollments") fetchPendingEnrollments();
+      if (activeTab === "approvedEnrollments") fetchApprovedEnrollments();
+    }
+  }, [activeTab, user]);
   
-
-
-
+  
 
   if (!user || (user.role !== "admin" && user.role !== "teacher")) {
     return <div className="unauthorized">Unauthorized</div>;
