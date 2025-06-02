@@ -194,6 +194,7 @@ const AdminDashboard = ({ onLogout }) => {
           {user.role === "admin" && (
             <button
               className={activeTab === "pendingUsers" ? "tab-active" : ""}
+              onClick={() => setActiveTab("Pending Users")}
             >
               👤 Pending Users
             </button>
@@ -202,7 +203,7 @@ const AdminDashboard = ({ onLogout }) => {
             className={activeTab === "pendingEnrollments" ? "tab-active" : ""}
             onClick={() => setActiveTab("pendingEnrollments")}
           >
-            Pending Enrollments
+            👤 Pending Enrollments
           </button>
           <button
             className={activeTab === "approvedEnrollments" ? "tab-active" : ""}
