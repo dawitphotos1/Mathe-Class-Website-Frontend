@@ -1,7 +1,7 @@
+
 // import React, { useState, useEffect, Suspense } from "react";
 // import { Routes, Route, useNavigate } from "react-router-dom";
 // import { ToastContainer, toast } from "react-toastify";
-// import "react-toastify/dist/ReactToastify.css";
 // import axios from "axios";
 // import { API_BASE_URL } from "./config";
 
@@ -11,62 +11,26 @@
 // import Loading from "./components/Loading";
 // import Contact from "./components/Contact";
 // import Login from "./Pages/auth/Login";
-// import PaymentSuccess from "./Pages/payments/PaymentSuccess"; // ✅ working file
-// import PaymentCancel from "./Pages/payments/PaymentCancel"; // ✅ working file
+// import PaymentSuccess from "./Pages/payments/PaymentSuccess";
+// import PaymentCancel from "./Pages/payments/PaymentCancel";
 // import StudentCourses from "./Pages/courses/StudentCourses";
+// import Unauthorized from "./Pages/Unauthorized";
 // import "./App.css";
 
-// // Retry wrapper for lazy loading
-// const retryLazy = (factory, retries = 3, interval = 1000) => {
-//   return new Promise((resolve, reject) => {
-//     factory()
-//       .then(resolve)
-//       .catch((error) => {
-//         console.warn(`Lazy load failed, retries left: ${retries}`, error);
-//         if (retries === 0) return reject(error);
-//         setTimeout(
-//           () =>
-//             retryLazy(factory, retries - 1, interval)
-//               .then(resolve)
-//               .catch(reject),
-//           interval
-//         );
-//       });
-//   });
-// };
-
 // // Lazy-loaded pages
-// const Home = React.lazy(() => retryLazy(() => import("./Pages/Home")));
-// const Register = React.lazy(() =>
-//   retryLazy(() => import("./Pages/auth/Register"))
-// );
-// const CourseList = React.lazy(() =>
-//   retryLazy(() => import("./Pages/courses/CourseList"))
-// );
-// const CourseViewer = React.lazy(() =>
-//   retryLazy(() => import("./Pages/courses/CourseViewer"))
-// );
-// const CourseCreator = React.lazy(() =>
-//   retryLazy(() => import("./Pages/courses/CourseCreator"))
-// );
-// const CourseDetail = React.lazy(() =>
-//   retryLazy(() => import("./Pages/courses/CourseDetail"))
-// );
-// const Profile = React.lazy(() =>
-//   retryLazy(() => import("./Pages/users/Profile"))
-// );
-// const AdminDashboard = React.lazy(() =>
-//   retryLazy(() => import("./Pages/AdminDashboard"))
-// );
-// const Payment = React.lazy(() =>
-//   retryLazy(() => import("./Pages/payments/Payment"))
-// );
-// const Cancel = React.lazy(() =>
-//   retryLazy(() => import("./Pages/payments/Cancel"))
-// );
-// const NotFound = React.lazy(() => retryLazy(() => import("./Pages/NotFound")));
+// const Home = React.lazy(() => import("./Pages/Home"));
+// const Register = React.lazy(() => import("./Pages/auth/Register"));
+// const CourseList = React.lazy(() => import("./Pages/courses/CourseList"));
+// const AdminDashboard = React.lazy(() => import("./Pages/AdminDashboard"));
 
-// // Axios interceptor for token
+// const CourseViewer = React.lazy(() => import("./Pages/courses/CourseViewer"));
+// const CourseCreator = React.lazy(() => import("./Pages/courses/CourseCreator"));
+// const CourseDetail = React.lazy(() => import("./Pages/courses/CourseDetail"));
+// const Profile = React.lazy(() => import("./Pages/users/Profile"));
+// const Payment = React.lazy(() => import("./Pages/payments/Payment"));
+// const Cancel = React.lazy(() => import("./Pages/payments/Cancel"));
+// const NotFound = React.lazy(() => import("./Pages/NotFound"));
+
 // axios.interceptors.request.use(
 //   (config) => {
 //     const token = localStorage.getItem("token");
@@ -147,6 +111,9 @@
 //             <Route path="/course/:id" element={<CourseDetail />} />
 //             <Route path="/payment-success" element={<PaymentSuccess />} />
 //             <Route path="/payment-cancel" element={<PaymentCancel />} />
+//             <Route path="/my-courses" element={<MyCoursesPage />} />
+
+//             <Route path="/unauthorized" element={<Unauthorized />} />
 //             <Route
 //               path="/create-course"
 //               element={
@@ -186,7 +153,7 @@
 //             <Route
 //               path="/payment/:courseId"
 //               element={
-//                 <ProtectedRoute user={user}>
+//                 <ProtectedRoute user={user} allowedRoles={["student"]}>
 //                   <Payment />
 //                 </ProtectedRoute>
 //               }
@@ -205,6 +172,7 @@
 
 
 
+
 import React, { useState, useEffect, Suspense } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
@@ -219,16 +187,17 @@ import Contact from "./components/Contact";
 import Login from "./Pages/auth/Login";
 import PaymentSuccess from "./Pages/payments/PaymentSuccess";
 import PaymentCancel from "./Pages/payments/PaymentCancel";
-import StudentCourses from "./Pages/courses/StudentCourses";
 import Unauthorized from "./Pages/Unauthorized";
 import "./App.css";
+
+// ✅ Your new enrolled courses page
+import MyCoursesPage from "./Pages/courses/MyCoursesPage";
 
 // Lazy-loaded pages
 const Home = React.lazy(() => import("./Pages/Home"));
 const Register = React.lazy(() => import("./Pages/auth/Register"));
 const CourseList = React.lazy(() => import("./Pages/courses/CourseList"));
 const AdminDashboard = React.lazy(() => import("./Pages/AdminDashboard"));
-
 const CourseViewer = React.lazy(() => import("./Pages/courses/CourseViewer"));
 const CourseCreator = React.lazy(() => import("./Pages/courses/CourseCreator"));
 const CourseDetail = React.lazy(() => import("./Pages/courses/CourseDetail"));
@@ -317,20 +286,23 @@ function App() {
             <Route path="/course/:id" element={<CourseDetail />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-cancel" element={<PaymentCancel />} />
+
+            {/* ✅ Only one correct /my-courses route using your new page */}
+            <Route
+              path="/my-courses"
+              element={
+                <ProtectedRoute user={user} allowedRoles={["student"]}>
+                  <MyCoursesPage />
+                </ProtectedRoute>
+              }
+            />
+
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route
               path="/create-course"
               element={
                 <ProtectedRoute user={user} allowedRoles={["teacher"]}>
                   <CourseCreator />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/my-courses"
-              element={
-                <ProtectedRoute user={user} allowedRoles={["student"]}>
-                  <StudentCourses />
                 </ProtectedRoute>
               }
             />
@@ -373,3 +345,4 @@ function App() {
 }
 
 export default App;
+
