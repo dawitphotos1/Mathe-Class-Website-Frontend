@@ -171,8 +171,6 @@
 // export default App;
 
 
-
-
 import React, { useState, useEffect, Suspense } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
@@ -190,7 +188,7 @@ import PaymentCancel from "./Pages/payments/PaymentCancel";
 import Unauthorized from "./Pages/Unauthorized";
 import "./App.css";
 
-// ✅ Your new enrolled courses page
+// ✅ Student-only route
 import MyCoursesPage from "./Pages/courses/MyCoursesPage";
 
 // Lazy-loaded pages
@@ -280,40 +278,37 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/register" element={<Register setUser={setUser} />} />
-            <Route path="/login" element={<Login setUser={setUser} />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/courses" element={<CourseList />} />
             <Route path="/courses/:id" element={<CourseViewer />} />
             <Route path="/course/:id" element={<CourseDetail />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-cancel" element={<PaymentCancel />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/cancel" element={<Cancel />} />
 
-            {/* ✅ Only one correct /my-courses route using your new page */}
+            {/* ✅ Protected Routes Below */}
             <Route
               path="/my-courses"
               element={
-                <ProtectedRoute user={user} allowedRoles={["student"]}>
+                <ProtectedRoute allowedRoles={["student"]}>
                   <MyCoursesPage />
                 </ProtectedRoute>
               }
             />
-
-            <Route path="/unauthorized" element={<Unauthorized />} />
             <Route
               path="/create-course"
               element={
-                <ProtectedRoute user={user} allowedRoles={["teacher"]}>
+                <ProtectedRoute allowedRoles={["teacher"]}>
                   <CourseCreator />
                 </ProtectedRoute>
               }
             />
-            <Route path="/contact" element={<Contact />} />
             <Route
               path="/profile"
               element={
-                <ProtectedRoute
-                  user={user}
-                  allowedRoles={["teacher", "student", "admin"]}
-                >
+                <ProtectedRoute allowedRoles={["teacher", "student", "admin"]}>
                   <Profile />
                 </ProtectedRoute>
               }
@@ -321,20 +316,21 @@ function App() {
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute user={user} allowedRoles={["teacher", "admin"]}>
-                  <AdminDashboard user={user} onLogout={handleLogout} />
+                <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                  <AdminDashboard onLogout={handleLogout} />
                 </ProtectedRoute>
               }
             />
             <Route
               path="/payment/:courseId"
               element={
-                <ProtectedRoute user={user} allowedRoles={["student"]}>
+                <ProtectedRoute allowedRoles={["student"]}>
                   <Payment />
                 </ProtectedRoute>
               }
             />
-            <Route path="/cancel" element={<Cancel />} />
+
+            {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
@@ -345,4 +341,3 @@ function App() {
 }
 
 export default App;
-
