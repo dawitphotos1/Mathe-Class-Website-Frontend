@@ -316,11 +316,12 @@ function App() {
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                <ProtectedRoute allowedRoles={["admin", "teacher"]}>
                   <AdminDashboard onLogout={handleLogout} />
                 </ProtectedRoute>
               }
             />
+
             <Route
               path="/payment/:courseId"
               element={
