@@ -209,7 +209,7 @@ const AdminDashboard = ({ onLogout }) => {
             className={activeTab === "approvedEnrollments" ? "tab-active" : ""}
             onClick={() => setActiveTab("approvedEnrollments")}
           >
-            Approved Enrollments
+            👤 Approved Enrollments
           </button>
         </div>
 
