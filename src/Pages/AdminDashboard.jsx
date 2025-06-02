@@ -481,8 +481,6 @@
 // export default AdminDashboard;
 
 
-// AdminDashboard.jsx
-
 
 
 import React, { useState, useEffect, useCallback, useContext } from "react";
@@ -500,10 +498,10 @@ const AdminDashboard = ({ onLogout }) => {
   const [pendingUsers, setPendingUsers] = useState([]);
   const [pendingEnrollments, setPendingEnrollments] = useState([]);
   const [approvedEnrollments, setApprovedEnrollments] = useState([]);
-
   const [studentFilter, setStudentFilter] = useState("");
   const [courseFilter, setCourseFilter] = useState("");
   const [sortNewestFirst, setSortNewestFirst] = useState(true);
+
   const [activeTab, setActiveTab] = useState("pendingUsers");
   const [successActions, setSuccessActions] = useState({});
 
@@ -540,10 +538,13 @@ const AdminDashboard = ({ onLogout }) => {
   const fetchPendingEnrollments = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get(`${API_BASE_URL}/api/v1/enrollments/pending`, {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true,
-      });
+      const res = await axios.get(
+        `${API_BASE_URL}/api/v1/enrollments/pending`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      );
       setPendingEnrollments(res.data);
     } catch (err) {
       handleError(err, () => {});
@@ -553,10 +554,13 @@ const AdminDashboard = ({ onLogout }) => {
   const fetchApprovedEnrollments = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get(`${API_BASE_URL}/api/v1/enrollments/approved`, {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true,
-      });
+      const res = await axios.get(
+        `${API_BASE_URL}/api/v1/enrollments/approved`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      );
       setApprovedEnrollments(res.data);
     } catch (err) {
       handleError(err, () => {});
@@ -566,10 +570,14 @@ const AdminDashboard = ({ onLogout }) => {
   const handleApproveEnrollment = async (userId, courseId) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.post(`${API_BASE_URL}/api/v1/enrollments/approve`, { userId, courseId }, {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true,
-      });
+      await axios.post(
+        `${API_BASE_URL}/api/v1/enrollments/approve`,
+        { userId, courseId },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      );
       toast.success("Enrollment approved");
       fetchPendingEnrollments();
       fetchApprovedEnrollments();
@@ -643,11 +651,14 @@ const AdminDashboard = ({ onLogout }) => {
   return (
     <div className="dashboard-container">
       <div className="dashboard-card">
-        <h2>{user.role === "admin" ? "Admin Dashboard" : "Teacher Dashboard"}</h2>
+        <h2>
+          {user.role === "admin" ? "Admin Dashboard" : "Teacher Dashboard"}
+        </h2>
         <button onClick={onLogout} className="btn-secondary logout-btn">
           Logout
         </button>
 
+        {/* Tab Navigation */}
         <div className="admin-tabs">
           {user.role === "admin" && (
             <button
@@ -671,8 +682,9 @@ const AdminDashboard = ({ onLogout }) => {
           </button>
         </div>
 
+        {/* Pending Users Tab */}
         {user.role === "admin" && activeTab === "pendingUsers" && (
-          <div className="dashboard-section">
+          <div>
             <h3>Pending Users</h3>
             <table className="user-table">
               <thead>
@@ -681,7 +693,6 @@ const AdminDashboard = ({ onLogout }) => {
                   <th>Email</th>
                   <th>Role</th>
                   <th>Subject</th>
-                  <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -693,84 +704,58 @@ const AdminDashboard = ({ onLogout }) => {
                     <td>{user.role}</td>
                     <td>{user.subject}</td>
                     <td>
-                      {successActions[user.id] === "approved" && "✅ Approved"}
-                      {successActions[user.id] === "rejected" && "❌ Rejected"}
-                    </td>
-                    <td>
-                      {user.loading ? (
-                        <span>⏳ Processing...</span>
-                      ) : !successActions[user.id] ? (
-                        <>
-                          <button
-                            className="btn-action btn-approve"
-                            disabled={user.loading}
-                            onClick={async () => {
-                              if (window.confirm(`Approve ${user.name}?`)) {
-                                const updatedUsers = pendingUsers.map((u) =>
-                                  u.id === user.id ? { ...u, loading: true } : u
-                                );
-                                setPendingUsers(updatedUsers);
-                                try {
-                                  await axios.post(
-                                    `${API_BASE_URL}/api/v1/users/approve/${user.id}`,
-                                    {},
-                                    {
-                                      headers: {
-                                        Authorization: `Bearer ${localStorage.getItem("token")}`,
-                                      },
-                                    }
-                                  );
-                                  toast.success("User approved");
-                                  setSuccessActions((prev) => ({
-                                    ...prev,
-                                    [user.id]: "approved",
-                                  }));
-                                  fetchPendingUsers();
-                                } catch (err) {
-                                  toast.error("Failed to approve user");
+                      <button
+                        className="btn-action btn-approve"
+                        onClick={async () => {
+                          if (window.confirm(`Approve ${user.name}?`)) {
+                            try {
+                              await axios.post(
+                                `${API_BASE_URL}/api/v1/users/approve/${user.id}`,
+                                {},
+                                {
+                                  headers: {
+                                    Authorization: `Bearer ${localStorage.getItem(
+                                      "token"
+                                    )}`,
+                                  },
                                 }
-                              }
-                            }}
-                          >
-                            ✅ Approve
-                          </button>
-                          <button
-                            className="btn-action btn-reject"
-                            disabled={user.loading}
-                            onClick={async () => {
-                              if (window.confirm(`Reject ${user.name}?`)) {
-                                const updatedUsers = pendingUsers.map((u) =>
-                                  u.id === user.id ? { ...u, loading: true } : u
-                                );
-                                setPendingUsers(updatedUsers);
-                                try {
-                                  await axios.post(
-                                    `${API_BASE_URL}/api/v1/users/reject/${user.id}`,
-                                    {},
-                                    {
-                                      headers: {
-                                        Authorization: `Bearer ${localStorage.getItem("token")}`,
-                                      },
-                                    }
-                                  );
-                                  toast.success("User rejected");
-                                  setSuccessActions((prev) => ({
-                                    ...prev,
-                                    [user.id]: "rejected",
-                                  }));
-                                  fetchPendingUsers();
-                                } catch (err) {
-                                  toast.error("Failed to reject user");
+                              );
+                              toast.success("User approved");
+                              fetchPendingUsers();
+                            } catch (err) {
+                              toast.error("Failed to approve user");
+                            }
+                          }
+                        }}
+                      >
+                        ✅ Approve
+                      </button>
+                      <button
+                        className="btn-action btn-reject"
+                        onClick={async () => {
+                          if (window.confirm(`Reject ${user.name}?`)) {
+                            try {
+                              await axios.post(
+                                `${API_BASE_URL}/api/v1/users/reject/${user.id}`,
+                                {},
+                                {
+                                  headers: {
+                                    Authorization: `Bearer ${localStorage.getItem(
+                                      "token"
+                                    )}`,
+                                  },
                                 }
-                              }
-                            }}
-                          >
-                            ❌ Reject
-                          </button>
-                        </>
-                      ) : (
-                        <span style={{ color: "#777" }}>Done</span>
-                      )}
+                              );
+                              toast.success("User rejected");
+                              fetchPendingUsers();
+                            } catch (err) {
+                              toast.error("Failed to reject user");
+                            }
+                          }
+                        }}
+                      >
+                        ❌ Reject
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -779,17 +764,104 @@ const AdminDashboard = ({ onLogout }) => {
           </div>
         )}
 
+        {/* Pending Enrollments Tab */}
         {activeTab === "pendingEnrollments" && (
           <>
             <h3>Pending Enrollments</h3>
-            {/* Add your filtered enrollments table here */}
+            <div className="dashboard-actions">
+              <button className="btn-secondary" onClick={exportToCSV}>
+                📤 Export Enrollments to CSV
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={() => setSortNewestFirst(!sortNewestFirst)}
+              >
+                📅 Sort by {sortNewestFirst ? "Oldest" : "Newest"}
+              </button>
+              <select
+                value={courseFilter}
+                onChange={(e) => setCourseFilter(e.target.value)}
+              >
+                <option value="">All Courses</option>
+                {allCourses.map((title) => (
+                  <option key={title} value={title}>
+                    {title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="filter-boxes">
+              <input
+                type="text"
+                placeholder="Search by student name..."
+                value={studentFilter}
+                onChange={(e) => setStudentFilter(e.target.value)}
+              />
+            </div>
+
+            <table className="user-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Email</th>
+                  <th>Course</th>
+                  <th>Access Requested</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered(pendingEnrollments).map((e) => (
+                  <tr key={`${e.userId}-${e.courseId}`}>
+                    <td>{e.user?.name}</td>
+                    <td>{e.user?.email}</td>
+                    <td>{e.course?.title}</td>
+                    <td>{new Date(e.accessGrantedAt).toLocaleString()}</td>
+                    <td>⏳ Pending</td>
+                    <td>
+                      <button
+                        className="btn-primary"
+                        onClick={() =>
+                          handleApproveEnrollment(e.userId, e.courseId)
+                        }
+                      >
+                        Approve
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </>
         )}
 
+        {/* Approved Enrollments Tab */}
         {activeTab === "approvedEnrollments" && (
           <>
             <h3>Approved Enrollments</h3>
-            {/* Add your approved enrollments table here */}
+            <table className="user-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Email</th>
+                  <th>Course</th>
+                  <th>Access Granted</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered(approvedEnrollments).map((e) => (
+                  <tr key={`${e.userId}-${e.courseId}`}>
+                    <td>{e.user?.name}</td>
+                    <td>{e.user?.email}</td>
+                    <td>{e.course?.title}</td>
+                    <td>{new Date(e.accessGrantedAt).toLocaleString()}</td>
+                    <td>✅ Approved</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </>
         )}
       </div>
