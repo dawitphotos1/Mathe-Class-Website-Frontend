@@ -315,31 +315,31 @@ h2, h3 {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
+  /* justify-content: center; */
 }
 
 .admin-tabs button {
-  padding: 0.6rem 1.4rem;
+  padding: 0.7rem 1.5rem;
   border: none;
-  border-radius: 999px; /* pill shape */
-  background: linear-gradient(to right, #e0e0e0, #f7f7f7);
-  color: #333;
+  border-radius: 25px;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
+  transition: background-color 0.3s, color 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: #eeeeee;
+  color: #333;
 }
 
 .admin-tabs button:hover {
-  background: linear-gradient(to right, #d4e0ff, #e3ecff);
-  color: #0056b3;
+  background-color: #ddd;
 }
 
 .admin-tabs .tab-active {
-  background: linear-gradient(to right, #007bff, #0056b3);
+  background: linear-gradient(45deg, #42a5f5, #ab47bc);
   color: white;
-  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
-
 
 /* Filter / Controls */
 .dashboard-actions {
