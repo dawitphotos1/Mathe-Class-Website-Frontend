@@ -1,399 +1,325 @@
 
+// import React, { useState, useEffect, useCallback, useContext } from "react";
+// import { useNavigate } from "react-router-dom";
+// import axios from "axios";
+// import { toast } from "react-toastify";
+// import { API_BASE_URL } from "../config";
+// import { AuthContext } from "../context/AuthContext";
+// import "./AdminDashboard.css";
+
+// const AdminDashboard = () => {
+//   const [pendingUsers, setPendingUsers] = useState([]);
+//   const [pendingEnrollments, setPendingEnrollments] = useState([]);
+//   const [approvedEnrollments, setApprovedEnrollments] = useState([]);
+//   const [loading, setLoading] = useState(true);
+
+//   const fetchPendingUsers = useCallback(async () => {
+//     try {
+//       const res = await fetch("/api/v1/admin/pending-users");
+//       const data = await res.json();
+//       setPendingUsers(data);
+//     } catch (err) {
+//       console.error("Error fetching pending users:", err);
+//     }
+//   }, []);
+
+//   const fetchPendingEnrollments = useCallback(async () => {
+//     try {
+//       const res = await fetch("/api/v1/admin/enrollments/pending");
+//       const data = await res.json();
+//       setPendingEnrollments(data);
+//     } catch (err) {
+//       console.error("Error fetching pending enrollments:", err);
+//     }
+//   }, []);
+
+//   const fetchApprovedEnrollments = useCallback(async () => {
+//     try {
+//       const res = await fetch("/api/v1/admin/enrollments/approved");
+//       const data = await res.json();
+//       setApprovedEnrollments(data);
+//     } catch (err) {
+//       console.error("Error fetching approved enrollments:", err);
+//     }
+//   }, []);
+
+//   useEffect(() => {
+//     fetchPendingUsers();
+//   }, [fetchPendingUsers]);
+
+//   useEffect(() => {
+//     fetchPendingEnrollments();
+//     fetchApprovedEnrollments();
+//   }, [fetchPendingEnrollments, fetchApprovedEnrollments]);
+
+//   useEffect(() => {
+//     if (
+//       pendingUsers.length &&
+//       pendingEnrollments.length &&
+//       approvedEnrollments.length
+//     ) {
+//       setLoading(false);
+//     }
+//   }, [pendingUsers, pendingEnrollments, approvedEnrollments]);
+
+//   if (loading) return <div>Loading...</div>;
+
+//   return (
+//     <div className="admin-dashboard">
+//       <h1>Admin Dashboard</h1>
+
+//       <section>
+//         <h2>Pending Users</h2>
+//         {pendingUsers.map((user) => (
+//           <div key={user.id}>{user.email}</div>
+//         ))}
+//       </section>
+
+//       <section>
+//         <h2>Pending Enrollments</h2>
+//         {pendingEnrollments.map((enroll) => (
+//           <div key={enroll.id}>{enroll.courseTitle}</div>
+//         ))}
+//       </section>
+
+//       <section>
+//         <h2>Approved Enrollments</h2>
+//         {approvedEnrollments.map((enroll) => (
+//           <div key={enroll.id}>{enroll.courseTitle}</div>
+//         ))}
+//       </section>
+//     </div>
+//   );
+// };
+
+// export default AdminDashboard;
+
+
+
 import React, { useState, useEffect, useCallback, useContext } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { API_BASE_URL } from "../config";
 import { AuthContext } from "../context/AuthContext";
 import "./AdminDashboard.css";
 
 const AdminDashboard = ({ onLogout }) => {
   const { user } = useContext(AuthContext);
-  const navigate = useNavigate();
-
   const [pendingUsers, setPendingUsers] = useState([]);
   const [pendingEnrollments, setPendingEnrollments] = useState([]);
   const [approvedEnrollments, setApprovedEnrollments] = useState([]);
-  const [studentFilter, setStudentFilter] = useState("");
-  const [courseFilter, setCourseFilter] = useState("");
-  const [sortNewestFirst, setSortNewestFirst] = useState(true);
+  const [activeTab, setActiveTab] = useState("users");
+  const [loading, setLoading] = useState(true);
 
-  const [activeTab, setActiveTab] = useState("pendingUsers");
-  const [successActions, setSuccessActions] = useState({});
-
-  const handleError = useCallback(
-    (err, setError) => {
-      const status = err.response?.status;
-      if (status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        onLogout();
-        toast.error("Session expired. Please log in again.");
-        navigate("/login");
-      } else {
-        toast.error("Something went wrong");
-        setError("Something went wrong");
-      }
-    },
-    [navigate, onLogout]
-  );
-
-  const fetchPendingUsers = async () => {
+  const fetchPendingUsers = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
-      const res = await axios.get(`${API_BASE_URL}/api/v1/users/pending`, {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true,
-      });
+      const res = await axios.get("/api/v1/admin/pending-users");
       setPendingUsers(res.data);
     } catch (err) {
-      handleError(err, () => {});
+      console.error("Error fetching pending users:", err);
     }
-  };
+  }, []);
 
-  const fetchPendingEnrollments = async () => {
+  const fetchPendingEnrollments = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
-      const res = await axios.get(
-        `${API_BASE_URL}/api/v1/enrollments/pending`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true,
-        }
-      );
+      const res = await axios.get("/api/v1/admin/enrollments/pending");
       setPendingEnrollments(res.data);
     } catch (err) {
-      handleError(err, () => {});
+      console.error("Error fetching pending enrollments:", err);
     }
-  };
+  }, []);
 
-  const fetchApprovedEnrollments = async () => {
+  const fetchApprovedEnrollments = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
-      const res = await axios.get(
-        `${API_BASE_URL}/api/v1/enrollments/approved`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true,
-        }
-      );
+      const res = await axios.get("/api/v1/admin/enrollments/approved");
       setApprovedEnrollments(res.data);
     } catch (err) {
-      handleError(err, () => {});
+      console.error("Error fetching approved enrollments:", err);
+    }
+  }, []);
+
+  const handleApproveUser = async (userId) => {
+    try {
+      await axios.post(`/api/v1/admin/approve-user/${userId}`);
+      toast.success("User approved");
+      fetchPendingUsers();
+    } catch (err) {
+      toast.error("Error approving user");
     }
   };
 
-  const handleApproveEnrollment = async (userId, courseId) => {
+  const handleRejectUser = async (userId) => {
     try {
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `${API_BASE_URL}/api/v1/enrollments/approve`,
-        { userId, courseId },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true,
-        }
-      );
+      await axios.post(`/api/v1/admin/reject-user/${userId}`);
+      toast.info("User rejected");
+      fetchPendingUsers();
+    } catch (err) {
+      toast.error("Error rejecting user");
+    }
+  };
+
+  const handleApproveEnrollment = async (enrollmentId) => {
+    try {
+      await axios.post(`/api/v1/admin/enrollments/approve/${enrollmentId}`);
       toast.success("Enrollment approved");
       fetchPendingEnrollments();
       fetchApprovedEnrollments();
     } catch (err) {
-      handleError(err, () => {});
+      toast.error("Error approving enrollment");
     }
   };
 
-  const exportToCSV = () => {
-    const rows = [...pendingEnrollments, ...approvedEnrollments];
-    const headers = ["Student", "Email", "Course", "AccessGrantedAt", "Status"];
-
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      [
-        headers.join(","),
-        ...rows.map((e) =>
-          [
-            e.user?.name,
-            e.user?.email,
-            e.course?.title,
-            new Date(e.accessGrantedAt).toLocaleString(),
-            approvedEnrollments.includes(e) ? "Approved" : "Pending",
-          ].join(",")
-        ),
-      ].join("\n");
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "enrollments.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleRejectEnrollment = async (enrollmentId) => {
+    try {
+      await axios.post(`/api/v1/admin/enrollments/reject/${enrollmentId}`);
+      toast.info("Enrollment rejected");
+      fetchPendingEnrollments();
+    } catch (err) {
+      toast.error("Error rejecting enrollment");
+    }
   };
 
   useEffect(() => {
-    if (!user) return;
-    if (user.role === "admin") fetchPendingUsers();
-    if (["admin", "teacher"].includes(user.role)) {
-      fetchPendingEnrollments();
-      fetchApprovedEnrollments();
+    fetchPendingUsers();
+    fetchPendingEnrollments();
+    fetchApprovedEnrollments();
+  }, [fetchPendingUsers, fetchPendingEnrollments, fetchApprovedEnrollments]);
+
+  useEffect(() => {
+    if (user && user.role !== "admin" && user.role !== "teacher") {
+      toast.error("Unauthorized access");
+    } else {
+      setLoading(false);
     }
   }, [user]);
 
-  useEffect(() => {
-    if (user?.role === "admin" && activeTab === "pendingUsers") {
-      fetchPendingUsers();
-    }
-  }, [activeTab, user]);
-
-  useEffect(() => {
-    if (["admin", "teacher"].includes(user?.role)) {
-      if (activeTab === "pendingEnrollments") fetchPendingEnrollments();
-      if (activeTab === "approvedEnrollments") fetchApprovedEnrollments();
-    }
-  }, [activeTab, user]);
-  
-  
-
+  if (loading) return <div>Loading...</div>;
   if (!user || (user.role !== "admin" && user.role !== "teacher")) {
-    return <div className="unauthorized">Unauthorized</div>;
+    return <div className="unauthorized">Access Denied</div>;
   }
-
-  const allCourses = Array.from(
-    new Set(
-      [...pendingEnrollments, ...approvedEnrollments]
-        .map((e) => e.course?.title)
-        .filter(Boolean)
-    )
-  ).sort();
-
-  const filtered = (arr) =>
-    arr
-      .filter(
-        (e) =>
-          e.user?.name.toLowerCase().includes(studentFilter.toLowerCase()) &&
-          (courseFilter ? e.course?.title === courseFilter : true)
-      )
-      .sort((a, b) =>
-        sortNewestFirst
-          ? new Date(b.accessGrantedAt) - new Date(a.accessGrantedAt)
-          : new Date(a.accessGrantedAt) - new Date(b.accessGrantedAt)
-      );
 
   return (
     <div className="dashboard-container">
       <div className="dashboard-card">
-        <h2>
-          {user.role === "admin" ? "Admin Dashboard" : "Teacher Dashboard"}
-        </h2>
-        <button onClick={onLogout} className="btn-secondary logout-btn">
+        <h1>Admin Dashboard</h1>
+        <button className="logout-btn" onClick={onLogout}>
           Logout
         </button>
 
-        {/* Tab Navigation */}
         <div className="admin-tabs">
-          {user.role === "admin" && (
-            <button
-              className={activeTab === "pendingUsers" ? "tab-active" : ""}
-              onClick={() => setActiveTab("pendingUsers")}
-            >
-              👤 Pending Users
-            </button>
-          )}
           <button
-            className={activeTab === "pendingEnrollments" ? "tab-active" : ""}
-            onClick={() => setActiveTab("pendingEnrollments")}
+            onClick={() => setActiveTab("users")}
+            className={activeTab === "users" ? "tab-active" : ""}
           >
-            👤 Pending Enrollments
+            Pending Users
           </button>
           <button
-            className={activeTab === "approvedEnrollments" ? "tab-active" : ""}
-            onClick={() => setActiveTab("approvedEnrollments")}
+            onClick={() => setActiveTab("pendingEnr")}
+            className={activeTab === "pendingEnr" ? "tab-active" : ""}
           >
-            👤 Approved Enrollments
+            Pending Enrollments
+          </button>
+          <button
+            onClick={() => setActiveTab("approvedEnr")}
+            className={activeTab === "approvedEnr" ? "tab-active" : ""}
+          >
+            Approved Enrollments
           </button>
         </div>
 
-        {/* Pending Users Tab */}
-        {user.role === "admin" && activeTab === "pendingUsers" && (
-          <div>
-            <h3>Pending Users</h3>
+        {activeTab === "users" && (
+          <section>
+            <h2>Pending Users</h2>
             <table className="user-table">
               <thead>
                 <tr>
-                  <th>Name</th>
                   <th>Email</th>
                   <th>Role</th>
-                  <th>Subject</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {pendingUsers.map((user) => (
                   <tr key={user.id}>
-                    <td>{user.name}</td>
                     <td>{user.email}</td>
                     <td>{user.role}</td>
-                    <td>{user.subject}</td>
                     <td>
                       <button
-                        className="btn-action btn-approve"
-                        onClick={async () => {
-                          if (window.confirm(`Approve ${user.name}?`)) {
-                            try {
-                              await axios.post(
-                                `${API_BASE_URL}/api/v1/users/approve/${user.id}`,
-                                {},
-                                {
-                                  headers: {
-                                    Authorization: `Bearer ${localStorage.getItem(
-                                      "token"
-                                    )}`,
-                                  },
-                                }
-                              );
-                              toast.success("User approved");
-                              fetchPendingUsers();
-                            } catch (err) {
-                              toast.error("Failed to approve user");
-                            }
-                          }
-                        }}
+                        className="btn-approve"
+                        onClick={() => handleApproveUser(user.id)}
                       >
-                        ✅ Approve
+                        Approve
                       </button>
                       <button
-                        className="btn-action btn-reject"
-                        onClick={async () => {
-                          if (window.confirm(`Reject ${user.name}?`)) {
-                            try {
-                              await axios.post(
-                                `${API_BASE_URL}/api/v1/users/reject/${user.id}`,
-                                {},
-                                {
-                                  headers: {
-                                    Authorization: `Bearer ${localStorage.getItem(
-                                      "token"
-                                    )}`,
-                                  },
-                                }
-                              );
-                              toast.success("User rejected");
-                              fetchPendingUsers();
-                            } catch (err) {
-                              toast.error("Failed to reject user");
-                            }
-                          }
-                        }}
+                        className="btn-reject"
+                        onClick={() => handleRejectUser(user.id)}
                       >
-                        ❌ Reject
+                        Reject
                       </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+          </section>
         )}
 
-        {/* Pending Enrollments Tab */}
-        {activeTab === "pendingEnrollments" && (
-          <>
-            <h3>Pending Enrollments</h3>
-            <div className="dashboard-actions">
-              <button className="btn-secondary" onClick={exportToCSV}>
-                📤 Export Enrollments to CSV
-              </button>
-              <button
-                className="btn-secondary"
-                onClick={() => setSortNewestFirst(!sortNewestFirst)}
-              >
-                📅 Sort by {sortNewestFirst ? "Oldest" : "Newest"}
-              </button>
-              <select
-                value={courseFilter}
-                onChange={(e) => setCourseFilter(e.target.value)}
-              >
-                <option value="">All Courses</option>
-                {allCourses.map((title) => (
-                  <option key={title} value={title}>
-                    {title}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="filter-boxes">
-              <input
-                type="text"
-                placeholder="Search by student name..."
-                value={studentFilter}
-                onChange={(e) => setStudentFilter(e.target.value)}
-              />
-            </div>
-
+        {activeTab === "pendingEnr" && (
+          <section>
+            <h2>Pending Enrollments</h2>
             <table className="user-table">
               <thead>
                 <tr>
                   <th>Student</th>
-                  <th>Email</th>
                   <th>Course</th>
-                  <th>Access Requested</th>
-                  <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered(pendingEnrollments).map((e) => (
-                  <tr key={`${e.userId}-${e.courseId}`}>
-                    <td>{e.user?.name}</td>
-                    <td>{e.user?.email}</td>
-                    <td>{e.course?.title}</td>
-                    <td>{new Date(e.accessGrantedAt).toLocaleString()}</td>
-                    <td>⏳ Pending</td>
+                {pendingEnrollments.map((enroll) => (
+                  <tr key={enroll.id}>
+                    <td>{enroll.studentEmail}</td>
+                    <td>{enroll.courseTitle}</td>
                     <td>
                       <button
-                        className="btn-primary"
-                        onClick={() =>
-                          handleApproveEnrollment(e.userId, e.courseId)
-                        }
+                        className="btn-approve"
+                        onClick={() => handleApproveEnrollment(enroll.id)}
                       >
                         Approve
+                      </button>
+                      <button
+                        className="btn-reject"
+                        onClick={() => handleRejectEnrollment(enroll.id)}
+                      >
+                        Reject
                       </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </>
+          </section>
         )}
 
-        {/* Approved Enrollments Tab */}
-        {activeTab === "approvedEnrollments" && (
-          <>
-            <h3>Approved Enrollments</h3>
+        {activeTab === "approvedEnr" && (
+          <section>
+            <h2>Approved Enrollments</h2>
             <table className="user-table">
               <thead>
                 <tr>
                   <th>Student</th>
-                  <th>Email</th>
                   <th>Course</th>
-                  <th>Access Granted</th>
-                  <th>Status</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered(approvedEnrollments).map((e) => (
-                  <tr key={`${e.userId}-${e.courseId}`}>
-                    <td>{e.user?.name}</td>
-                    <td>{e.user?.email}</td>
-                    <td>{e.course?.title}</td>
-                    <td>{new Date(e.accessGrantedAt).toLocaleString()}</td>
-                    <td>✅ Approved</td>
+                {approvedEnrollments.map((enroll) => (
+                  <tr key={enroll.id}>
+                    <td>{enroll.studentEmail}</td>
+                    <td>{enroll.courseTitle}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </>
+          </section>
         )}
       </div>
     </div>
