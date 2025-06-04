@@ -39,26 +39,32 @@ const CourseCard = ({ course, user }) => {
     try {
       console.log("📤 Sending payload:", {
         courseId: String(course.id),
-        courseName: course.title,
+        courseTitle: course.title, // ✅ fixed key name
         coursePrice: parseFloat(course.price),
       });
+
       const { loadStripe } = await import("@stripe/stripe-js");
       const stripe = await loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
+
       const res = await axios.post(
         `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
         {
           courseId: String(course.id),
-          courseName: course.title,
+          courseTitle: course.title, // ✅ fixed here too
           coursePrice: parseFloat(course.price),
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      await stripe.redirectToCheckout({ sessionId: res.data.sessionId });
+
+      // redirect using Stripe session.url (your backend is returning this)
+      window.location.href = res.data.url;
     } catch (err) {
       console.error("❌ Stripe error:", err.response?.data || err);
       toast.error(err.response?.data?.error || "Failed to initiate payment.");
     }
   };
+  
+
 
   return (
     <div className="course-card">
