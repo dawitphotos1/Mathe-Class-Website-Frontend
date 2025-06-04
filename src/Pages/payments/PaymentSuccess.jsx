@@ -32,7 +32,7 @@ const PaymentSuccess = () => {
 
       try {
         const res = await axios.post(
-          `${API_BASE_URL}/api/v1/enrollments/confirm`,
+          `${API_BASE_URL}/api/v1/payments/confirm`,
           { session_id: sessionId },
           {
             headers: {
