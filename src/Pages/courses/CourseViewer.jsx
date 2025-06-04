@@ -82,7 +82,7 @@ const CourseViewer = () => {
     try {
       const payload = {
         courseId: course.id,
-        courseName: course.name,
+        courseTitle: course.name, // ✅ CORRECT
         coursePrice: course.price,
       };
 
