@@ -125,7 +125,7 @@ import React, { useEffect } from "react";
 import axios from "axios";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { API_BASE_URL } from "../config";
+import { API_BASE_URL } from "../../config";
 
 const PaymentSuccess = () => {
   const [params] = useSearchParams();
