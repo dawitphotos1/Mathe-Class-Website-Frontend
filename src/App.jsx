@@ -4,7 +4,6 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
 import { API_BASE_URL } from "./config";
-
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
