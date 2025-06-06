@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -58,8 +57,12 @@ const AdminDashboard = ({ onLogout }) => {
       if (["admin", "teacher"].includes(user.role)) {
         const [pendingEnrollmentsRes, approvedEnrollmentsRes] =
           await Promise.all([
-            axios.get(`${API_BASE_URL}/api/v1/enrollments/pending`, { headers }),
-            axios.get(`${API_BASE_URL}/api/v1/enrollments/approved`, { headers }),
+            axios.get(`${API_BASE_URL}/api/v1/enrollments/pending`, {
+              headers,
+            }),
+            axios.get(`${API_BASE_URL}/api/v1/enrollments/approved`, {
+              headers,
+            }),
           ]);
         setPendingEnrollments(pendingEnrollmentsRes.data);
         setApprovedEnrollments(approvedEnrollmentsRes.data);
@@ -116,9 +119,7 @@ const AdminDashboard = ({ onLogout }) => {
     const headers = ["Name", "Email", "Subject"];
     const csv = [
       headers.join(","),
-      ...approvedUsers.map((u) =>
-        [u.name, u.email, u.subject].join(",")
-      ),
+      ...approvedUsers.map((u) => [u.name, u.email, u.subject].join(",")),
     ].join("\n");
     downloadCSV(csv, "approved_students.csv");
   };
@@ -196,9 +197,14 @@ const AdminDashboard = ({ onLogout }) => {
     <div className={`dashboard-container ${darkMode ? "dark-mode" : ""}`}>
       <div className="dashboard-card">
         <div className="dashboard-header">
-          <h2>{user.role === "admin" ? "Admin Dashboard" : "Teacher Dashboard"}</h2>
+          <h2>
+            {user.role === "admin" ? "Admin Dashboard" : "Teacher Dashboard"}
+          </h2>
           <div>
-            <button onClick={() => setDarkMode(!darkMode)} className="btn-secondary">
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="btn-secondary"
+            >
               {darkMode ? "🌞 Light Mode" : "🌙 Dark Mode"}
             </button>
             <button onClick={onLogout} className="btn-secondary logout-btn">
@@ -212,7 +218,7 @@ const AdminDashboard = ({ onLogout }) => {
           {user.role === "admin" && (
             <>
               <div className="summary-card">
-                👩‍🎓 Total Students
+                👩🎓 Total Students
                 <br />
                 {approvedUsers.length}
               </div>
@@ -240,27 +246,35 @@ const AdminDashboard = ({ onLogout }) => {
           {user.role === "admin" && (
             <>
               <button
-                className={`tab-button ${activeTab === "pendingUsers" ? "tab-active" : ""}`}
+                className={`tab-button ${
+                  activeTab === "pendingUsers" ? "tab-active" : ""
+                }`}
                 onClick={() => setActiveTab("pendingUsers")}
               >
                 👤 Pending Users
               </button>
               <button
-                className={`tab-button ${activeTab === "approvedUsers" ? "tab-active" : ""}`}
+                className={`tab-button ${
+                  activeTab === "approvedUsers" ? "tab-active" : ""
+                }`}
                 onClick={() => setActiveTab("approvedUsers")}
               >
-                👨‍🎓 Total Students
+                👨🎓 Total Students
               </button>
             </>
           )}
           <button
-            className={`tab-button ${activeTab === "pendingEnrollments" ? "tab-active" : ""}`}
+            className={`tab-button ${
+              activeTab === "pendingEnrollments" ? "tab-active" : ""
+            }`}
             onClick={() => setActiveTab("pendingEnrollments")}
           >
             📥 Pending Enrollments
           </button>
           <button
-            className={`tab-button ${activeTab === "approvedEnrollments" ? "tab-active" : ""}`}
+            className={`tab-button ${
+              activeTab === "approvedEnrollments" ? "tab-active" : ""
+            }`}
             onClick={() => setActiveTab("approvedEnrollments")}
           >
             ✅ Approved Enrollments
@@ -272,7 +286,10 @@ const AdminDashboard = ({ onLogout }) => {
           <>
             <h3>Pending Users</h3>
             <div className="dashboard-actions">
-              <button className="btn-secondary" onClick={exportPendingUsersToCSV}>
+              <button
+                className="btn-secondary"
+                onClick={exportPendingUsersToCSV}
+              >
                 📤 Export Pending Users to CSV
               </button>
               <select
@@ -323,7 +340,9 @@ const AdminDashboard = ({ onLogout }) => {
                                 {},
                                 {
                                   headers: {
-                                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                                    Authorization: `Bearer ${localStorage.getItem(
+                                      "token"
+                                    )}`,
                                   },
                                 }
                               );
@@ -347,7 +366,9 @@ const AdminDashboard = ({ onLogout }) => {
                                 {},
                                 {
                                   headers: {
-                                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                                    Authorization: `Bearer ${localStorage.getItem(
+                                      "token"
+                                    )}`,
                                   },
                                 }
                               );
@@ -374,7 +395,10 @@ const AdminDashboard = ({ onLogout }) => {
           <>
             <h3>Total Approved Students</h3>
             <div className="dashboard-actions">
-              <button className="btn-secondary" onClick={exportApprovedUsersToCSV}>
+              <button
+                className="btn-secondary"
+                onClick={exportApprovedUsersToCSV}
+              >
                 📤 Export Approved Students to CSV
               </button>
               <select
@@ -382,11 +406,13 @@ const AdminDashboard = ({ onLogout }) => {
                 onChange={(e) => setCourseFilter(e.target.value)}
               >
                 <option value="">All Subjects</option>
-                {Array.from(new Set(approvedUsers.map((u) => u.subject))).map((subject) => (
-                  <option key={subject} value={subject}>
-                    {subject}
-                  </option>
-                ))}
+                {Array.from(new Set(approvedUsers.map((u) => u.subject))).map(
+                  (subject) => (
+                    <option key={subject} value={subject}>
+                      {subject}
+                    </option>
+                  )
+                )}
               </select>
             </div>
             <div className="filter-boxes">
@@ -409,7 +435,9 @@ const AdminDashboard = ({ onLogout }) => {
                 {approvedUsers
                   .filter(
                     (u) =>
-                      u.name.toLowerCase().includes(studentFilter.toLowerCase()) &&
+                      u.name
+                        .toLowerCase()
+                        .includes(studentFilter.toLowerCase()) &&
                       (!courseFilter || u.subject === courseFilter)
                   )
                   .map((u) => (
@@ -429,7 +457,10 @@ const AdminDashboard = ({ onLogout }) => {
           <>
             <h3>Pending Enrollments</h3>
             <div className="dashboard-actions">
-              <button className="btn-secondary" onClick={exportPendingEnrollmentsToCSV}>
+              <button
+                className="btn-secondary"
+                onClick={exportPendingEnrollmentsToCSV}
+              >
                 📤 Export Pending Enrollments to CSV
               </button>
               <button
@@ -480,7 +511,9 @@ const AdminDashboard = ({ onLogout }) => {
                     <td>
                       <button
                         className="btn-primary"
-                        onClick={() => handleApproveEnrollment(e.userId, e.courseId)}
+                        onClick={() =>
+                          handleApproveEnrollment(e.userId, e.courseId)
+                        }
                       >
                         Approve
                       </button>
@@ -496,7 +529,10 @@ const AdminDashboard = ({ onLogout }) => {
           <>
             <h3>Approved Enrollments</h3>
             <div className="dashboard-actions">
-              <button className="btn-secondary" onClick={exportApprovedEnrollmentsToCSV}>
+              <button
+                className="btn-secondary"
+                onClick={exportApprovedEnrollmentsToCSV}
+              >
                 📤 Export Approved Enrollments to CSV
               </button>
               <button
@@ -555,4 +591,3 @@ const AdminDashboard = ({ onLogout }) => {
 };
 
 export default AdminDashboard;
-

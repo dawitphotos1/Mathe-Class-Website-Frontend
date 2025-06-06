@@ -12,6 +12,7 @@
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
+    "framer-motion": "^12.16.0",
     "jwt-decode": "^4.0.0",
     "mathjs": "^14.4.0",
     "mongoose": "^8.13.2",
