@@ -16,7 +16,7 @@ import Unauthorized from "./Pages/Unauthorized";
 import "./App.css";
 
 // ✅ Student-only route
-import MyCoursesPage from "./Pages/courses/MyCoursesPage";
+import MyCoursesPage from "./Pages/courses/MyCourses";
 
 // Lazy-loaded pages
 const Home = React.lazy(() => import("./Pages/Home"));
