@@ -72,10 +72,11 @@ const AdminDashboard = ({ onLogout }) => {
     }
   };
 
+  // Run once when component mounts
   useEffect(() => {
-    if (user) fetchData();
-  }, [user]);
-
+    fetchData();
+  }, []);
+  
   const handleApproveEnrollment = async (userId, courseId) => {
     try {
       const token = localStorage.getItem("token");

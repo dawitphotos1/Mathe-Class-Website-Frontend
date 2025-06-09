@@ -3,7 +3,11 @@
 // import axios from "axios";
 // import { motion } from "framer-motion";
 // import { FaSearch, FaSun, FaMoon } from "react-icons/fa";
+// import ReactPaginate from "react-paginate";
+// import { useNavigate } from "react-router-dom";
 // import "./MyCourses.css";
+
+// const COURSES_PER_PAGE = 6;
 
 // const MyCourses = () => {
 //   const [courses, setCourses] = useState([]);
@@ -12,6 +16,8 @@
 //   const [categoryFilter, setCategoryFilter] = useState("all");
 //   const [tab, setTab] = useState("approved");
 //   const [darkMode, setDarkMode] = useState(false);
+//   const [currentPage, setCurrentPage] = useState(0);
+//   const navigate = useNavigate();
 
 //   useEffect(() => {
 //     const fetchCourses = async () => {
@@ -54,6 +60,10 @@
 //         return new Date(b.enrolledAt) - new Date(a.enrolledAt);
 //       return 0;
 //     });
+
+//   const offset = currentPage * COURSES_PER_PAGE;
+//   const pagedCourses = filtered.slice(offset, offset + COURSES_PER_PAGE);
+//   const pageCount = Math.ceil(filtered.length / COURSES_PER_PAGE);
 
 //   const categories = ["all", ...new Set(courses.map((c) => c.category))];
 
@@ -110,7 +120,7 @@
 //       </div>
 
 //       <div className="course-grid">
-//         {filtered.map((course) => (
+//         {pagedCourses.map((course) => (
 //           <motion.div
 //             key={course.id}
 //             className={`course-card ${tab}`}
@@ -132,22 +142,48 @@
 //               <p>
 //                 <strong>Price:</strong> ${course.price}
 //               </p>
-//               {tab === "approved" && (
+//               {tab === "approved" ? (
 //                 <>
 //                   <p>
 //                     Enrolled: {new Date(course.enrolledAt).toLocaleDateString()}
 //                   </p>
-//                   <div className="progress-bar">
+//                   <div className="progress-wrapper">
 //                     <div
-//                       className="progress-fill"
-//                       style={{ width: `${course.progress}%` }}
-//                     ></div>
+//                       className="progress-circle"
+//                       data-tooltip={`${course.progress}% complete`}
+//                     >
+//                       <svg viewBox="0 0 36 36" className="circular-chart">
+//                         <path
+//                           className="circle-bg"
+//                           d="M18 2.0845
+//                             a 15.9155 15.9155 0 0 1 0 31.831
+//                             a 15.9155 15.9155 0 0 1 0 -31.831"
+//                           fill="none"
+//                           stroke="#eee"
+//                           strokeWidth="2"
+//                         />
+//                         <path
+//                           className="circle"
+//                           strokeDasharray={`${course.progress}, 100`}
+//                           d="M18 2.0845
+//                             a 15.9155 15.9155 0 0 1 0 31.831
+//                             a 15.9155 15.9155 0 0 1 0 -31.831"
+//                           fill="none"
+//                           stroke="#2ecc71"
+//                           strokeWidth="2"
+//                         />
+//                       </svg>
+//                     </div>
+//                     <button
+//                       className="go-to-class"
+//                       onClick={() => navigate(`/course/${course.id}`)}
+//                     >
+//                       Go to Class
+//                     </button>
 //                   </div>
-//                   <p className="progress-text">{course.progress}% complete</p>
 //                 </>
-//               )}
-//               {tab === "pending" && (
-//                 <p className="status-text">⏳ Awaiting approval</p>
+//               ) : (
+//                 <span className="badge">⏳ Awaiting Approval</span>
 //               )}
 //             </div>
 //           </motion.div>
@@ -155,6 +191,19 @@
 //       </div>
 
 //       {filtered.length === 0 && <p className="no-courses">No courses found.</p>}
+
+//       {pageCount > 1 && (
+//         <div className="pagination-container">
+//           <ReactPaginate
+//             previousLabel="←"
+//             nextLabel="→"
+//             pageCount={pageCount}
+//             onPageChange={({ selected }) => setCurrentPage(selected)}
+//             containerClassName="pagination"
+//             activeClassName="selected"
+//           />
+//         </div>
+//       )}
 //     </div>
 //   );
 // };
@@ -169,6 +218,8 @@ import axios from "axios";
 import { motion } from "framer-motion";
 import { FaSearch, FaSun, FaMoon } from "react-icons/fa";
 import ReactPaginate from "react-paginate";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import "./MyCourses.css";
 
 const COURSES_PER_PAGE = 6;
@@ -181,6 +232,7 @@ const MyCourses = () => {
   const [tab, setTab] = useState("approved");
   const [darkMode, setDarkMode] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -191,17 +243,28 @@ const MyCourses = () => {
           },
         });
 
-        const simulatedCourses = (res.data.courses || []).map((course) => ({
-          ...course,
-          progress: course.progress ?? Math.floor(Math.random() * 100),
-          category:
-            course.category ||
-            ["Math", "Science", "English"][Math.floor(Math.random() * 3)],
-        }));
+        // Validate and transform course data
+        const simulatedCourses = (res.data.courses || [])
+          .map((course) => {
+            if (!course.id || !course.slug) {
+              console.warn("Course missing id or slug:", course);
+              return null; // Skip invalid courses
+            }
+            return {
+              ...course,
+              progress: course.progress ?? Math.floor(Math.random() * 100),
+              category:
+                course.category ||
+                ["Math", "Science", "English"][Math.floor(Math.random() * 3)],
+            };
+          })
+          .filter((course) => course !== null); // Remove invalid courses
 
+        console.log("Fetched courses:", simulatedCourses);
         setCourses(simulatedCourses);
       } catch (err) {
         console.error("Error loading courses:", err);
+        toast.error("Failed to load courses");
       }
     };
 
@@ -209,6 +272,16 @@ const MyCourses = () => {
   }, []);
 
   const toggleDarkMode = () => setDarkMode(!darkMode);
+
+  const handleGoToClass = (slug) => {
+    if (!slug) {
+      console.error("Invalid course slug:", slug);
+      toast.error("Cannot navigate to course: Invalid course slug");
+      return;
+    }
+    console.log(`Navigating to course ${slug}`);
+    navigate(`/course/${slug}`);
+  };
 
   const filtered = courses
     .filter((c) => c.status === tab)
@@ -337,7 +410,12 @@ const MyCourses = () => {
                         />
                       </svg>
                     </div>
-                    <button className="go-to-class">Go to Class</button>
+                    <button
+                      className="go-to-class"
+                      onClick={() => handleGoToClass(course.slug)}
+                    >
+                      Go to Class
+                    </button>
                   </div>
                 </>
               ) : (
@@ -367,4 +445,3 @@ const MyCourses = () => {
 };
 
 export default MyCourses;
-
