@@ -244,7 +244,7 @@ const MyCourses = () => {
 
         const res = await axios.get("/api/v1/enrollments/my-courses", {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
 
