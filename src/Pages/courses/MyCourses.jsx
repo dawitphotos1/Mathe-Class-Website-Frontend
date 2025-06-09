@@ -212,7 +212,6 @@
 
 
 
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
@@ -237,49 +236,59 @@ const MyCourses = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          toast.error("You must be logged in to view your courses.");
+          return;
+        }
+
         const res = await axios.get("/api/v1/enrollments/my-courses", {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
           },
         });
 
-        // Validate and transform course data
-        const simulatedCourses = (res.data.courses || [])
+        if (!res.data || !res.data.success) {
+          console.error("Invalid response format:", res.data);
+          toast.error("Unexpected server response.");
+          return;
+        }
+
+        const transformed = (res.data.courses || [])
           .map((course) => {
-            if (!course.id || !course.slug) {
-              console.warn("Course missing id or slug:", course);
-              return null; // Skip invalid courses
-            }
+            if (!course?.id || !course?.slug) return null;
+
             return {
               ...course,
-              progress: course.progress ?? Math.floor(Math.random() * 100),
+              progress: course.progress ?? Math.floor(Math.random() * 60 + 20), // Simulated
               category:
                 course.category ||
                 ["Math", "Science", "English"][Math.floor(Math.random() * 3)],
             };
           })
-          .filter((course) => course !== null); // Remove invalid courses
+          .filter(Boolean);
 
-        console.log("Fetched courses:", simulatedCourses);
-        setCourses(simulatedCourses);
+        console.log("✅ Courses loaded:", transformed);
+        setCourses(transformed);
       } catch (err) {
-        console.error("Error loading courses:", err);
-        toast.error("Failed to load courses");
+        console.error(
+          "❌ Failed to fetch courses:",
+          err.response || err.message || err
+        );
+        toast.error("Failed to load courses. Please try again later.");
       }
     };
 
     fetchCourses();
   }, []);
 
-  const toggleDarkMode = () => setDarkMode(!darkMode);
+  const toggleDarkMode = () => setDarkMode((prev) => !prev);
 
   const handleGoToClass = (slug) => {
     if (!slug) {
-      console.error("Invalid course slug:", slug);
-      toast.error("Cannot navigate to course: Invalid course slug");
+      toast.error("Missing course link");
       return;
     }
-    console.log(`Navigating to course ${slug}`);
     navigate(`/course/${slug}`);
   };
 
@@ -300,7 +309,6 @@ const MyCourses = () => {
   const offset = currentPage * COURSES_PER_PAGE;
   const pagedCourses = filtered.slice(offset, offset + COURSES_PER_PAGE);
   const pageCount = Math.ceil(filtered.length / COURSES_PER_PAGE);
-
   const categories = ["all", ...new Set(courses.map((c) => c.category))];
 
   return (
@@ -313,18 +321,15 @@ const MyCourses = () => {
       </div>
 
       <div className="tabs">
-        <button
-          onClick={() => setTab("approved")}
-          className={tab === "approved" ? "active" : ""}
-        >
-          Approved
-        </button>
-        <button
-          onClick={() => setTab("pending")}
-          className={tab === "pending" ? "active" : ""}
-        >
-          Pending
-        </button>
+        {["approved", "pending"].map((tabName) => (
+          <button
+            key={tabName}
+            onClick={() => setTab(tabName)}
+            className={tab === tabName ? "active" : ""}
+          >
+            {tabName === "approved" ? "Approved" : "Pending"}
+          </button>
+        ))}
       </div>
 
       <div className="controls">
