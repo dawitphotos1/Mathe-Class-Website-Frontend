@@ -592,8 +592,6 @@
 // export default AdminDashboard;
 
 
-
-
 import React, { useState, useEffect, useCallback, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -602,10 +600,35 @@ import { API_BASE_URL } from "../config";
 import { AuthContext } from "../context/AuthContext";
 import "./AdminDashboard.css";
 
+function DarkModeToggle() {
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem("darkMode") === "true" || false;
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (darkMode) {
+      root.classList.add("dark-mode");
+    } else {
+      root.classList.remove("dark-mode");
+    }
+    localStorage.setItem("darkMode", darkMode);
+  }, [darkMode]);
+
+  return (
+    <button
+      aria-label="Toggle Dark Mode"
+      className={`dark-mode-toggle tab-button ${darkMode ? "tab-active" : ""}`}
+      onClick={() => setDarkMode(!darkMode)}
+    >
+      {darkMode ? "🌙 Dark Mode" : "☀️ Light Mode"}
+    </button>
+  );
+}
+
 const AdminDashboard = ({ onLogout }) => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
-
   const [pendingUsers, setPendingUsers] = useState([]);
   const [approvedUsers, setApprovedUsers] = useState([]);
   const [pendingEnrollments, setPendingEnrollments] = useState([]);
@@ -614,7 +637,6 @@ const AdminDashboard = ({ onLogout }) => {
   const [courseFilter, setCourseFilter] = useState("");
   const [sortNewestFirst, setSortNewestFirst] = useState(true);
   const [activeTab, setActiveTab] = useState("pendingUsers");
-  const [darkMode, setDarkMode] = useState(false);
   const [pendingUserSearch, setPendingUserSearch] = useState("");
   const [pendingUserSubjectFilter, setPendingUserSubjectFilter] = useState("");
 
@@ -785,23 +807,18 @@ const AdminDashboard = ({ onLogout }) => {
   }
 
   return (
-    <div className={`dashboard-container ${darkMode ? "dark-mode" : ""}`}>
-      <div className="dashboard-header">
+    <div className="dashboard-container">
+      <header className="dashboard-header">
         <h2>
           {user.role === "admin" ? "Admin Dashboard" : "Teacher Dashboard"}
         </h2>
-        <div>
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="btn-secondary"
-          >
-            {darkMode ? "🌞 Light Mode" : "🌙 Dark Mode"}
-          </button>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <DarkModeToggle />
           <button onClick={onLogout} className="btn-secondary logout-btn">
             Logout
           </button>
         </div>
-      </div>
+      </header>
 
       <div className="summary-cards">
         {user.role === "admin" && (
@@ -830,7 +847,49 @@ const AdminDashboard = ({ onLogout }) => {
         </div>
       </div>
 
-      {/* Add tab navigation and content for each tab here as needed */}
+      <div className="admin-tabs">
+        {user.role === "admin" && (
+          <>
+            <button
+              className={`tab-button ${
+                activeTab === "pendingUsers" ? "tab-active" : ""
+              }`}
+              onClick={() => setActiveTab("pendingUsers")}
+            >
+              👤 Pending Users
+            </button>
+            <button
+              className={`tab-button ${
+                activeTab === "approvedUsers" ? "tab-active" : ""
+              }`}
+              onClick={() => setActiveTab("approvedUsers")}
+            >
+              👨‍🎓 Total Students
+            </button>
+          </>
+        )}
+        <button
+          className={`tab-button ${
+            activeTab === "pendingEnrollments" ? "tab-active" : ""
+          }`}
+          onClick={() => setActiveTab("pendingEnrollments")}
+        >
+          📥 Pending Enrollments
+        </button>
+        <button
+          className={`tab-button ${
+            activeTab === "approvedEnrollments" ? "tab-active" : ""
+          }`}
+          onClick={() => setActiveTab("approvedEnrollments")}
+        >
+          ✅ Approved Enrollments
+        </button>
+      </div>
+
+      <div className="tab-content">
+        {/* You can paste the tab-specific rendering blocks here, or request them in next message if you'd like full content pagination */}
+        <p>Tab content rendering here…</p>
+      </div>
     </div>
   );
 };
