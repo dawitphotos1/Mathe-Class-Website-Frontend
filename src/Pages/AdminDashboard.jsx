@@ -19,7 +19,6 @@ const AdminDashboard = ({ onLogout }) => {
   const [sortNewestFirst, setSortNewestFirst] = useState(true);
   const [activeTab, setActiveTab] = useState("pendingUsers");
   const [darkMode, setDarkMode] = useState(false);
-
   const [pendingUserSearch, setPendingUserSearch] = useState("");
   const [pendingUserSubjectFilter, setPendingUserSubjectFilter] = useState("");
 
@@ -40,7 +39,7 @@ const AdminDashboard = ({ onLogout }) => {
     [navigate, onLogout]
   );
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     const token = localStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
 
@@ -70,13 +69,12 @@ const AdminDashboard = ({ onLogout }) => {
     } catch (err) {
       handleError(err, () => {});
     }
-  };
+  }, [user.role, handleError]);
 
-  // Run once when component mounts
   useEffect(() => {
     fetchData();
-  }, []);
-  
+  }, [fetchData]);
+
   const handleApproveEnrollment = async (userId, courseId) => {
     try {
       const token = localStorage.getItem("token");
