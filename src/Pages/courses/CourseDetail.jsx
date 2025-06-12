@@ -915,23 +915,25 @@ const CourseDetail = () => {
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/v1/courses/${slugToIdMap[id]}`
-        );
+        const response = await axios.get                                  (`${API_BASE_URL}/api/v1/courses/slug/${id}`);
+        
         if (!response.data.success) {
           throw new Error(response.data.error || "Failed to fetch course");
         }
+
         const backendCourse = response.data;
+
         setCourse({
           id: backendCourse.id,
           title: backendCourse.title,
           price: backendCourse.price,
           description: backendCourse.description,
-          contents: courseData[id]?.contents || [],
+          contents: courseData[backendCourse.slug]?.contents || [],
           teacher: backendCourse.teacher || { name: "Unknown" },
           unitCount: backendCourse.unitCount || 0,
           lessonCount: backendCourse.lessonCount || 0,
         });
+
         setError(null);
       } catch (err) {
         console.error("Fetch course error:", err);
@@ -939,9 +941,10 @@ const CourseDetail = () => {
         toast.error("Failed to load course");
       }
     };
+
     fetchCourse();
   }, [id]);
-
+  
   const handleEnrollClick = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
     const isStudent = user?.role === "student";
