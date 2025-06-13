@@ -301,3 +301,86 @@ select {
 .my-courses-container.dark .pagination li.selected {
   background-color: #2980b9;
 }
+
+
+
+/* Progress chart animation styles */
+.circular-chart {
+  display: block;
+  margin: 0 auto;
+  max-width: 50px;
+  max-height: 50px;
+}
+
+.circle-bg {
+  stroke: #eee;
+  stroke-width: 3.8;
+}
+
+.circle {
+  stroke: #2ecc71;
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  animation: progress-anim 1.2s ease-out forwards;
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
+@keyframes progress-anim {
+  0% {
+    stroke-dasharray: 0, 100;
+  }
+}
+
+/* Responsive layout tweak */
+@media (max-width: 768px) {
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-bar {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .course-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ⬇️ SHIMMER LOADING PLACEHOLDER FOR THUMBNAILS */
+.shimmer-box {
+  width: 100%;
+  height: 160px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #eeeeee 25%, #dddddd 50%, #eeeeee 75%);
+  background-size: 800px 104px;
+  animation: shimmer 1.5s infinite linear;
+}
+
+/* ⬇️ Hide the image while it's loading */
+.course-thumbnail.hidden {
+  display: none;
+}
+
+/* ⬇️ Fallback styling for broken images */
+.course-thumbnail {
+  background-color: #f0f0f0;
+  position: relative;
+}
+
+/* Optional dark mode support */
+.my-courses-container.dark .course-thumbnail {
+  background-color: #2a2a2a;
+}
+
+/* ⬇️ Animate shimmer background */
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
