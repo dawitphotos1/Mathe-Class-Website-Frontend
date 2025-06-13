@@ -1,5 +1,5 @@
 
-/* === Base Styles === */
+
 .my-courses-container {
   padding: 2rem;
   font-family: 'Segoe UI', sans-serif;
@@ -13,7 +13,7 @@
   color: #f0f0f0;
 }
 
-/* === Loading Spinner === */
+
 .loading-screen {
   display: flex;
   flex-direction: column;
@@ -39,7 +39,7 @@
   }
 }
 
-/* === Header + Controls === */
+
 .header-row {
   display: flex;
   justify-content: space-between;
@@ -115,7 +115,7 @@ select {
   border-color: #555;
 }
 
-/* === Course Grid === */
+
 .course-grid {
   display: grid;
   gap: 1.5rem;
@@ -167,7 +167,7 @@ select {
   transform: scale(1.03);
 }
 
-/* === Course Details === */
+
 .course-details h4 {
   margin: 0.3rem 0;
   font-size: 1.2rem;
@@ -205,7 +205,7 @@ select {
   color: #222;
 }
 
-/* === Progress + Button === */
+
 .progress-wrapper {
   margin: 0.5rem 0;
   display: flex;
@@ -260,7 +260,6 @@ select {
   background-color: #27ae60;
 }
 
-/* === Empty State === */
 .no-courses {
   text-align: center;
   font-style: italic;
@@ -268,7 +267,7 @@ select {
   margin-top: 2rem;
 }
 
-/* === Pagination === */
+
 .pagination-container {
   margin-top: 2rem;
   display: flex;
