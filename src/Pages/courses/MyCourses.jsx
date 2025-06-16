@@ -641,8 +641,6 @@
 // export default MyCourses;
 
 
-
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
@@ -659,14 +657,15 @@ import preCalculusImg from "../../assets/images/precalculus.jpg";
 import geometryTrigonometryImg from "../../assets/images/geometry.jpg";
 import statisticsProbabilityImg from "../../assets/images/statistics.jpg";
 
-// Import reusable modal
+// Components
 import CourseDetailsModal from "../../components/CourseDetailsModal";
+import ConfirmModal from "../../components/ConfirmModal"; // 🔹 New import
 
 import "./MyCourses.css";
 
 const COURSES_PER_PAGE = 6;
 
-// Thumbnail selector based on title
+// Thumbnail selector
 const getThumbnail = (title) => {
   if (!title) return "https://via.placeholder.com/300x200?text=No+Image";
   const key = title.toLowerCase();
@@ -692,6 +691,7 @@ const MyCourses = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const [confirmUnenroll, setConfirmUnenroll] = useState(null); // 🔹 New state
 
   const navigate = useNavigate();
 
@@ -767,6 +767,25 @@ const MyCourses = () => {
     "all",
     ...new Set(courses.map((c) => c.category || "Uncategorized")),
   ];
+
+  // 🔹 Actual unenroll function called after confirmation
+  const handleUnenrollConfirmed = async () => {
+    if (!confirmUnenroll) return;
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`/api/v1/enrollments/${confirmUnenroll}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      toast.success("You have been unenrolled.");
+      setCourses((prev) => prev.filter((c) => c.id !== confirmUnenroll));
+      setSelectedCourse(null);
+    } catch (err) {
+      toast.error("Unenrollment failed. Try again.");
+    } finally {
+      setConfirmUnenroll(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -923,11 +942,21 @@ const MyCourses = () => {
         </div>
       )}
 
-      {/* 🆕 Use extracted modal component */}
+      {/* 🔹 Course Details Modal */}
       {selectedCourse && (
         <CourseDetailsModal
           course={selectedCourse}
           onClose={() => setSelectedCourse(null)}
+          onUnenroll={(id) => setConfirmUnenroll(id)} // 🔹 updated
+        />
+      )}
+
+      {/* 🔹 Confirmation Modal */}
+      {confirmUnenroll && (
+        <ConfirmModal
+          message="Are you sure you want to unenroll from this course?"
+          onConfirm={handleUnenrollConfirmed}
+          onCancel={() => setConfirmUnenroll(null)}
         />
       )}
     </div>

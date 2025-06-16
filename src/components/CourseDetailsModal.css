@@ -31,6 +31,22 @@
     cursor: pointer;
   }
   
+  .unenroll-btn {
+    margin-top: 1.5rem;
+    padding: 0.6rem 1rem;
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .unenroll-btn:hover {
+    background-color: #c9302c;
+  }
+  
   @keyframes fadeIn {
     from {
       opacity: 0;
