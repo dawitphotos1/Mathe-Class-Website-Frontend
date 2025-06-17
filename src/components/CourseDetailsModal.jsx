@@ -1,7 +1,8 @@
+
 // import React from "react";
 // import "./CourseDetailsModal.css";
 
-// const CourseDetailsModal = ({ course, onClose }) => {
+// const CourseDetailsModal = ({ course, onClose, onUnenroll }) => {
 //   if (!course) return null;
 
 //   return (
@@ -10,7 +11,9 @@
 //         <button className="close-btn" onClick={onClose}>
 //           ×
 //         </button>
+
 //         <h3>{course.title}</h3>
+
 //         <p>
 //           <strong>Category:</strong> {course.category}
 //         </p>
@@ -27,6 +30,13 @@
 //           <strong>Enrolled At:</strong>{" "}
 //           {new Date(course.enrolledAt).toLocaleDateString()}
 //         </p>
+
+//         <button
+//           className="unenroll-btn"
+//           onClick={() => onUnenroll(course.id)} // 🔹 Updated to trigger confirm modal
+//         >
+//           🚫 Unenroll from Course
+//         </button>
 //       </div>
 //     </div>
 //   );
@@ -50,7 +60,6 @@ const CourseDetailsModal = ({ course, onClose, onUnenroll }) => {
         </button>
 
         <h3>{course.title}</h3>
-
         <p>
           <strong>Category:</strong> {course.category}
         </p>
@@ -68,10 +77,7 @@ const CourseDetailsModal = ({ course, onClose, onUnenroll }) => {
           {new Date(course.enrolledAt).toLocaleDateString()}
         </p>
 
-        <button
-          className="unenroll-btn"
-          onClick={() => onUnenroll(course.id)} // 🔹 Updated to trigger confirm modal
-        >
+        <button className="unenroll-btn" onClick={() => onUnenroll(course.id)}>
           🚫 Unenroll from Course
         </button>
       </div>
@@ -80,3 +86,4 @@ const CourseDetailsModal = ({ course, onClose, onUnenroll }) => {
 };
 
 export default CourseDetailsModal;
+
