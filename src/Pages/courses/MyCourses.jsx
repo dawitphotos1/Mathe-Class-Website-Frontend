@@ -324,7 +324,6 @@
 
 
 
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
@@ -332,15 +331,13 @@ import { FaSearch, FaSun, FaMoon, FaEye } from "react-icons/fa";
 import ReactPaginate from "react-paginate";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-
 import CourseDetailsModal from "../../components/CourseDetailsModal";
 import ConfirmModal from "../../components/ConfirmModal";
-
 import "./MyCourses.css";
 
 const COURSES_PER_PAGE = 6;
 
-// ✅ Updated: Use public image paths
+// ✅ Thumbnail selector with default fallback
 const getThumbnail = (title = "") => {
   const key = title.toLowerCase();
   if (key.includes("algebra 1")) return "/images/algebra1.jpg";
@@ -352,7 +349,7 @@ const getThumbnail = (title = "") => {
     return "/images/geometry.jpg";
   if (key.includes("statistics") || key.includes("probability"))
     return "/images/statistics.jpg";
-  return "https://via.placeholder.com/300x200?text=No+Image";
+  return "/images/default.jpg"; // fallback image
 };
 
 const MyCourses = () => {
@@ -369,32 +366,62 @@ const MyCourses = () => {
 
   const navigate = useNavigate();
 
+  // ✅ Optional: Preload images
+  useEffect(() => {
+    const preloadImages = [
+      "algebra1.jpg",
+      "algebra2.jpg",
+      "calculus1.jpg",
+      "precalculus.jpg",
+      "geometry.jpg",
+      "statistics.jpg",
+      "default.jpg",
+    ];
+
+    preloadImages.forEach((img) => {
+      const i = new Image();
+      i.src = `/images/${img}`;
+    });
+  }, []);
+
   useEffect(() => {
     const fetchCourses = async () => {
       setLoading(true);
       try {
         const token = localStorage.getItem("token");
-        if (!token) return toast.error("You must be logged in.");
+        if (!token) {
+          toast.error("You must be logged in to view your courses.");
+          return;
+        }
 
         const res = await axios.get("/api/v1/enrollments/my-courses", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const transformed = (res.data.courses || []).map((course) => {
-          const progressSeed = (course.id * 17) % 100;
-          return {
-            ...course,
-            category: course.category || "Uncategorized",
-            difficulty: ["Beginner", "Intermediate", "Advanced"][course.id % 3],
-            progress: progressSeed < 20 ? progressSeed + 20 : progressSeed,
-            thumbnail: getThumbnail(course.title),
-            imageLoaded: false,
-          };
-        });
+        if (!res.data?.success) {
+          toast.error("Unexpected server response.");
+          return;
+        }
+
+        const transformed = (res.data.courses || [])
+          .filter((course) => course?.id && course?.slug)
+          .map((course) => {
+            const progressSeed = (course.id * 17) % 100;
+            return {
+              ...course,
+              category: course.category || "Uncategorized",
+              difficulty: ["Beginner", "Intermediate", "Advanced"][
+                course.id % 3
+              ],
+              progress: progressSeed < 20 ? progressSeed + 20 : progressSeed,
+              thumbnail: getThumbnail(course.title),
+              imageLoaded: false,
+            };
+          });
 
         setCourses(transformed);
       } catch (err) {
-        toast.error("Failed to load courses.");
+        toast.error("Failed to load courses. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -405,6 +432,7 @@ const MyCourses = () => {
 
   useEffect(() => setCurrentPage(0), [searchQuery, categoryFilter, tab]);
 
+  const toggleDarkMode = () => setDarkMode((prev) => !prev);
   const handleGoToClass = (slug) => navigate(`/course/${slug}`);
 
   const filtered = courses
@@ -421,10 +449,8 @@ const MyCourses = () => {
       return 0;
     });
 
-  const pagedCourses = filtered.slice(
-    currentPage * COURSES_PER_PAGE,
-    (currentPage + 1) * COURSES_PER_PAGE
-  );
+  const offset = currentPage * COURSES_PER_PAGE;
+  const pagedCourses = filtered.slice(offset, offset + COURSES_PER_PAGE);
   const pageCount = Math.ceil(filtered.length / COURSES_PER_PAGE);
   const categories = [
     "all",
@@ -433,18 +459,17 @@ const MyCourses = () => {
 
   const handleUnenrollConfirmed = async () => {
     if (confirmUnenroll === null) return;
-
     try {
       const token = localStorage.getItem("token");
       await axios.delete(`/api/v1/enrollments/${confirmUnenroll}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      toast.success("Unenrolled successfully.");
+      toast.success("You have been unenrolled.");
       setCourses((prev) => prev.filter((c) => c.id !== confirmUnenroll));
       setSelectedCourse(null);
-    } catch {
-      toast.error("Unenrollment failed.");
+    } catch (err) {
+      toast.error("Unenrollment failed. Try again.");
     } finally {
       setConfirmUnenroll(null);
     }
@@ -463,10 +488,7 @@ const MyCourses = () => {
     <div className={`my-courses-container ${darkMode ? "dark" : ""}`}>
       <div className="header-row">
         <h2>🎓 My Courses</h2>
-        <button
-          className="dark-toggle"
-          onClick={() => setDarkMode((prev) => !prev)}
-        >
+        <button className="dark-toggle" onClick={toggleDarkMode}>
           {darkMode ? <FaSun /> : <FaMoon />}
         </button>
       </div>
@@ -529,14 +551,20 @@ const MyCourses = () => {
                   course.imageLoaded ? "" : "hidden"
                 }`}
                 onLoad={() => {
-                  course.imageLoaded = true;
-                  setCourses((prev) => [...prev]);
+                  setCourses((prev) =>
+                    prev.map((c) =>
+                      c.id === course.id ? { ...c, imageLoaded: true } : c
+                    )
+                  );
                 }}
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src =
-                    "https://via.placeholder.com/300x200?text=Image+Unavailable";
-                  e.target.classList.remove("hidden");
+                  e.target.src = "/images/default.jpg";
+                  setCourses((prev) =>
+                    prev.map((c) =>
+                      c.id === course.id ? { ...c, imageLoaded: true } : c
+                    )
+                  );
                 }}
               />
             </div>
@@ -562,12 +590,12 @@ const MyCourses = () => {
                     <svg viewBox="0 0 36 36" className="circular-chart">
                       <path
                         className="circle-bg"
-                        d="M18 2.0845a 15.9155 15.9155 0 0 1 0 31.831..."
+                        d="M18 2.0845a 15.9155 15.9155 0 0 1 0 31.831a 15.9155 15.9155 0 0 1 0 -31.831"
                       />
                       <path
                         className="circle"
                         strokeDasharray={`${course.progress}, 100`}
-                        d="..."
+                        d="M18 2.0845a 15.9155 15.9155 0 0 1 0 31.831a 15.9155 15.9155 0 0 1 0 -31.831"
                       />
                     </svg>
                   </div>
@@ -608,7 +636,7 @@ const MyCourses = () => {
         </div>
       )}
 
-      {/* ✅ Details Modal */}
+      {/* Modals */}
       {selectedCourse && (
         <CourseDetailsModal
           course={selectedCourse}
@@ -617,7 +645,6 @@ const MyCourses = () => {
         />
       )}
 
-      {/* ✅ Confirmation Modal */}
       {confirmUnenroll !== null && (
         <ConfirmModal
           message="Are you sure you want to unenroll from this course?"
