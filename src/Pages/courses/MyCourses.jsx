@@ -133,7 +133,7 @@ const MyCourses = () => {
   useEffect(() => setCurrentPage(0), [searchQuery, categoryFilter, tab]);
 
   const toggleDarkMode = () => setDarkMode((prev) => !prev);
-  const handleGoToClass = (slug) => navigate(`/course/${slug}`);
+  const handleGoToClass = (id) => navigate(`/courses/${id}`);
 
   const filtered = courses
     .filter((c) => c.status === tab)

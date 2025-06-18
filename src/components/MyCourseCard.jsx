@@ -84,7 +84,7 @@ const MyCourseCard = ({ course, tab, onGoToClass }) => {
               </div>
               <button
                 className="go-to-class"
-                onClick={() => onGoToClass(course.slug)}
+                onClick={() => onGoToClass(course.id)}
               >
                 Go to Class
               </button>
