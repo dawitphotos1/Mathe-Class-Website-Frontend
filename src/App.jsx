@@ -13,6 +13,7 @@ import Login from "./Pages/auth/Login";
 import PaymentSuccess from "./Pages/payments/PaymentSuccess";
 import PaymentCancel from "./Pages/payments/PaymentCancel";
 import Unauthorized from "./Pages/Unauthorized";
+import StartCoursePage from "./Pages/StartCoursePage";
 import "./App.css";
 
 // ✅ Student-only route
@@ -114,6 +115,7 @@ function App() {
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/cancel" element={<Cancel />} />
+            <Route path="/start-course/:slug" element={<StartCoursePage />} />
 
             {/* ✅ Protected Routes Below */}
             <Route
@@ -169,3 +171,6 @@ function App() {
 }
 
 export default App;
+
+
+

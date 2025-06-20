@@ -82,6 +82,10 @@ const CourseCard = ({ course, user }) => {
           <Link to={`/course/${course.id}`} className="btn btn-primary">
             View Course
           </Link>
+          <Link to={`/start-course/${course.slug}`}>
+            <button>Start Course</button>
+          </Link>
+
           {user?.role === "student" && (
             <button className="btn btn-primary" onClick={handleEnroll}>
               Enroll Now
