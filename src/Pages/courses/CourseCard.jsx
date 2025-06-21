@@ -1,4 +1,4 @@
-// CourseCard.jsx
+
 import React from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -8,7 +8,9 @@ import "./CourseCard.css";
 
 const CourseCard = ({ course, user }) => {
   const handleDelete = async () => {
-    if (window.confirm("Are you sure you want to permanently delete this course?")) {
+    if (
+      window.confirm("Are you sure you want to permanently delete this course?")
+    ) {
       try {
         const token = localStorage.getItem("token");
         await axios.delete(`${API_BASE_URL}/api/v1/courses/${course.id}`, {
@@ -36,12 +38,6 @@ const CourseCard = ({ course, user }) => {
     }
 
     try {
-      console.log("📤 Sending payload:", {
-        courseId: String(course.id),
-        courseTitle: course.title,
-        coursePrice: parseFloat(course.price),
-      });
-
       const { loadStripe } = await import("@stripe/stripe-js");
       const stripe = await loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
 
@@ -82,7 +78,7 @@ const CourseCard = ({ course, user }) => {
           <Link to={`/course/${course.id}`} className="btn btn-primary">
             View Course
           </Link>
-          <Link to={`/start-course/${course.slug}`}>
+          <Link to={`/class/${course.slug}`}>
             <button>Start Course</button>
           </Link>
 
@@ -103,4 +99,3 @@ const CourseCard = ({ course, user }) => {
 };
 
 export default CourseCard;
-

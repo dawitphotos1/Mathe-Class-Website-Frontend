@@ -1,4 +1,4 @@
-
+// ✅ App.jsx (Full Updated)
 import React, { useState, useEffect, Suspense } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
@@ -16,10 +16,8 @@ import Unauthorized from "./Pages/Unauthorized";
 import StartCoursePage from "./Pages/StartCoursePage";
 import "./App.css";
 
-// ✅ Student-only route
 import MyCoursesPage from "./Pages/courses/MyCourses";
 
-// Lazy-loaded pages
 const Home = React.lazy(() => import("./Pages/Home"));
 const Register = React.lazy(() => import("./Pages/auth/Register"));
 const CourseList = React.lazy(() => import("./Pages/courses/CourseList"));
@@ -115,9 +113,8 @@ function App() {
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/cancel" element={<Cancel />} />
-            <Route path="/start-course/:slug" element={<StartCoursePage />} />
+            <Route path="/class/:slug" element={<StartCoursePage />} />
 
-            {/* ✅ Protected Routes Below */}
             <Route
               path="/my-courses"
               element={
@@ -150,7 +147,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
             <Route
               path="/payment/:courseId"
               element={
@@ -159,8 +155,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
-            {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
@@ -171,6 +165,3 @@ function App() {
 }
 
 export default App;
-
-
-
