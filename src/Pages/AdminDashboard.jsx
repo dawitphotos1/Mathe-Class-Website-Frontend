@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -49,8 +50,12 @@ const AdminDashboard = ({ onLogout }) => {
           axios.get(`${API_BASE_URL}/api/v1/users/pending`, { headers }),
           axios.get(`${API_BASE_URL}/api/v1/users/approved`, { headers }),
         ]);
-        setPendingUsers(pendingUsersRes.data);
-        setApprovedUsers(approvedUsersRes.data);
+        setPendingUsers(
+          Array.isArray(pendingUsersRes.data) ? pendingUsersRes.data : []
+        );
+        setApprovedUsers(
+          Array.isArray(approvedUsersRes.data) ? approvedUsersRes.data : []
+        );
       }
 
       if (["admin", "teacher"].includes(user.role)) {
@@ -63,8 +68,16 @@ const AdminDashboard = ({ onLogout }) => {
               headers,
             }),
           ]);
-        setPendingEnrollments(pendingEnrollmentsRes.data);
-        setApprovedEnrollments(approvedEnrollmentsRes.data);
+        setPendingEnrollments(
+          Array.isArray(pendingEnrollmentsRes.data)
+            ? pendingEnrollmentsRes.data
+            : []
+        );
+        setApprovedEnrollments(
+          Array.isArray(approvedEnrollmentsRes.data)
+            ? approvedEnrollmentsRes.data
+            : []
+        );
       }
     } catch (err) {
       handleError(err, () => {});
@@ -92,7 +105,7 @@ const AdminDashboard = ({ onLogout }) => {
     }
   };
 
-  // CSV Export
+  // CSV Export functions
   const downloadCSV = (csvString, filename) => {
     const uri = "data:text/csv;charset=utf-8," + encodeURIComponent(csvString);
     const link = document.createElement("a");
@@ -157,16 +170,17 @@ const AdminDashboard = ({ onLogout }) => {
     downloadCSV(csv, "approved_enrollments.csv");
   };
 
+  // Defensive default empty arrays for the combined courses
   const allCourses = Array.from(
     new Set(
-      [...pendingEnrollments, ...approvedEnrollments]
+      [...(pendingEnrollments || []), ...(approvedEnrollments || [])]
         .map((e) => e.course?.title)
         .filter(Boolean)
     )
   ).sort();
 
   const filtered = (arr) =>
-    arr
+    (arr || [])
       .filter(
         (e) =>
           e.user?.name.toLowerCase().includes(studentFilter.toLowerCase()) &&
@@ -194,6 +208,8 @@ const AdminDashboard = ({ onLogout }) => {
 
   return (
     <div className={`dashboard-container ${darkMode ? "dark-mode" : ""}`}>
+      {/* ...the rest of your JSX component code remains unchanged */}
+      {/* Place JSX structure you already have here including all rendering logic */}
       <div className="dashboard-card">
         <div className="dashboard-header">
           <h2>
@@ -231,12 +247,12 @@ const AdminDashboard = ({ onLogout }) => {
           <div className="summary-card">
             📥 Pending Enrollments
             <br />
-            {pendingEnrollments.length}
+            {(pendingEnrollments || []).length}
           </div>
           <div className="summary-card">
             ✅ Approved Enrollments
             <br />
-            {approvedEnrollments.length}
+            {(approvedEnrollments || []).length}
           </div>
         </div>
 
@@ -451,7 +467,7 @@ const AdminDashboard = ({ onLogout }) => {
           </>
         )}
 
-        {/* Pending and Approved Enrollments stay the same as in your previous version */}
+        {/* Pending Enrollments Tab */}
         {activeTab === "pendingEnrollments" && (
           <>
             <h3>Pending Enrollments</h3>
@@ -524,6 +540,7 @@ const AdminDashboard = ({ onLogout }) => {
           </>
         )}
 
+        {/* Approved Enrollments Tab */}
         {activeTab === "approvedEnrollments" && (
           <>
             <h3>Approved Enrollments</h3>
@@ -590,4 +607,3 @@ const AdminDashboard = ({ onLogout }) => {
 };
 
 export default AdminDashboard;
-
