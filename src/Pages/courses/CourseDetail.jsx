@@ -905,38 +905,33 @@ const courseData = {
 };
 
 const CourseDetail = () => {
-  const { id: slug } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
   const isStudent = user?.role === "student";
   const [course, setCourse] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/v1/courses/slug/${slug}`
-        );
+        const response = await axios.get                                  (`${API_BASE_URL}/api/v1/courses/slug/${id}`);
+        
         if (!response.data.success) {
           throw new Error(response.data.error || "Failed to fetch course");
         }
 
         const backendCourse = response.data;
+
         setCourse({
           id: backendCourse.id,
           title: backendCourse.title,
           price: backendCourse.price,
           description: backendCourse.description,
-          units: backendCourse.units || [],
-          teacher: backendCourse.teacher || { name: "Unknown Instructor" },
-          unitCount: backendCourse.units?.length || 0,
-          lessonCount:
-            backendCourse.units?.reduce(
-              (count, unit) => count + (unit.lessons?.length || 0),
-              0
-            ) || 0,
+          contents: courseData[backendCourse.slug]?.contents || [],
+          teacher: backendCourse.teacher || { name: "Unknown" },
+          unitCount: backendCourse.unitCount || 0,
+          lessonCount: backendCourse.lessonCount || 0,
         });
 
         setError(null);
@@ -944,92 +939,89 @@ const CourseDetail = () => {
         console.error("Fetch course error:", err);
         setError(err.response?.data?.details || "Failed to load course");
         toast.error("Failed to load course");
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchCourse();
-  }, [slug]);
-
+  }, [id]);
+  
   const handleEnrollClick = async () => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const isStudent = user?.role === "student";
+  
     if (!user || !isStudent) {
       toast.error("Only students can enroll. Please log in as a student.");
       return navigate("/login");
     }
-
-    if (!course?.id || !course.title || course.price === undefined) {
+  
+    if (!course?.id || !course.title || !course.price) {
+      console.error("Invalid course data:", course);
       toast.error("Missing course details.");
       return;
     }
-
+  
     const token = localStorage.getItem("token");
     if (!token) {
       toast.error("Please log in to enroll");
       return navigate("/login");
     }
-
+  
     try {
       const payload = {
-        courseId: course.id.toString(),
+        courseId: String(course.id),
         courseName: course.title,
         coursePrice: parseFloat(course.price),
       };
-
+  
       const { loadStripe } = await import("@stripe/stripe-js");
       const stripe = await loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
-      if (!stripe) throw new Error("Stripe not loaded.");
-
+      if (!stripe) throw new Error("Stripe not loaded. Check API key.");
+  
       const response = await axios.post(
         `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
+  
       await stripe.redirectToCheckout({ sessionId: response.data.sessionId });
     } catch (err) {
-      console.error("Enroll error:", err);
+      console.error("Enroll error:", err.response?.data || err);
       toast.error(err.response?.data?.error || "Failed to enroll");
     }
   };
+  
 
-  if (loading) return <div className="loading">⏳ Loading...</div>;
-  if (error) return <div className="error">❌ Error: {error}</div>;
-  if (!course) return <div className="error">❌ Course not found</div>;
+  if (error) {
+    return <div className="error">❌ Error: {error}</div>;
+  }
+
+  if (!course) {
+    return <div className="error">❌ Loading...</div>;
+  }
 
   return (
     <div className="course-detail">
       <div className="course-header">
         <h1>{course.title}</h1>
         <p className="course-description">{course.description}</p>
-        <p className="course-price">
-          Price: ${Number(course.price || 0).toFixed(2)}
-        </p>
+        <p className="course-price">Price: ${Number(course.price || 0).toFixed(2)}</p>
         <p className="course-teacher">Teacher: {course.teacher.name}</p>
         <p className="course-units">Units: {course.unitCount}</p>
         <p className="course-lessons">Lessons: {course.lessonCount}</p>
       </div>
       <div className="course-content">
-        {course.units.length === 0 ? (
-          <p>No units available.</p>
-        ) : (
-          course.units.map((section, index) => (
-            <div className="unit" key={index}>
-              <h2 className="unit-title">{section.unitName}</h2>
-              <ul className="lesson-list">
-                {section.lessons.length === 0 ? (
-                  <li>No lessons available.</li>
-                ) : (
-                  section.lessons.map((lesson, idx) => (
-                    <li key={idx} className="lesson-item">
-                      {lesson.title}: {lesson.description}
-                    </li>
-                  ))
-                )}
-              </ul>
-            </div>
-          ))
-        )}
+        {course.contents.map((section, index) => (
+          <div className="unit" key={index}>
+            <h2 className="unit-title">{section.unit}</h2>
+            <ul className="lesson-list">
+              {section.lessons.map((lesson, idx) => (
+                <li key={idx} className="lesson-item">
+                  {lesson}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
       <div className="course-footer">
         {isStudent && (
