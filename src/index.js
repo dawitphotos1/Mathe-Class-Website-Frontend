@@ -81,17 +81,17 @@
 
 
 // C:\Users\Dawit\Desktop\math-class-website\Mathe-Class-Website-Frontend\src\index.js
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import '@fortawesome/fontawesome-free/css/all.min.css';
-import { API_BASE_URL } from './config';
-import App from './App';
-import { AuthProvider } from './context/AuthContext';
-import './index.css';
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+import { API_BASE_URL } from "./config";
+import App from "./App";
+import { AuthProvider } from "./context/AuthContext";
+import "./index.css";
 
 axios.defaults.baseURL = API_BASE_URL;
 axios.defaults.withCredentials = true;
