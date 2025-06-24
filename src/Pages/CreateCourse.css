@@ -1,3 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
 .create-course-container {
   min-height: 100vh;
   background: linear-gradient(to right, #43cea2, #185a9d);

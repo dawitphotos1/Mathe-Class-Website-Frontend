@@ -1,3 +1,9 @@
+/* C:\Users\Dawit\Desktop\math-class-website\Mathe-Class-Website-Frontend\src\Pages\AdminDashboard.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities
+
+
 /* Container and font */
 .dashboard-container {
   padding: 2rem;

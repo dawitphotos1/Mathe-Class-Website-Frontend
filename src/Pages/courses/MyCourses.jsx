@@ -1,6 +1,284 @@
 
 
-// ✅ Refactored MyCourses.jsx (Tailwind-based)
+// // ✅ Refactored MyCourses.jsx (Tailwind-based)
+// import React, { useEffect, useState } from "react";
+// import axios from "axios";
+// import { FaSearch, FaSun, FaMoon } from "react-icons/fa";
+// import ReactPaginate from "react-paginate";
+// import { useNavigate } from "react-router-dom";
+// import { toast } from "react-toastify";
+// import CourseDetailsModal from "../../components/CourseDetailsModal";
+// import ConfirmModal from "../../components/ConfirmModal";
+// import MyCourseCard from "../../components/MyCourseCard";
+// import "./MyCourses.css";
+
+// const COURSES_PER_PAGE = 6;
+
+// const getThumbnail = (title = "") => {
+//   const key = title.toLowerCase();
+//   if (key.includes("algebra 1")) return "/images/algebra1.jpg";
+//   if (key.includes("algebra 2")) return "/images/algebra2.jpg";
+//   if (key.includes("pre-calculus") || key.includes("precalculus")) return "/images/precalculus.jpg";
+//   if (key.includes("calculus")) return "/images/calculus.jpg";
+//   if (key.includes("geometry") || key.includes("trigonometry")) return "/images/geometry.jpg";
+//   if (key.includes("statistics") || key.includes("probability")) return "/images/statistics.jpg";
+//   return "/images/default.jpg";
+// };
+
+// const getCategoryFromTitle = (title = "") => {
+//   const key = title.toLowerCase();
+//   if (key.includes("algebra")) return "📘 Algebra";
+//   if (key.includes("geometry")) return "📐 Geometry";
+//   if (key.includes("pre-calculus") || key.includes("precalculus")) return "📏 Pre-Calculus";
+//   if (key.includes("calculus")) return "📊 Calculus";
+//   if (key.includes("statistics") || key.includes("probability")) return "📈 Statistics";
+//   return "🔢 General Math";
+// };
+
+// const getCategorySlug = (title = "") => {
+//   const key = title.toLowerCase();
+//   if (key.includes("algebra")) return "algebra";
+//   if (key.includes("geometry")) return "geometry";
+//   if (key.includes("pre-calculus") || key.includes("precalculus")) return "precalculus";
+//   if (key.includes("calculus")) return "calculus";
+//   if (key.includes("statistics") || key.includes("probability")) return "statistics";
+//   return "general";
+// };
+
+// const MyCourses = () => {
+//   const [courses, setCourses] = useState([]);
+//   const [sortKey, setSortKey] = useState("title");
+//   const [searchQuery, setSearchQuery] = useState("");
+//   const [categoryFilter, setCategoryFilter] = useState("all");
+//   const [tab, setTab] = useState("approved");
+//   const [darkMode, setDarkMode] = useState(false);
+//   const [currentPage, setCurrentPage] = useState(0);
+//   const [loading, setLoading] = useState(false);
+//   const [selectedCourse, setSelectedCourse] = useState(null);
+//   const [confirmUnenroll, setConfirmUnenroll] = useState(null);
+
+//   const navigate = useNavigate();
+
+//   useEffect(() => {
+//     const preloadImages = [
+//       "algebra1.jpg",
+//       "algebra2.jpg",
+//       "calculus.jpg",
+//       "precalculus.jpg",
+//       "geometry.jpg",
+//       "statistics.jpg",
+//       "default.jpg",
+//     ];
+//     preloadImages.forEach((img) => {
+//       const i = new Image();
+//       i.src = `/images/${img}`;
+//     });
+//   }, []);
+
+//   useEffect(() => {
+//     const fetchCourses = async () => {
+//       setLoading(true);
+//       try {
+//         const token = localStorage.getItem("token");
+//         if (!token) {
+//           toast.error("You must be logged in to view your courses.");
+//           return;
+//         }
+
+//         const res = await axios.get("/api/v1/enrollments/my-courses", {
+//           headers: { Authorization: `Bearer ${token}` },
+//         });
+
+//         if (!res.data?.success) {
+//           toast.error("Unexpected server response.");
+//           return;
+//         }
+
+//         const transformed = (res.data.courses || [])
+//           .filter((course) => course?.id && course?.slug)
+//           .map((course) => {
+//             const progressSeed = (course.id * 17) % 100;
+//             const title = course.title || "";
+//             return {
+//               ...course,
+//               category: course.category && course.category !== "Uncategorized" ? course.category : getCategoryFromTitle(title),
+//               categorySlug: getCategorySlug(title),
+//               difficulty: ["Beginner", "Intermediate", "Advanced"][course.id % 3],
+//               progress: progressSeed < 20 ? progressSeed + 20 : progressSeed,
+//               thumbnail: getThumbnail(title),
+//             };
+//           });
+
+//         setCourses(transformed);
+//       } catch (err) {
+//         toast.error("Failed to load courses. Please try again later.");
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchCourses();
+//   }, []);
+
+//   useEffect(() => setCurrentPage(0), [searchQuery, categoryFilter, tab]);
+
+//   const toggleDarkMode = () => setDarkMode((prev) => !prev);
+//   const handleGoToClass = (slug) => navigate(`/class/${slug}`);
+
+//   const filtered = courses
+//     .filter((c) => c.status === tab)
+//     .filter(
+//       (c) =>
+//         c.title?.toLowerCase().includes(searchQuery.toLowerCase()) &&
+//         (categoryFilter === "all" || c.category === categoryFilter)
+//     )
+//     .sort((a, b) => {
+//       if (sortKey === "title") return a.title.localeCompare(b.title);
+//       if (sortKey === "date") return new Date(b.enrolledAt) - new Date(a.enrolledAt);
+//       return 0;
+//     });
+
+//   const offset = currentPage * COURSES_PER_PAGE;
+//   const pagedCourses = filtered.slice(offset, offset + COURSES_PER_PAGE);
+//   const pageCount = Math.ceil(filtered.length / COURSES_PER_PAGE);
+
+//   const categories = ["all", ...Array.from(new Set(courses.map((c) => c.category)))];
+
+//   const handleUnenrollConfirmed = async () => {
+//     if (confirmUnenroll === null) return;
+//     try {
+//       const token = localStorage.getItem("token");
+//       await axios.delete(`/api/v1/enrollments/${confirmUnenroll}`, {
+//         headers: { Authorization: `Bearer ${token}` },
+//       });
+//       toast.success("You have been unenrolled.");
+//       setCourses((prev) => prev.filter((c) => c.id !== confirmUnenroll));
+//       setSelectedCourse(null);
+//     } catch (err) {
+//       toast.error("Unenrollment failed. Try again.");
+//     } finally {
+//       setConfirmUnenroll(null);
+//     }
+//   };
+
+//   if (loading) {
+//     return (
+//       <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
+//         <div className="w-12 h-12 border-4 border-t-green-400 border-gray-200 rounded-full animate-spin"></div>
+//         <p className="mt-4 text-lg">Loading your courses...</p>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className={`p-6 max-w-7xl mx-auto ${darkMode ? "dark" : ""}`}>
+//       <div className="flex justify-between items-center mb-4">
+//         <h2 className="text-2xl font-bold">🎓 My Courses</h2>
+//         <button onClick={toggleDarkMode} className="text-xl">
+//           {darkMode ? <FaSun /> : <FaMoon />}
+//         </button>
+//       </div>
+
+//       <div className="flex gap-4 mb-4">
+//         {["approved", "pending"].map((tabName) => (
+//           <button
+//             key={tabName}
+//             onClick={() => setTab(tabName)}
+//             className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+//               tab === tabName ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"
+//             }`}
+//           >
+//             {tabName === "approved" ? "✅ Approved" : "⏳ Pending"}
+//           </button>
+//         ))}
+//       </div>
+
+//       <div className="flex flex-wrap gap-4 mb-6 items-center">
+//         <div className="relative">
+//           <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+//           <input
+//             type="text"
+//             placeholder="Search..."
+//             className="pl-10 pr-4 py-2 border rounded-lg dark:bg-gray-800"
+//             value={searchQuery}
+//             onChange={(e) => setSearchQuery(e.target.value)}
+//           />
+//         </div>
+
+//         <select
+//           value={sortKey}
+//           onChange={(e) => setSortKey(e.target.value)}
+//           className="px-3 py-2 border rounded dark:bg-gray-800"
+//         >
+//           <option value="title">Sort by Title</option>
+//           <option value="date">Sort by Date</option>
+//         </select>
+
+//         <select
+//           value={categoryFilter}
+//           onChange={(e) => setCategoryFilter(e.target.value)}
+//           className="px-3 py-2 border rounded dark:bg-gray-800"
+//         >
+//           {categories.map((cat) => (
+//             <option key={cat} value={cat}>
+//               {cat}
+//             </option>
+//           ))}
+//         </select>
+//       </div>
+
+//       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+//         {pagedCourses.map((course) => (
+//           <MyCourseCard
+//             key={course.id}
+//             course={course}
+//             tab={tab}
+//             onGoToClass={() => handleGoToClass(course.slug)}
+//           />
+//         ))}
+//       </div>
+
+//       {filtered.length === 0 && (
+//         <p className="text-center text-gray-600 mt-8">No courses found.</p>
+//       )}
+
+//       {pageCount > 1 && (
+//         <div className="mt-6">
+//           <ReactPaginate
+//             previousLabel="←"
+//             nextLabel="→"
+//             pageCount={pageCount}
+//             onPageChange={({ selected }) => setCurrentPage(selected)}
+//             containerClassName="flex justify-center gap-2"
+//             pageClassName="px-3 py-1 border rounded"
+//             activeClassName="bg-blue-600 text-white"
+//           />
+//         </div>
+//       )}
+
+//       {selectedCourse && (
+//         <CourseDetailsModal
+//           course={selectedCourse}
+//           onClose={() => setSelectedCourse(null)}
+//           onUnenroll={(id) => setConfirmUnenroll(id)}
+//         />
+//       )}
+
+//       {confirmUnenroll !== null && (
+//         <ConfirmModal
+//           message="Are you sure you want to unenroll from this course?"
+//           onConfirm={handleUnenrollConfirmed}
+//           onCancel={() => setConfirmUnenroll(null)}
+//         />
+//       )}
+//     </div>
+//   );
+// };
+
+// export default MyCourses;
+
+
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FaSearch, FaSun, FaMoon } from "react-icons/fa";
@@ -18,10 +296,13 @@ const getThumbnail = (title = "") => {
   const key = title.toLowerCase();
   if (key.includes("algebra 1")) return "/images/algebra1.jpg";
   if (key.includes("algebra 2")) return "/images/algebra2.jpg";
-  if (key.includes("pre-calculus") || key.includes("precalculus")) return "/images/precalculus.jpg";
+  if (key.includes("pre-calculus") || key.includes("precalculus"))
+    return "/images/precalculus.jpg";
   if (key.includes("calculus")) return "/images/calculus.jpg";
-  if (key.includes("geometry") || key.includes("trigonometry")) return "/images/geometry.jpg";
-  if (key.includes("statistics") || key.includes("probability")) return "/images/statistics.jpg";
+  if (key.includes("geometry") || key.includes("trigonometry"))
+    return "/images/geometry.jpg";
+  if (key.includes("statistics") || key.includes("probability"))
+    return "/images/statistics.jpg";
   return "/images/default.jpg";
 };
 
@@ -29,9 +310,11 @@ const getCategoryFromTitle = (title = "") => {
   const key = title.toLowerCase();
   if (key.includes("algebra")) return "📘 Algebra";
   if (key.includes("geometry")) return "📐 Geometry";
-  if (key.includes("pre-calculus") || key.includes("precalculus")) return "📏 Pre-Calculus";
+  if (key.includes("pre-calculus") || key.includes("precalculus"))
+    return "📏 Pre-Calculus";
   if (key.includes("calculus")) return "📊 Calculus";
-  if (key.includes("statistics") || key.includes("probability")) return "📈 Statistics";
+  if (key.includes("statistics") || key.includes("probability"))
+    return "📈 Statistics";
   return "🔢 General Math";
 };
 
@@ -39,9 +322,11 @@ const getCategorySlug = (title = "") => {
   const key = title.toLowerCase();
   if (key.includes("algebra")) return "algebra";
   if (key.includes("geometry")) return "geometry";
-  if (key.includes("pre-calculus") || key.includes("precalculus")) return "precalculus";
+  if (key.includes("pre-calculus") || key.includes("precalculus"))
+    return "precalculus";
   if (key.includes("calculus")) return "calculus";
-  if (key.includes("statistics") || key.includes("probability")) return "statistics";
+  if (key.includes("statistics") || key.includes("probability"))
+    return "statistics";
   return "general";
 };
 
@@ -82,6 +367,7 @@ const MyCourses = () => {
         const token = localStorage.getItem("token");
         if (!token) {
           toast.error("You must be logged in to view your courses.");
+          setLoading(false);
           return;
         }
 
@@ -91,19 +377,33 @@ const MyCourses = () => {
 
         if (!res.data?.success) {
           toast.error("Unexpected server response.");
+          setLoading(false);
           return;
         }
 
-        const transformed = (res.data.courses || [])
-          .filter((course) => course?.id && course?.slug)
+        // Defensive: ensure courses is an array
+        const rawCourses = Array.isArray(res.data.courses)
+          ? res.data.courses
+          : [];
+
+        const transformed = rawCourses
+          .filter((course) => course && course.id && course.slug)
           .map((course) => {
-            const progressSeed = (course.id * 17) % 100;
             const title = course.title || "";
+            const courseId = parseInt(course.id);
+            const progressSeed = Number.isFinite(courseId)
+              ? (courseId * 17) % 100
+              : 30;
             return {
               ...course,
-              category: course.category && course.category !== "Uncategorized" ? course.category : getCategoryFromTitle(title),
+              category:
+                course.category && course.category !== "Uncategorized"
+                  ? course.category
+                  : getCategoryFromTitle(title),
               categorySlug: getCategorySlug(title),
-              difficulty: ["Beginner", "Intermediate", "Advanced"][course.id % 3],
+              difficulty:
+                ["Beginner", "Intermediate", "Advanced"][courseId % 3] ||
+                "Intermediate",
               progress: progressSeed < 20 ? progressSeed + 20 : progressSeed,
               thumbnail: getThumbnail(title),
             };
@@ -134,7 +434,8 @@ const MyCourses = () => {
     )
     .sort((a, b) => {
       if (sortKey === "title") return a.title.localeCompare(b.title);
-      if (sortKey === "date") return new Date(b.enrolledAt) - new Date(a.enrolledAt);
+      if (sortKey === "date")
+        return new Date(b.enrolledAt) - new Date(a.enrolledAt);
       return 0;
     });
 
@@ -142,7 +443,10 @@ const MyCourses = () => {
   const pagedCourses = filtered.slice(offset, offset + COURSES_PER_PAGE);
   const pageCount = Math.ceil(filtered.length / COURSES_PER_PAGE);
 
-  const categories = ["all", ...Array.from(new Set(courses.map((c) => c.category)))];
+  const categories = [
+    "all",
+    ...Array.from(new Set(courses.map((c) => c.category))),
+  ];
 
   const handleUnenrollConfirmed = async () => {
     if (confirmUnenroll === null) return;
@@ -185,7 +489,9 @@ const MyCourses = () => {
             key={tabName}
             onClick={() => setTab(tabName)}
             className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
-              tab === tabName ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"
+              tab === tabName
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-700"
             }`}
           >
             {tabName === "approved" ? "✅ Approved" : "⏳ Pending"}
@@ -221,54 +527,52 @@ const MyCourses = () => {
         >
           {categories.map((cat) => (
             <option key={cat} value={cat}>
-              {cat}
+              {cat === "all" ? "All Categories" : cat}
             </option>
           ))}
         </select>
       </div>
 
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {pagedCourses.map((course) => (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {pagedCourses.filter(Boolean).map((course) => (
           <MyCourseCard
             key={course.id}
             course={course}
             tab={tab}
             onGoToClass={() => handleGoToClass(course.slug)}
+            onUnenroll={() => setConfirmUnenroll(course.id)}
+            onViewDetails={() => setSelectedCourse(course)}
           />
         ))}
       </div>
 
-      {filtered.length === 0 && (
-        <p className="text-center text-gray-600 mt-8">No courses found.</p>
-      )}
-
       {pageCount > 1 && (
-        <div className="mt-6">
-          <ReactPaginate
-            previousLabel="←"
-            nextLabel="→"
-            pageCount={pageCount}
-            onPageChange={({ selected }) => setCurrentPage(selected)}
-            containerClassName="flex justify-center gap-2"
-            pageClassName="px-3 py-1 border rounded"
-            activeClassName="bg-blue-600 text-white"
-          />
-        </div>
+        <ReactPaginate
+          previousLabel={"← Previous"}
+          nextLabel={"Next →"}
+          pageCount={pageCount}
+          onPageChange={({ selected }) => setCurrentPage(selected)}
+          containerClassName={"pagination flex justify-center gap-2 mt-8"}
+          pageClassName={"px-3 py-1 rounded cursor-pointer border"}
+          activeClassName={"bg-blue-600 text-white border-blue-600"}
+          previousClassName={"px-3 py-1 cursor-pointer border rounded"}
+          nextClassName={"px-3 py-1 cursor-pointer border rounded"}
+          disabledClassName={"opacity-50 cursor-not-allowed"}
+        />
       )}
 
       {selectedCourse && (
         <CourseDetailsModal
           course={selectedCourse}
           onClose={() => setSelectedCourse(null)}
-          onUnenroll={(id) => setConfirmUnenroll(id)}
         />
       )}
 
-      {confirmUnenroll !== null && (
+      {confirmUnenroll && (
         <ConfirmModal
           message="Are you sure you want to unenroll from this course?"
-          onConfirm={handleUnenrollConfirmed}
           onCancel={() => setConfirmUnenroll(null)}
+          onConfirm={handleUnenrollConfirmed}
         />
       )}
     </div>
@@ -276,3 +580,4 @@ const MyCourses = () => {
 };
 
 export default MyCourses;
+
