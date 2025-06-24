@@ -85,8 +85,11 @@ const AdminDashboard = ({ onLogout }) => {
   }, [user.role, handleError]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (user && user.role) {
+      fetchData();
+    }
+  }, [user, fetchData]);
+  
 
   const handleApproveEnrollment = async (userId, courseId) => {
     try {
@@ -171,13 +174,33 @@ const AdminDashboard = ({ onLogout }) => {
   };
 
   // Defensive default empty arrays for the combined courses
-  const allCourses = Array.from(
-    new Set(
-      [...(pendingEnrollments || []), ...(approvedEnrollments || [])]
-        .map((e) => e.course?.title)
-        .filter(Boolean)
-    )
-  ).sort();
+  // const allCourses = Array.from(
+  //   new Set(
+  //     [...(pendingEnrollments ??  []), ...(approvedEnrollments ?? [])]
+  //       .map((e) => e.course?.title)
+  //       .filter(Boolean)
+  //   )
+  // ).sort();
+
+
+  let allCourses = [];
+
+  try {
+    const pending = Array.isArray(pendingEnrollments) ? pendingEnrollments : [];
+    const approved = Array.isArray(approvedEnrollments)
+      ? approvedEnrollments
+      : [];
+
+    allCourses = Array.from(
+      new Set(
+        [...pending, ...approved].map((e) => e?.course?.title).filter(Boolean)
+      )
+    ).sort();
+  } catch (e) {
+    console.error("Error building allCourses:", e);
+    allCourses = [];
+  }
+
 
   const filtered = (arr) =>
     (arr || [])
