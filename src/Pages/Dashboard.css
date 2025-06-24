@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
  /* General Dashboard Styles (shared by Dashboard.jsx and AdminDashboard.jsx) */
 .dashboard {
   max-width: 1200px;

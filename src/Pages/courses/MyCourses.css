@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
 
 .my-courses-container {
   padding: 2rem;
@@ -76,7 +74,6 @@
   background-color: #3498db;
   color: white;
 }
-
 
 .controls {
   display: flex;
