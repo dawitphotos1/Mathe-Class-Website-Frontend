@@ -47,6 +47,24 @@ body {
   background: var(--secondary);
 }
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Optional shimmer loader */
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.shimmer-box {
+  width: 100%;
+  height: 160px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #eeeeee 25%, #dddddd 50%, #eeeeee 75%);
+  background-size: 800px 104px;
+  animation: shimmer 1.5s infinite linear;
+}
 
 @media (prefers-color-scheme: dark) {
   :root {
