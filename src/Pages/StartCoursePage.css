@@ -1,0 +1,67 @@
+.download-link {
+    display: inline-block;
+    margin-top: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    background-color: #007bff;
+    color: white;
+    border-radius: 4px;
+    text-decoration: none;
+  }
+  .download-link:hover {
+    background-color: #0056b3;
+  }
+  
+
+  .course-container {
+    padding: 2rem;
+    max-width: 800px;
+    margin: auto;
+    font-family: "Segoe UI", sans-serif;
+  }
+  
+  .course-title {
+    margin-bottom: 2rem;
+    font-size: 2rem;
+    color: #2c3e50;
+  }
+  
+  .lesson-card {
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    background-color: #f9f9f9;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
+  }
+  
+  .lesson-title {
+    font-size: 1.5rem;
+    color: #007bff;
+    margin-bottom: 0.5rem;
+  }
+  
+  .lesson-description {
+    margin: 1rem 0;
+    line-height: 1.6;
+  }
+  
+  .lesson-video {
+    width: 100%;
+    max-height: 400px;
+    margin: 1rem 0;
+  }
+  
+  .lesson-download {
+    display: inline-block;
+    background-color: #007bff;
+    color: white;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    margin-top: 1rem;
+  }
+  
+  .lesson-download:hover {
+    background-color: #0056b3;
+  }
+  

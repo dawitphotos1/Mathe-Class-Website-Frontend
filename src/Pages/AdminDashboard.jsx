@@ -68,16 +68,18 @@ const AdminDashboard = ({ onLogout }) => {
               headers,
             }),
           ]);
-        setPendingEnrollments(
-          Array.isArray(pendingEnrollmentsRes.data)
-            ? pendingEnrollmentsRes.data
-            : []
-        );
-        setApprovedEnrollments(
-          Array.isArray(approvedEnrollmentsRes.data)
-            ? approvedEnrollmentsRes.data
-            : []
-        );
+          setPendingEnrollments(
+            Array.isArray(pendingEnrollmentsRes.data.enrollments)
+              ? pendingEnrollmentsRes.data.enrollments
+              : []
+          );
+
+          setApprovedEnrollments(
+            Array.isArray(approvedEnrollmentsRes.data.enrollments)
+              ? approvedEnrollmentsRes.data.enrollments
+              : []
+          );
+          
       }
     } catch (err) {
       handleError(err, () => {});
