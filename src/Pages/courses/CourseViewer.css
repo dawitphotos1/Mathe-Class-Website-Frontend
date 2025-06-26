@@ -7,247 +7,340 @@
   --accent-green: #2ecc71;
   --gradient-1: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
 }
-
-.course-viewer {
-  max-width: 800px;
-  margin: auto;
-  padding: 2rem;
-}
-
-.container {
+.course-viewer-container {
   max-width: 1200px;
   margin: 0 auto;
-}
-
-.back-btn {
-  display: inline-block;
-  margin-bottom: 1.5rem;
-  background: transparent;
-  border-color: var(--primary-blue);
-  color: var(--primary-blue);
-  padding: 0.8rem 1.5rem;
-  border-radius: 50px;
-  text-decoration: none;
-}
-
-.back-btn:hover {
-  background: var(--primary-blue);
-  color: white;
+  padding: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .course-header {
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #eaeaea;
 }
 
 .course-header h1 {
   font-size: 2.5rem;
-  color: var(--dark-text);
-  margin-bottom: 1rem;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
 }
 
 .course-description {
   font-size: 1.1rem;
-  color: var(--light-text);
-  max-width: 800px;
+  color: #7f8c8d;
+  line-height: 1.6;
   margin-bottom: 1.5rem;
 }
 
 .course-meta {
   display: flex;
-  flex-wrap: wrap;
   gap: 1.5rem;
-  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .course-price {
   font-size: 1.2rem;
   font-weight: bold;
-  color: var(--accent-green);
+  color: #2ecc71;
 }
 
-.course-teacher {
+.course-teacher, .course-stats {
   font-size: 1rem;
-  color: var(--dark-text);
+  color: #7f8c8d;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.course-stats {
+.course-actions {
+  margin-top: 1.5rem;
+}
+
+.enroll-btn {
+  background-color: #2ecc71;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
   font-size: 1rem;
-  color: var(--light-text);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-.lessons-section {
-  margin-bottom: 3rem;
+.enroll-btn:hover {
+  background-color: #27ae60;
 }
 
-.lessons-section h2 {
-  font-size: 2rem;
-  color: var(--dark-text);
+.enroll-btn:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+}
+
+.course-content {
+  display: flex;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.units-sidebar {
+  flex: 0 0 300px;
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  height: fit-content;
+}
+
+.units-sidebar h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.unit-section {
   margin-bottom: 1.5rem;
+}
+
+.unit-section h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.8rem;
+  color: #34495e;
 }
 
 .lessons-list {
   list-style: none;
   padding: 0;
-}
-
-.lesson-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
-  transition: background 0.2s;
-}
-
-.lesson-item:hover {
-  background: #f8fafc;
-}
-
-.unit-header {
-  background: #f0f2f5;
-  font-weight: bold;
-}
-
-.lesson-title h3 {
-  font-size: 1.4rem;
   margin: 0;
-  color: var(--dark-text);
 }
 
-.lesson-title span {
-  font-size: 1rem;
-  color: var(--dark-text);
+.lessons-list li {
+  padding: 0.8rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.preview-badge {
-  background: var(--accent-green);
-  color: white;
-  padding: 0.3rem 0.8rem;
-  border-radius: 12px;
-  font-size: 0.9rem;
+.lessons-list li:hover {
+  background-color: #e8f4fc;
 }
 
-.lesson-link {
-  color: var(--primary-blue);
-  text-decoration: none;
+.lessons-list li.active {
+  background-color: #d4e6f1;
   font-weight: 500;
 }
 
-.lesson-link:hover {
-  text-decoration: underline;
-}
-
-.course-actions {
-  text-align: center;
-}
-
-.enroll-btn {
-  background: var(--accent-green);
+.preview-badge {
+  background-color: #f39c12;
   color: white;
-  padding: 1rem 2rem;
-  font-size: 1.1rem;
-  border-radius: 50px;
-  text-decoration: none;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
 }
 
-.enroll-btn:hover {
-  background: #27ae60;
+.lesson-content {
+  flex: 1;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.loading {
+.lesson-content h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.video-container {
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  height: 0;
+  margin-bottom: 1.5rem;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.text-content {
+  line-height: 1.8;
+  color: #34495e;
+}
+
+.text-content p {
+  margin-bottom: 1rem;
+}
+
+.text-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.no-lesson-selected {
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 200px;
-  padding: 2rem;
+  height: 300px;
+  color: #7f8c8d;
+  font-size: 1.2rem;
 }
 
-.go-back-btn {
-  margin-top: 1rem;
-  background: #2ecc71;
-  color: white;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+.preview-content {
+  margin-top: 2rem;
 }
-.lesson-card {
-  border: 1px solid #ccc;
-  padding: 1rem;
+
+.preview-content h2 {
+  font-size: 1.8rem;
   margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.preview-content p {
+  color: #7f8c8d;
+  margin-bottom: 1rem;
+}
+
+.lesson-card {
+  background: white;
   border-radius: 8px;
-  background: #f9f9f9;
-}
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--light-text);
-  border-top-color: var(--primary-blue);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+.lesson-card h4 {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+  color: #2c3e50;
 }
 
-.error {
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 1.2rem;
+  color: #7f8c8d;
+}
+
+.error-message {
+  color: #e74c3c;
+  padding: 2rem;
   text-align: center;
-  padding: 2rem;
-  color: var(--secondary-red);
-  background: #ffe6e6;
-  border: 1px solid var(--secondary-red);
-  border-radius: 8px;
-  margin: 2rem auto;
-  max-width: 600px;
+  font-size: 1.2rem;
 }
 
-.course-view-container {
-  max-width: 800px;
-  margin: auto;
-  padding: 2rem;
-  font-family: sans-serif;
+/* Add these new styles to your existing CSS */
+
+.completed-badge {
+  color: #2ecc71;
+  margin-left: 8px;
+  font-weight: bold;
 }
 
-button {
-  padding: 10px 20px;
-  font-size: 1rem;
+.lessons-list li.completed {
+  color: #7f8c8d;
+  position: relative;
+}
+
+.lessons-list li.completed::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 1px;
+  background-color: #2ecc71;
+  opacity: 0.3;
+}
+
+.document-viewer {
+  width: 100%;
+  height: 600px;
+  border: 1px solid #eee;
   margin: 1rem 0;
-  cursor: pointer;
-  background-color: #0070f3;
-  color: white;
+  border-radius: 8px;
+}
+
+.lesson-navigation {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.nav-button {
+  padding: 0.8rem 1.5rem;
   border: none;
   border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s;
 }
 
+.nav-button.prev {
+  background-color: #f8f9fa;
+  color: #2c3e50;
+}
+
+.nav-button.next {
+  background-color: #3498db;
+  color: white;
+}
+
+.nav-button:hover {
+  opacity: 0.9;
+}
+
+
+
+
+
+
+
 @media (max-width: 768px) {
+  .course-content {
+    flex-direction: column;
+  }
+  
+  .units-sidebar {
+    flex: 1;
+    width: 100%;
+  }
+  
   .course-header h1 {
     font-size: 2rem;
   }
-
-  .course-description {
-    font-size: 1rem;
-  }
-
-  .lessons-section h2 {
-    font-size: 1.8rem;
-  }
-
-  .lesson-item {
+  
+  .course-meta {
     flex-direction: column;
-    align-items: flex-start;
     gap: 0.5rem;
   }
+}
 
-  .lesson-title h3 {
-    font-size: 1.2rem;
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .lesson-navigation {
+    flex-direction: column;
+    gap: 0.5rem;
   }
-
-  .lesson-title span {
-    font-size: 0.9rem;
+  
+  .nav-button {
+    width: 100%;
   }
 }

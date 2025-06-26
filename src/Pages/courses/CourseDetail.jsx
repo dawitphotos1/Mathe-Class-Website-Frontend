@@ -905,98 +905,144 @@ const courseData = {
 };
 
 const CourseDetail = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // Slug from URL (e.g., "algebra-1")
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isStudent = user?.role === "student";
   const [course, setCourse] = useState(null);
   const [error, setError] = useState(null);
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const response = await axios.get                                  (`${API_BASE_URL}/api/v1/courses/slug/${id}`);
-        
+        setLoading(true);
+        const response = await axios.get(
+          `${API_BASE_URL}/api/v1/courses/slug/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
         if (!response.data.success) {
           throw new Error(response.data.error || "Failed to fetch course");
         }
 
         const backendCourse = response.data;
 
+        // Calculate unitCount and lessonCount from units
+        const unitCount = backendCourse.units.length;
+        const lessonCount = backendCourse.units.reduce(
+          (count, unit) => count + unit.lessons.length,
+          0
+        );
+
         setCourse({
           id: backendCourse.id,
           title: backendCourse.title,
+          slug: backendCourse.slug,
           price: backendCourse.price,
           description: backendCourse.description,
-          contents: courseData[backendCourse.slug]?.contents || [],
+          units: backendCourse.units,
           teacher: backendCourse.teacher || { name: "Unknown" },
-          unitCount: backendCourse.unitCount || 0,
-          lessonCount: backendCourse.lessonCount || 0,
+          unitCount,
+          lessonCount,
         });
+
+        // Check enrollment status
+        if (isStudent && backendCourse.id) {
+          const token = localStorage.getItem("token");
+          try {
+            const enrollmentResponse = await axios.get(
+              `${API_BASE_URL}/api/v1/enrollments/check/${backendCourse.id}`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setIsEnrolled(enrollmentResponse.data.isEnrolled || false);
+          } catch (enrollErr) {
+            console.error("Enrollment check error:", enrollErr);
+            setIsEnrolled(false);
+          }
+        }
 
         setError(null);
       } catch (err) {
         console.error("Fetch course error:", err);
-        setError(err.response?.data?.details || "Failed to load course");
-        toast.error("Failed to load course");
+        setError(
+          err.response?.data?.details ||
+            "Failed to load course or lessons. Please try again."
+        );
+        toast.error("Failed to load course or lessons. Please try again.");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchCourse();
-  }, [id]);
-  
+  }, [id, isStudent]);
+
   const handleEnrollClick = async () => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    const isStudent = user?.role === "student";
-  
     if (!user || !isStudent) {
       toast.error("Only students can enroll. Please log in as a student.");
       return navigate("/login");
     }
-  
+
     if (!course?.id || !course.title || !course.price) {
       console.error("Invalid course data:", course);
       toast.error("Missing course details.");
       return;
     }
-  
+
     const token = localStorage.getItem("token");
     if (!token) {
       toast.error("Please log in to enroll");
       return navigate("/login");
     }
-  
+
     try {
       const payload = {
         courseId: String(course.id),
         courseName: course.title,
         coursePrice: parseFloat(course.price),
       };
-  
+
       const { loadStripe } = await import("@stripe/stripe-js");
       const stripe = await loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
       if (!stripe) throw new Error("Stripe not loaded. Check API key.");
-  
+
       const response = await axios.post(
         `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-  
+
       await stripe.redirectToCheckout({ sessionId: response.data.sessionId });
     } catch (err) {
       console.error("Enroll error:", err.response?.data || err);
       toast.error(err.response?.data?.error || "Failed to enroll");
     }
   };
-  
+
+  const handleStartCourseClick = () => {
+    if (!isEnrolled) {
+      toast.error("You must enroll in the course first.");
+      return;
+    }
+    navigate(`/class/${id}`);
+  };
+
+  if (loading) {
+    return <div className="loading">Loading...</div>;
+  }
 
   if (error) {
     return <div className="error">❌ Error: {error}</div>;
   }
 
   if (!course) {
-    return <div className="error">❌ Loading...</div>;
+    return <div className="error">❌ No course data available</div>;
   }
 
   return (
@@ -1004,19 +1050,41 @@ const CourseDetail = () => {
       <div className="course-header">
         <h1>{course.title}</h1>
         <p className="course-description">{course.description}</p>
-        <p className="course-price">Price: ${Number(course.price || 0).toFixed(2)}</p>
+        <p className="course-price">
+          Price: ${Number(course.price || 0).toFixed(2)}
+        </p>
         <p className="course-teacher">Teacher: {course.teacher.name}</p>
         <p className="course-units">Units: {course.unitCount}</p>
         <p className="course-lessons">Lessons: {course.lessonCount}</p>
       </div>
       <div className="course-content">
-        {course.contents.map((section, index) => (
+        {course.units.map((unit, index) => (
           <div className="unit" key={index}>
-            <h2 className="unit-title">{section.unit}</h2>
+            <h2 className="unit-title">{unit.unitName}</h2>
             <ul className="lesson-list">
-              {section.lessons.map((lesson, idx) => (
+              {unit.lessons.map((lesson, idx) => (
                 <li key={idx} className="lesson-item">
-                  {lesson}
+                  {lesson.title}
+                  {lesson.contentUrl && (
+                    <a
+                      href={lesson.contentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="lesson-download"
+                    >
+                      [Download]
+                    </a>
+                  )}
+                  {lesson.videoUrl && (
+                    <a
+                      href={lesson.videoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="lesson-video"
+                    >
+                      [Watch Video]
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
@@ -1025,9 +1093,21 @@ const CourseDetail = () => {
       </div>
       <div className="course-footer">
         {isStudent && (
-          <button className="btn-enroll" onClick={handleEnrollClick}>
-            Enroll Now
-          </button>
+          <>
+            {!isEnrolled && (
+              <button className="btn-enroll" onClick={handleEnrollClick}>
+                Enroll Now
+              </button>
+            )}
+            {isEnrolled && (
+              <button
+                className="btn-start-course"
+                onClick={handleStartCourseClick}
+              >
+                Start Course
+              </button>
+            )}
+          </>
         )}
         <Link to="/courses" className="btn-back">
           ← Back to Courses

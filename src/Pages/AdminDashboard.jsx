@@ -175,14 +175,7 @@ const AdminDashboard = ({ onLogout }) => {
     downloadCSV(csv, "approved_enrollments.csv");
   };
 
-  // Defensive default empty arrays for the combined courses
-  // const allCourses = Array.from(
-  //   new Set(
-  //     [...(pendingEnrollments ??  []), ...(approvedEnrollments ?? [])]
-  //       .map((e) => e.course?.title)
-  //       .filter(Boolean)
-  //   )
-  // ).sort();
+
 
 
   let allCourses = [];

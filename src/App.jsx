@@ -14,6 +14,7 @@ import PaymentSuccess from "./Pages/payments/PaymentSuccess";
 import PaymentCancel from "./Pages/payments/PaymentCancel";
 import Unauthorized from "./Pages/Unauthorized";
 import StartCoursePage from "./Pages/StartCoursePage";
+import FileManager from "./Pages/FileManager";
 import "./App.css";
 
 import MyCoursesPage from "./Pages/courses/MyCourses";
@@ -114,7 +115,7 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/cancel" element={<Cancel />} />
             <Route path="/class/:slug" element={<StartCoursePage />} />
-
+            <Route path="/admin/files" element={<FileManager />} />
             <Route
               path="/my-courses"
               element={

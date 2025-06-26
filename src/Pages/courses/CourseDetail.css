@@ -85,3 +85,27 @@
 .btn-back:hover {
   text-decoration: underline;
 }
+
+
+
+
+.lesson-download, .lesson-video {
+  margin-left: 10px;
+  color: #007bff;
+  text-decoration: none;
+}
+.lesson-download:hover, .lesson-video:hover {
+  text-decoration: underline;
+}
+.btn-start-course {
+  background-color: #28a745;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+.btn-start-course:hover {
+  background-color: #218838;
+}
