@@ -1,3 +1,63 @@
+/* 
+.create-course-container {
+  min-height: 100vh;
+  background: linear-gradient(to right, #43cea2, #185a9d);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.create-course-card {
+  background-color: white;
+  padding: 2.5rem;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+}
+
+.create-course-card h2 {
+  color: #185a9d;
+  margin-bottom: 1.5rem;
+}
+
+.create-course-card input,
+.create-course-card textarea {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.create-course-card textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #185a9d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-submit:hover {
+  background-color: #10457a;
+} */
+
+
+
+
 
 .create-course-container {
   min-height: 100vh;

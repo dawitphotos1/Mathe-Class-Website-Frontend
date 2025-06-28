@@ -20,104 +20,122 @@ const CourseViewer = () => {
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [completedLessons, setCompletedLessons] = useState([]);
 
+  const token = localStorage.getItem("token");
+
+  const markLessonAsComplete = async (lessonId) => {
+    try {
+      await axios.post(
+        `${API_BASE_URL}/api/v1/progress/complete`,
+        { lessonId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setCompletedLessons((prev) => [...prev, lessonId]);
+      console.log("✅ Completed Lessons:", completedLessons);
+      console.log("✅ currentLesson ID:", currentLesson.id);
+
+      toast.success("✅ Marked as complete");
+
+      const allLessons = course.units.flatMap((u) => u.lessons || []);
+      const index = allLessons.findIndex((l) => l.id === lessonId);
+      const nextLesson = allLessons[index + 1];
+      if (nextLesson) {
+        setCurrentLesson(nextLesson);
+      } else {
+        toast.info("🎉 You’ve completed all lessons!");
+      }
+    } catch (err) {
+      console.error("Error marking complete:", err);
+      toast.error("Failed to mark as complete");
+    }
+  };
+
+  const markLessonAsIncomplete = async (lessonId) => {
+    const confirm = window.confirm(
+      "Are you sure you want to mark this as not complete?"
+    );
+    if (!confirm) return;
+
+    try {
+      await axios.post(
+        `${API_BASE_URL}/api/v1/progress/incomplete`,
+        { lessonId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setCompletedLessons((prev) => prev.filter((id) => id !== lessonId));
+      toast.info("⏪ Marked as incomplete");
+    } catch (err) {
+      console.error("Error marking incomplete:", err);
+      toast.error("Failed to mark as incomplete");
+    }
+  };
+
   useEffect(() => {
     const fetchCourseData = async () => {
       try {
-        const token = localStorage.getItem("token");
         if (!token) {
           toast.error("Please log in to view courses");
           navigate("/login");
           return;
         }
 
-        // Fetch course details
         const courseRes = await axios.get(
           `${API_BASE_URL}/api/v1/courses/slug/${courseSlug}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
-
-        if (!courseRes.data?.success) {
-          throw new Error("Invalid course response format");
-        }
 
         const data = courseRes.data;
 
-        // Check enrollment status
         const enrollmentRes = await axios.get(
           `${API_BASE_URL}/api/v1/enrollments/check/${data.id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        // Fetch completed lessons if enrolled
         let completed = [];
         if (enrollmentRes.data?.isEnrolled) {
           const completedRes = await axios.get(
             `${API_BASE_URL}/api/v1/progress/completed-lessons/${data.id}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
+            { headers: { Authorization: `Bearer ${token}` } }
           );
           completed = completedRes.data?.completedLessons || [];
         }
 
+        setIsEnrolled(enrollmentRes.data?.isEnrolled || false);
+        setCompletedLessons(completed);
+
         const formatted = {
+          ...data,
           id: data.id?.toString(),
-          title: data.title ?? "Untitled Course",
-          price: Number(data.price) || 0,
-          description: data.description || "No description available.",
-          studentCount: data.studentCount || 0,
-          introVideoUrl: data.introVideoUrl || null,
-          thumbnail: data.thumbnail || null,
+          price: Number(data.price),
           teacher: {
-            name: data.teacher?.name || "Unknown Instructor",
+            name: data.teacher?.name || "Unknown",
             profileImage: data.teacher?.profileImage || null,
           },
           units: Array.isArray(data.units) ? data.units : [],
         };
 
-        setIsEnrolled(enrollmentRes.data?.isEnrolled || false);
         setCourse(formatted);
-        setCompletedLessons(completed);
 
-        // Set first lesson as default if enrolled
         if (enrollmentRes.data?.isEnrolled && formatted.units.length > 0) {
-          const firstUnitWithLessons = formatted.units.find(
-            (unit) => unit.lessons?.length > 0
-          );
-          if (firstUnitWithLessons) {
-            setCurrentLesson(firstUnitWithLessons.lessons[0]);
-          }
+          const firstLesson = formatted.units.find((u) => u.lessons?.length)
+            ?.lessons[0];
+          setCurrentLesson(firstLesson || null);
         }
       } catch (err) {
-        console.error(
-          "❌ Error loading course:",
-          err.response?.data || err.message
-        );
-        toast.error(err.response?.data?.error || "Failed to load course");
-        setCourse(null);
+        toast.error("Failed to load course");
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchCourseData();
-  }, [courseSlug, navigate]);
+  }, [courseSlug, navigate, token]);
 
   const handleEnroll = async () => {
     try {
-      const token = localStorage.getItem("token");
       if (!token) {
         toast.error("Please log in to enroll");
         navigate("/login");
-        return;
-      }
-
-      if (!course?.id || isNaN(course.price)) {
-        toast.error("Invalid course data for enrollment");
         return;
       }
 
@@ -137,44 +155,21 @@ const CourseViewer = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          withCredentials: true,
         }
       );
 
       const stripe = await stripePromise;
       await stripe.redirectToCheckout({ sessionId: res.data.sessionId });
     } catch (err) {
-      console.error("❌ Enroll error:", err.response?.data || err.message);
-      toast.error(err.response?.data?.error || "Enrollment failed");
+      toast.error("Enrollment failed");
+      console.error(err);
+    } finally {
       setEnrolling(false);
     }
   };
 
   const handleLessonSelect = (lesson) => {
     setCurrentLesson(lesson);
-    // Mark lesson as viewed if not already completed
-    if (!completedLessons.includes(lesson.id)) {
-      markLessonAsCompleted(lesson.id);
-    }
-  };
-
-  const markLessonAsCompleted = async (lessonId) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      await axios.post(
-        `${API_BASE_URL}/api/v1/progress/complete-lesson`,
-        { lessonId },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      setCompletedLessons([...completedLessons, lessonId]);
-    } catch (err) {
-      console.error("Error marking lesson as completed:", err);
-    }
   };
 
   const renderLessonContent = () => {
@@ -223,27 +218,15 @@ const CourseViewer = () => {
         <p className="course-description">{course.description}</p>
 
         <div className="course-meta">
-          {course.price > 0 && (
-            <span className="course-price">${course.price.toFixed(2)}</span>
-          )}
-          <span className="course-teacher">
-            Instructor: {course.teacher.name}
-          </span>
-          <span className="course-stats">
-            {course.studentCount} students enrolled
-          </span>
+          {course.price > 0 && <span>${course.price.toFixed(2)}</span>}
+          <span>Instructor: {course.teacher.name}</span>
+          <span>{course.studentCount} students enrolled</span>
         </div>
 
         {!isEnrolled && (
-          <div className="course-actions">
-            <button
-              onClick={handleEnroll}
-              disabled={enrolling}
-              className="enroll-btn"
-            >
-              {enrolling ? "Processing..." : "Enroll Now"}
-            </button>
-          </div>
+          <button onClick={handleEnroll} disabled={enrolling}>
+            {enrolling ? "Processing..." : "Enroll Now"}
+          </button>
         )}
       </div>
 
@@ -251,43 +234,27 @@ const CourseViewer = () => {
         <div className="course-content">
           <div className="units-sidebar">
             <h2>Course Content</h2>
-            {course.units.length === 0 ? (
-              <p>No content available yet.</p>
-            ) : (
-              course.units.map((unit, idx) => (
-                <div key={idx} className="unit-section">
-                  <h3>{unit.unitName}</h3>
-                  <ul className="lessons-list">
-                    {unit.lessons?.length ? (
-                      unit.lessons.map((lesson) => (
-                        <li
-                          key={lesson.id}
-                          className={`
-                            ${currentLesson?.id === lesson.id ? "active" : ""}
-                            ${
-                              completedLessons.includes(lesson.id)
-                                ? "completed"
-                                : ""
-                            }
-                          `}
-                          onClick={() => handleLessonSelect(lesson)}
-                        >
-                          {lesson.title}
-                          {lesson.isPreview && (
-                            <span className="preview-badge">Preview</span>
-                          )}
-                          {completedLessons.includes(lesson.id) && (
-                            <span className="completed-badge">✓</span>
-                          )}
-                        </li>
-                      ))
-                    ) : (
-                      <li>No lessons in this unit.</li>
-                    )}
-                  </ul>
-                </div>
-              ))
-            )}
+            {course.units.map((unit, idx) => (
+              <div key={idx}>
+                <h3>{unit.unitName}</h3>
+                <ul>
+                  {unit.lessons.map((lesson) => (
+                    <li
+                      key={lesson.id}
+                      className={`${
+                        currentLesson?.id === lesson.id ? "active" : ""
+                      } ${
+                        completedLessons.includes(lesson.id) ? "completed" : ""
+                      }`}
+                      onClick={() => handleLessonSelect(lesson)}
+                    >
+                      {lesson.title}
+                      {completedLessons.includes(lesson.id) && " ✓"}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
 
           <div className="lesson-content">
@@ -296,81 +263,65 @@ const CourseViewer = () => {
                 <h2>{currentLesson.title}</h2>
                 {renderLessonContent()}
 
-                {/* Navigation buttons */}
-                <div className="lesson-navigation">
-                  <button
-                    className="nav-button prev"
-                    onClick={() => {
-                      // Logic to find and set previous lesson
-                    }}
-                  >
-                    ← Previous
-                  </button>
-                  <button
-                    className="nav-button next"
-                    onClick={() => {
-                      // Logic to find and set next lesson
-                    }}
-                  >
-                    Next →
-                  </button>
+                {/* ✅ Completion Toggle Buttons */}
+                {/* <div
+                  className="completion-controls"
+                  style={{ marginTop: "1.5rem" }}
+                >
+                  {completedLessons.includes(currentLesson.id) ? (
+                    <button
+                      onClick={() => markLessonAsIncomplete(currentLesson.id)}
+                      className="bg-red-500 text-white px-4 py-2 rounded"
+                    >
+                      ❌ Not Complete
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => markLessonAsComplete(currentLesson.id)}
+                      className="bg-green-600 text-white px-4 py-2 rounded"
+                    >
+                      ✅ Mark as Complete
+                    </button>
+                  )}
+                </div> */}
+
+                <div
+                  className="completion-controls"
+                  style={{ marginTop: "1rem" }}
+                >
+                  <p style={{ fontSize: "0.9rem", color: "#999" }}>
+                    [Debug] This lesson ID: {currentLesson.id} <br />
+                    Is in completedLessons? →{" "}
+                    {completedLessons.includes(currentLesson.id)
+                      ? "✅ YES"
+                      : "❌ NO"}
+                  </p>
+
+                  {completedLessons.includes(currentLesson.id) ? (
+                    <button
+                      onClick={() => markLessonAsIncomplete(currentLesson.id)}
+                      className="bg-red-500 text-white px-4 py-2 rounded"
+                    >
+                      ❌ Not Complete
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => markLessonAsComplete(currentLesson.id)}
+                      className="bg-green-600 text-white px-4 py-2 rounded"
+                    >
+                      ✅ Mark as Complete
+                    </button>
+                  )}
                 </div>
               </>
             ) : (
-              <div className="no-lesson-selected">
-                <p>Select a lesson from the sidebar to begin</p>
-              </div>
+              <p>Select a lesson from the sidebar to begin</p>
             )}
           </div>
         </div>
       ) : (
         <div className="preview-content">
-          <h2>Course Preview</h2>
-          {course.units.length > 0 && (
-            <>
-              <p>
-                This course contains {course.units.length} units with lessons.
-              </p>
-              <p>Enroll to access all content.</p>
-
-              {/* Show preview lessons if any */}
-              {course.units.some((unit) =>
-                unit.lessons?.some((lesson) => lesson.isPreview)
-              ) && (
-                <>
-                  <h3>Preview Lessons</h3>
-                  {course.units.map((unit) =>
-                    unit.lessons
-                      ?.filter((lesson) => lesson.isPreview)
-                      .map((lesson) => (
-                        <div key={lesson.id} className="lesson-card">
-                          <h4>{lesson.title}</h4>
-                          {lesson.contentType === "video" &&
-                            lesson.videoUrl && (
-                              <div className="video-container">
-                                <iframe
-                                  src={lesson.videoUrl}
-                                  title={lesson.title}
-                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                  allowFullScreen
-                                />
-                              </div>
-                            )}
-                          {lesson.content && (
-                            <div
-                              className="text-content"
-                              dangerouslySetInnerHTML={{
-                                __html: lesson.content,
-                              }}
-                            />
-                          )}
-                        </div>
-                      ))
-                  )}
-                </>
-              )}
-            </>
-          )}
+          <p>Preview available. Enroll to unlock full content.</p>
         </div>
       )}
     </div>
