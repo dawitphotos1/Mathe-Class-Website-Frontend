@@ -1,116 +1,85 @@
-/* 
+
 .create-course-container {
-  min-height: 100vh;
-  background: linear-gradient(to right, #43cea2, #185a9d);
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
+  min-height: 100vh;
   padding: 2rem;
+  background-color: #f5f7fa; /* Optional soft background */
 }
 
+
 .create-course-card {
-  background-color: white;
-  padding: 2.5rem;
-  border-radius: 15px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  background-color: #ffffff;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 600px;
   width: 100%;
-  max-width: 500px;
-  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .create-course-card h2 {
-  color: #185a9d;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.create-course-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .create-course-card input,
-.create-course-card textarea {
-  width: 100%;
+.create-course-card textarea,
+.create-course-card select {
   padding: 0.75rem;
-  margin-bottom: 1rem;
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 1rem;
-  box-sizing: border-box;
 }
 
-.create-course-card textarea {
-  min-height: 100px;
-  resize: vertical;
-}
-
-.btn-submit {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #185a9d;
+.create-course-card button.btn-submit {
+  background-color: #007bff;
   color: white;
+  padding: 0.75rem;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background 0.3s;
 }
 
-.btn-submit:hover {
-  background-color: #10457a;
-} */
-
-
-
-
-
-.create-course-container {
-  min-height: 100vh;
-  background: linear-gradient(to right, #43cea2, #185a9d);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 2rem;
+.create-course-card button.btn-submit:hover {
+  background-color: #0056b3;
 }
 
-.create-course-card {
-  background-color: white;
-  padding: 2.5rem;
-  border-radius: 15px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  width: 100%;
-  max-width: 500px;
-  text-align: center;
+.create-course-card label {
+  font-weight: 500;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+  display: block;
+  color: #333;
 }
 
-.create-course-card h2 {
-  color: #185a9d;
-  margin-bottom: 1.5rem;
-}
-
-.create-course-card input,
-.create-course-card textarea {
-  width: 100%;
-  padding: 0.75rem;
-  margin-bottom: 1rem;
-  border: 1px solid #ccc;
+.create-course-card input[type="file"] {
+  margin-top: 0.3rem;
+  padding: 0.5rem;
+  border: 1px dashed #ccc;
   border-radius: 8px;
-  font-size: 1rem;
-  box-sizing: border-box;
+  background-color: #f9f9f9;
 }
 
-.create-course-card textarea {
-  min-height: 100px;
-  resize: vertical;
-}
 
-.btn-submit {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #185a9d;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
+@media (max-width: 480px) {
+  .create-course-card {
+    padding: 1rem;
+  }
 
-.btn-submit:hover {
-  background-color: #10457a;
+  .create-course-card input,
+  .create-course-card textarea,
+  .create-course-card button {
+    font-size: 0.9rem;
+  }
 }

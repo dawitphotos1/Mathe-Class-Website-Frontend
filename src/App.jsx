@@ -1,4 +1,4 @@
-// ✅ App.jsx (Full Updated)
+// ✅ Updated App.jsx with correct routes and layout cleanup
 import React, { useState, useEffect, Suspense } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
@@ -15,9 +15,15 @@ import PaymentCancel from "./Pages/payments/PaymentCancel";
 import Unauthorized from "./Pages/Unauthorized";
 import StartCoursePage from "./Pages/StartCoursePage";
 import FileManager from "./Pages/FileManager";
-import "./App.css";
-
+import ManageLessons from "./Pages/ManageLessons";
+import EditLesson from "./Pages/EditLesson";
+import MyTeachingCourses from "./Pages/teachers/MyTeachingCourses";
+import { ThemeProvider } from "./context/ThemeContext";
+import CreateCourse from "./Pages/CreateCourse";
+import CourseLessons from "./Pages/CourseLessons";
+import LessonCreationForm from "./components/LessonCreationForm";
 import MyCoursesPage from "./Pages/courses/MyCourses";
+import TeacherCourseProgress from "./Pages/courses/TeacherCourseProgress";
 
 const Home = React.lazy(() => import("./Pages/Home"));
 const Register = React.lazy(() => import("./Pages/auth/Register"));
@@ -90,78 +96,119 @@ function App() {
   }, [navigate]);
 
   return (
-    <div className="app">
-      <ErrorBoundary
-        fallback={
-          <div className="error-boundary">
-            <h2>Something went wrong</h2>
-            <p>Please try refreshing the page or contact support.</p>
-            <button onClick={() => window.location.reload()}>Refresh</button>
-          </div>
-        }
-      >
-        <Navbar user={user} onLogout={handleLogout} />
-        <Suspense fallback={<Loading />}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/register" element={<Register setUser={setUser} />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/courses" element={<CourseList />} />
-            <Route path="/courses/:id" element={<CourseViewer />} />
-            <Route path="/course/:id" element={<CourseDetail />} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
-            <Route path="/payment-cancel" element={<PaymentCancel />} />
-            <Route path="/unauthorized" element={<Unauthorized />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/cancel" element={<Cancel />} />
-            <Route path="/class/:slug" element={<StartCoursePage />} />
-            <Route path="/admin/files" element={<FileManager />} />
-            <Route
-              path="/my-courses"
-              element={
-                <ProtectedRoute allowedRoles={["student"]}>
-                  <MyCoursesPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/create-course"
-              element={
-                <ProtectedRoute allowedRoles={["teacher"]}>
-                  <CourseCreator />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute allowedRoles={["teacher", "student", "admin"]}>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute allowedRoles={["admin", "teacher"]}>
-                  <AdminDashboard onLogout={handleLogout} />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/payment/:courseId"
-              element={
-                <ProtectedRoute allowedRoles={["student"]}>
-                  <Payment />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-        <ToastContainer />
-      </ErrorBoundary>
-    </div>
+    <ThemeProvider>
+      <div className="app">
+        <ErrorBoundary>
+          <Navbar user={user} onLogout={handleLogout} />
+          <Suspense fallback={<Loading />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/register" element={<Register setUser={setUser} />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/courses" element={<CourseList />} />
+              <Route path="/courses/:id" element={<CourseViewer />} />
+              <Route path="/course/:id" element={<CourseDetail />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/payment-cancel" element={<PaymentCancel />} />
+              <Route path="/unauthorized" element={<Unauthorized />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/cancel" element={<Cancel />} />
+              <Route path="/class/:slug" element={<StartCoursePage />} />
+              <Route path="/admin/files" element={<FileManager />} />
+              <Route path="/teacher/course/:courseId/progress" element={<TeacherCourseProgress />} />
+
+              <Route
+                path="/teacher/create-course"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher"]}>
+                    <CreateCourse />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/courses/:courseId/manage-lessons"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher"]}>
+                    <ManageLessons />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/courses/:courseId/lessons/new"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher"]}>
+                    <LessonCreationForm />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/courses/:courseId/lessons/:lessonId/edit"
+                element={<EditLesson />}
+              />
+              <Route
+                path="/courses/:courseId/view-lessons"
+                element={
+                  <ProtectedRoute allowedRoles={["student"]}>
+                    <CourseLessons />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/my-courses"
+                element={
+                  <ProtectedRoute allowedRoles={["student"]}>
+                    <MyCoursesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/my-teaching-courses"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher"]}>
+                    <MyTeachingCourses />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                 path="/create-course"
+                 element={
+                        <ProtectedRoute allowedRoles={["teacher"]}>
+                        <CreateCourse />
+                        </ProtectedRoute>
+               }
+               />
+
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "student", "admin"]}>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={["admin", "teacher"]}>
+                    <AdminDashboard onLogout={handleLogout} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/payment/:courseId"
+                element={
+                  <ProtectedRoute allowedRoles={["student"]}>
+                    <Payment />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+          <ToastContainer />
+        </ErrorBoundary>
+      </div>
+    </ThemeProvider>
   );
 }
 

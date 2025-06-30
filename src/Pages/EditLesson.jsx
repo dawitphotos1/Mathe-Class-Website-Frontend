@@ -1,14 +1,12 @@
-
-// ✅ CreateLesson.jsx with BONUS options (file upload, progress bar, validation)
-
-import React, { useState, useEffect } from "react";
+// src/pages/EditLesson.jsx
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import "./CreateLesson.css";
+import "./CreateLesson.css"; // reuse styling from CreateLesson
 
-const CreateLesson = () => {
-  const { courseId } = useParams();
+const EditLesson = () => {
+  const { courseId, lessonId } = useParams();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: "",
@@ -23,26 +21,38 @@ const CreateLesson = () => {
   });
 
   const [units, setUnits] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(null);
 
   useEffect(() => {
-    const fetchUnits = async () => {
+    const fetchLesson = async () => {
       try {
-        const res = await axios.get(`/api/v1/courses/${courseId}/lessons`);
-        const unitHeaders = res.data.units?.map((u) => ({
-          id: u.unitName,
-          title: u.unitName,
-        })) || [];
-        setUnits(unitHeaders);
+        const token = localStorage.getItem("token");
+        const res = await axios.get(`/api/v1/lessons/${lessonId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setFormData(res.data.lesson);
       } catch (err) {
-        toast.error("Failed to load units");
+        toast.error("Failed to load lesson");
+        navigate(-1);
       }
     };
 
+    const fetchUnits = async () => {
+      try {
+        const res = await axios.get(`/api/v1/courses/${courseId}/lessons`);
+        const unitHeaders =
+          res.data.units?.map((u) => ({ id: u.unitName, title: u.unitName })) ||
+          [];
+        setUnits(unitHeaders);
+      } catch {}
+    };
+
+    fetchLesson();
     fetchUnits();
-  }, [courseId]);
+    setLoading(false);
+  }, [courseId, lessonId, navigate]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -55,29 +65,25 @@ const CreateLesson = () => {
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const type = formData.contentType;
     const form = new FormData();
     form.append("file", file);
     setUploading(true);
     setUploadProgress(0);
-
     try {
       const res = await axios.post("/api/v1/upload", form, {
-        onUploadProgress: (progressEvent) => {
-          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        onUploadProgress: (e) => {
+          const percent = Math.round((e.loaded * 100) / e.total);
           setUploadProgress(percent);
         },
       });
-
       if (type === "video") {
         setFormData((prev) => ({ ...prev, videoUrl: res.data.url }));
       } else {
         setFormData((prev) => ({ ...prev, contentUrl: res.data.url }));
       }
-
-      toast.success("File uploaded");
-    } catch (err) {
+      toast.success("Upload successful");
+    } catch {
       toast.error("Upload failed");
     } finally {
       setUploading(false);
@@ -87,48 +93,43 @@ const CreateLesson = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        toast.error("Please log in first");
-        navigate("/login");
-        return;
-      }
-
-      const payload = {
-        ...formData,
-        courseId: parseInt(courseId),
-        orderIndex: parseInt(formData.orderIndex),
-        unitId: formData.unitId || null,
-      };
-
-      await axios.post(`/api/v1/courses/${courseId}/lessons`, payload, {
+      await axios.put(`/api/v1/lessons/${lessonId}`, formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      toast.success("Lesson created!");
-      navigate(`/courses/${courseId}/manage`);
-    } catch (err) {
-      toast.error(err.response?.data?.error || "Error creating lesson");
-    } finally {
-      setLoading(false);
+      toast.success("Lesson updated");
+      navigate(`/courses/${courseId}/manage-lessons`);
+    } catch {
+      toast.error("Failed to update lesson");
     }
   };
 
+  if (loading) return <p>Loading...</p>;
+
   return (
     <div className="create-lesson-container">
-      <h2>Create New Lesson</h2>
+      <h2>Edit Lesson</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label>Title *</label>
-          <input type="text" name="title" value={formData.title} onChange={handleChange} required />
+          <input
+            type="text"
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+            required
+          />
         </div>
 
         <div className="form-group">
           <label>Content Type *</label>
-          <select name="contentType" value={formData.contentType} onChange={handleChange} required>
+          <select
+            name="contentType"
+            value={formData.contentType}
+            onChange={handleChange}
+            required
+          >
             <option value="text">Text</option>
             <option value="video">Video</option>
             <option value="document">Document</option>
@@ -144,17 +145,21 @@ const CreateLesson = () => {
               onChange={handleChange}
               rows="10"
               required
-              placeholder="Enter lesson text (supports HTML)"
             />
           </div>
         )}
 
-        {(formData.contentType === "video" || formData.contentType === "document") && (
+        {(formData.contentType === "video" ||
+          formData.contentType === "document") && (
           <div className="form-group">
-            <label>Upload {formData.contentType === "video" ? "Video" : "File"} *</label>
+            <label>Upload File *</label>
             <input
               type="file"
-              accept={formData.contentType === "video" ? "video/*" : ".pdf,.doc,.docx,.zip"}
+              accept={
+                formData.contentType === "video"
+                  ? "video/*"
+                  : ".pdf,.doc,.docx,.zip"
+              }
               onChange={handleFileUpload}
             />
             {uploading && (
@@ -173,7 +178,7 @@ const CreateLesson = () => {
               name="isUnitHeader"
               checked={formData.isUnitHeader}
               onChange={handleChange}
-            />
+            />{" "}
             Is Unit Header?
           </label>
         </div>
@@ -185,15 +190,19 @@ const CreateLesson = () => {
               name="isPreview"
               checked={formData.isPreview}
               onChange={handleChange}
-            />
-            Is Preview Lesson?
+            />{" "}
+            Is Preview?
           </label>
         </div>
 
         {!formData.isUnitHeader && units.length > 0 && (
           <div className="form-group">
             <label>Assign to Unit</label>
-            <select name="unitId" value={formData.unitId || ""} onChange={handleChange}>
+            <select
+              name="unitId"
+              value={formData.unitId || ""}
+              onChange={handleChange}
+            >
               <option value="">-- Select Unit --</option>
               {units.map((unit) => (
                 <option key={unit.id} value={unit.id}>
@@ -217,11 +226,15 @@ const CreateLesson = () => {
         </div>
 
         <div className="form-actions">
-          <button type="button" className="cancel-btn" onClick={() => navigate(-1)}>
+          <button
+            type="button"
+            className="cancel-btn"
+            onClick={() => navigate(-1)}
+          >
             Cancel
           </button>
-          <button type="submit" className="submit-btn" disabled={loading}>
-            {loading ? "Creating..." : "Create Lesson"}
+          <button type="submit" className="submit-btn">
+            Update Lesson
           </button>
         </div>
       </form>
@@ -229,4 +242,4 @@ const CreateLesson = () => {
   );
 };
 
-export default CreateLesson;
+export default EditLesson;

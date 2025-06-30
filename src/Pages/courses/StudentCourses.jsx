@@ -48,12 +48,18 @@ const StudentCourses = () => {
       ) : (
         <ul className="course-list">
           {courses.map((course) => (
-            <li key={course.id} className="course-card">
-              <h3>{course.title}</h3>
-              <p>{course.description}</p>
-              <p>💰 ${course.price}</p>
-              <p>✅ Enrolled on: {new Date(course.enrolledAt).toLocaleDateString()}</p>
-            </li>
+            {courses.map((course) => (
+              <li key={course.id} className="course-card">
+                <h3>{course.title}</h3>
+                <p>{course.description}</p>
+                {/* <p>💰 ${course.price}</p> */}
+                <p>✅ Enrolled on: {new Date(course.enrolledAt).toLocaleDateString()}</p>
+                <button onClick={() => navigate(`/lessons/${course.id}`)}>
+                  📚 View Lessons
+                </button>
+              </li>
+            ))}
+                    
           ))}
         </ul>
       )}

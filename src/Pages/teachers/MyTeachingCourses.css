@@ -1,0 +1,57 @@
+/* MyTeachingCourses.css */
+.my-teaching-courses {
+    max-width: 960px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  
+  .my-teaching-courses h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #2c3e50;
+  }
+  
+  .my-teaching-courses ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .my-teaching-courses li {
+    background-color: #f9f9f9;
+    margin-bottom: 1.2rem;
+    padding: 1.25rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.3s;
+  }
+  
+  .my-teaching-courses li:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .my-teaching-courses h3 {
+    margin: 0 0 0.5rem;
+    color: #2980b9;
+  }
+  
+  .my-teaching-courses p {
+    margin-bottom: 0.75rem;
+    color: #34495e;
+    line-height: 1.5;
+  }
+  
+  .my-teaching-courses a {
+    display: inline-block;
+    background-color: #2ecc71;
+    color: white;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .my-teaching-courses a:hover {
+    background-color: #27ae60;
+  }
+  

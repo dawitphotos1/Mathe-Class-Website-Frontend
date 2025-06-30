@@ -1,9 +1,13 @@
 
 import React from "react";
+import { Link } from "react-router-dom";
 import "./CourseDetailsModal.css";
 
 const CourseDetailsModal = ({ course, onClose, onUnenroll }) => {
   if (!course) return null;
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  const isTeacher = user?.role === "teacher";
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -30,9 +34,21 @@ const CourseDetailsModal = ({ course, onClose, onUnenroll }) => {
           {new Date(course.enrolledAt).toLocaleDateString()}
         </p>
 
-        <button className="unenroll-btn" onClick={() => onUnenroll(course.id)}>
-          🚫 Unenroll from Course
-        </button>
+        {isTeacher ? (
+          <Link
+            to={`/courses/${course.id}/manage-lessons`}
+            className="manage-lessons-link"
+          >
+            📚 Manage Lessons
+          </Link>
+        ) : (
+          <button
+            className="unenroll-btn"
+            onClick={() => onUnenroll(course.id)}
+          >
+            🚫 Unenroll from Course
+          </button>
+        )}
       </div>
     </div>
   );

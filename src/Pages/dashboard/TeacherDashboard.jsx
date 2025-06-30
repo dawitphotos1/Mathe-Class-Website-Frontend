@@ -4,6 +4,10 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "../../config";
 import { toast } from "react-toastify";
+import CreateLessonForm from "../../components/CreateLessonForm"; 
+import { Link } from "react-router-dom";
+// import CreateCourse from "../CreateCourse";
+
 import "./TeacherDashboard.css";
 
 const TeacherDashboard = () => {
@@ -14,6 +18,7 @@ const TeacherDashboard = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
+      const [selectedCourseId, setSelectedCourseId] = useState(null);
       const res = await axios.get(
         `${API_BASE_URL}/api/v1/enrollments/pending`,
         {
@@ -68,6 +73,11 @@ const TeacherDashboard = () => {
   return (
     <div className="teacher-dashboard">
       <h1>Welcome, Teacher 👩‍🏫</h1>
+      <div style={{ marginBottom: "1rem" }}>
+        <Link to="/teacher/create-course">
+          <button className="btn-create-course">➕ Create New Course</button>
+        </Link>
+      </div>
       <section className="course-enrollments-section">
         <h2>📚 Pending Course Enrollments</h2>
         {loading ? (
@@ -93,6 +103,13 @@ const TeacherDashboard = () => {
                   <td>{e.course?.title}</td>
                   <td>{new Date(e.accessGrantedAt).toLocaleString()}</td>
                   <td>
+                    {/* <Link to={`/courses/${courseId}/manage-lessons`}> */}
+                    <Link to="/teacher/create-course">
+                      <button className="btn-create-course">
+                        ➕ Create New Course
+                      </button>
+                    </Link>
+
                     <button
                       className="btn-approve"
                       onClick={() => handleApprove(e.userId, e.courseId)}
@@ -112,6 +129,19 @@ const TeacherDashboard = () => {
           </table>
         )}
       </section>
+      {selectedCourseId && (
+        <div className="lesson-form-container">
+          <h2>📘 Add Lesson to Course #{selectedCourseId}</h2>
+          <CreateLessonForm
+            courseId={selectedCourseId}
+            onLessonCreated={() => {
+              setSelectedCourseId(null);
+              toast.success("Lesson created");
+            }}
+          />
+          <button onClick={() => setSelectedCourseId(null)}>Cancel</button>
+        </div>
+      )}
     </div>
   );
 };

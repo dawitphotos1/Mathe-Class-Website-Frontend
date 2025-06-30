@@ -1,6 +1,6 @@
 
 // src/components/Navbar.jsx
-import React, { useState } from "react";
+import React, { useState ,useEffect} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "./Navbar.css";
@@ -26,7 +26,19 @@ const Navbar = ({ user, onLogout }) => {
       navigate("/");
     }
   };
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("theme") === "dark"
+  );
 
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add("dark-mode");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.body.classList.remove("dark-mode");
+      localStorage.setItem("theme", "light");
+    }
+  }, [darkMode]);
   return (
     <nav className="navbar">
       <div className="navbar-brand">
@@ -36,44 +48,122 @@ const Navbar = ({ user, onLogout }) => {
         </Link>
       </div>
 
-      <button className="hamburger" onClick={toggleMenu} aria-label="Toggle menu">
+      <button
+        className="hamburger"
+        onClick={toggleMenu}
+        aria-label="Toggle menu"
+      >
         <span className="hamburger-bar"></span>
         <span className="hamburger-bar"></span>
         <span className="hamburger-bar"></span>
       </button>
 
       <div className={`navbar-links ${isMenuOpen ? "active" : ""}`}>
-        <Link to="/" onClick={handleLinkClick}>Home</Link>
-        <Link to="/courses" onClick={handleLinkClick}>Courses</Link>
+        <Link to="/" onClick={handleLinkClick}>
+          Home
+        </Link>
 
         {user ? (
           <>
-            {/* ✅ NEW: Show My Courses for Students */}
             {user.role === "student" && (
-              <Link to="/my-courses" onClick={handleLinkClick}>
-                My Courses
-              </Link>
+              <div className="dropdown">
+                <button className="dropbtn">🎓 Student</button>
+                <div className="dropdown-content">
+                  <Link to="/courses" onClick={handleLinkClick}>
+                    Courses
+                  </Link>
+                  <Link to="/my-courses" onClick={handleLinkClick}>
+                    My Courses
+                  </Link>
+                  <Link to="/profile" onClick={handleLinkClick}>
+                    Profile
+                  </Link>
+                  <div className="dropdown-toggle">
+                    <label className="dark-switch">
+                      <input
+                        type="checkbox"
+                        checked={darkMode}
+                        onChange={() => setDarkMode(!darkMode)}
+                      />
+                      Dark Mode
+                    </label>
+                  </div>
+                </div>
+              </div>
             )}
 
             {user.role === "teacher" && (
-              <Link to="/create-course" onClick={handleLinkClick}>
-                Create Course
-              </Link>
+              <div className="dropdown">
+                <button className="dropbtn">👨‍🏫 Teacher</button>
+                <div className="dropdown-content">
+                  <Link to="/courses" onClick={handleLinkClick}>
+                    Courses
+                  </Link>
+                  <Link to="/my-teaching-courses" onClick={handleLinkClick}>
+                    My Teaching Courses
+                  </Link>
+                  <Link to="/create-course" onClick={handleLinkClick}>
+                    Create Course
+                  </Link>
+                  <Link to="/dashboard" onClick={handleLinkClick}>
+                    Admin Dashboard
+                  </Link>
+                  <Link to="/profile" onClick={handleLinkClick}>
+                    Profile
+                  </Link>
+                  <div className="dropdown-toggle">
+                    <label className="dark-switch">
+                      <input
+                        type="checkbox"
+                        checked={darkMode}
+                        onChange={() => setDarkMode(!darkMode)}
+                      />
+                      Dark Mode
+                    </label>
+                  </div>
+                </div>
+              </div>
             )}
 
-            {(user.role === "teacher" || user.role === "admin") && (
-              <Link to="/dashboard" onClick={handleLinkClick}>
-                Admin Dashboard
-              </Link>
+            {user.role === "admin" && (
+              <div className="dropdown">
+                <button className="dropbtn">🛡️ Admin</button>
+                <div className="dropdown-content">
+                  <Link to="/courses" onClick={handleLinkClick}>
+                    Courses
+                  </Link>
+                  <Link to="/dashboard" onClick={handleLinkClick}>
+                    Admin Dashboard
+                  </Link>
+                  <Link to="/profile" onClick={handleLinkClick}>
+                    Profile
+                  </Link>
+                  <div className="dropdown-toggle">
+                    <label className="dark-switch">
+                      <input
+                        type="checkbox"
+                        checked={darkMode}
+                        onChange={() => setDarkMode(!darkMode)}
+                      />
+                      Dark Mode
+                    </label>
+                  </div>
+                </div>
+              </div>
             )}
 
-            <Link to="/profile" onClick={handleLinkClick}>Profile</Link>
-            <button className="logout-btn" onClick={handleLogout}>Logout</button>
+            <button className="logout-btn" onClick={handleLogout}>
+              Logout
+            </button>
           </>
         ) : (
           <>
-            <Link to="/register" onClick={handleLinkClick}>Register</Link>
-            <Link to="/login" onClick={handleLinkClick}>Login</Link>
+            <Link to="/register" onClick={handleLinkClick}>
+              Register
+            </Link>
+            <Link to="/login" onClick={handleLinkClick}>
+              Login
+            </Link>
           </>
         )}
       </div>
@@ -82,5 +172,6 @@ const Navbar = ({ user, onLogout }) => {
 };
 
 export default Navbar;
+
 
 

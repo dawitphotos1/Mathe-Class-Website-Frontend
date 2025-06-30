@@ -1,4 +1,5 @@
 
+/* Navbar.css */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -10,6 +11,7 @@
   z-index: 1000;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
+
 .navbar-brand {
   display: flex;
   align-items: center;
@@ -24,9 +26,8 @@
   border: 2px solid white;
   vertical-align: middle;
   margin-right: 0.5rem;
-  transform: translateY(2px); /* 👈 this nudges it down to align better */
+  transform: translateY(2px);
 }
-
 
 .navbar-brand a {
   font-size: 1.5rem;
@@ -34,21 +35,21 @@
   color: white;
   text-decoration: none;
 }
-/* Optional: vertically center the text better */
+
 .navbar-brand span {
   font-size: 1.5rem;
   font-weight: bold;
   color: white;
   line-height: 1;
   position: relative;
-  top: 2px; /* Push down slightly to align better with the image */
+  top: 2px;
 }
+
 .navbar-links {
   display: flex;
   gap: 1.5rem;
   align-items: center;
 }
-
 
 .navbar-links a,
 .navbar-links button.logout-btn {
@@ -74,7 +75,6 @@
   color: #edf2f7;
 }
 
-
 .hamburger {
   display: none;
   flex-direction: column;
@@ -92,7 +92,6 @@
   background-color: white;
   transition: all 0.3s ease;
 }
-
 
 @media (max-width: 768px) {
   .hamburger {
@@ -121,3 +120,80 @@
     padding: 0.5rem 0;
   }
 }
+
+/* Dropdown styles */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropbtn {
+  background: none;
+  color: white;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: white;
+  min-width: 180px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.dropdown-content a {
+  color: #333;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+  display: block;
+  font-size: 0.95rem;
+}
+
+.dropdown-content a:hover {
+  background-color: #06e17f;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+
+/* Dark mode body class */
+body.dark-mode {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+body.dark-mode .navbar {
+  background: linear-gradient(to right, #222, #444) !important;
+}
+
+body.dark-mode .dropdown-content {
+  background-color: #2c2c2c;
+}
+
+body.dark-mode .dropdown-content a {
+  color: #f1f1f1;
+}
+
+body.dark-mode .dropdown-content a:hover {
+  background-color: #3a3a3a;
+}
+
+/* Dark mode toggle in dropdown */
+.dropdown-toggle {
+  padding: 0.5rem 1rem;
+  color: #444;
+  font-size: 0.9rem;
+}
+
+.dark-switch input {
+  margin-right: 0.5rem;
+}
+

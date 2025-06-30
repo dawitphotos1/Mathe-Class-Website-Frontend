@@ -1,58 +1,52 @@
-
-.course-creator {
-  padding: 2rem;
+.course-creator-container {
   max-width: 800px;
-  margin: 0 auto;
-}
-
-.course-creator form {
-  background: white;
+  margin: 2rem auto;
   padding: 2rem;
+  background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.course-creator input, 
-.course-creator textarea, 
-.course-creator select {
+.course-creator-container h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: var(--primary);
+}
+
+.course-creator-container h3 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: var(--dark);
+}
+
+.lesson-item {
+  padding: 0.5rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
   width: 100%;
-  padding: 0.8rem;
-  margin: 0.5rem 0;
+  padding: 0.5rem;
   border: 1px solid #ddd;
   border-radius: 4px;
-  box-sizing: border-box;
 }
 
-.course-creator textarea {
-  height: 100px;
+.form-group textarea {
+  min-height: 100px;
 }
 
-.lesson-form {
-  border: 1px solid #ecf0f1;
-  padding: 1rem;
-  margin: 1rem 0;
-  border-radius: 5px;
-}
-
-.add-lesson {
-  background: #2ecc71;
-  margin-right: 1rem;
-}
-
-.add-lesson:hover {
-  background: #27ae60;
-}
-
-.course-creator button {
-  padding: 0.8rem 1.5rem;
-  background: #3498db;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.course-creator button:hover {
-  background: #2980b9;
+.btn {
+  margin: 0.5rem;
 }
