@@ -905,7 +905,7 @@ const courseData = {
 };
 
 const CourseDetail = () => {
-  const { id } = useParams(); // Slug from URL (e.g., "algebra-1")
+  const { id } = useParams(); // Slug from URL
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isStudent = user?.role === "student";
@@ -933,7 +933,6 @@ const CourseDetail = () => {
 
         const backendCourse = response.data;
 
-        // Calculate unitCount and lessonCount from units
         const unitCount = backendCourse.units.length;
         const lessonCount = backendCourse.units.reduce(
           (count, unit) => count + unit.lessons.length,
@@ -948,11 +947,11 @@ const CourseDetail = () => {
           description: backendCourse.description,
           units: backendCourse.units,
           teacher: backendCourse.teacher || { name: "Unknown" },
+          materialUrl: backendCourse.materialUrl || null,
           unitCount,
           lessonCount,
         });
 
-        // Check enrollment status
         if (isStudent && backendCourse.id) {
           const token = localStorage.getItem("token");
           try {
@@ -990,7 +989,6 @@ const CourseDetail = () => {
     }
 
     if (!course?.id || !course.title || !course.price) {
-      console.error("Invalid course data:", course);
       toast.error("Missing course details.");
       return;
     }
@@ -1033,17 +1031,14 @@ const CourseDetail = () => {
     navigate(`/class/${id}`);
   };
 
-  if (loading) {
-    return <div className="loading">Loading...</div>;
-  }
+  if (loading) return <div className="loading">Loading...</div>;
+  if (error) return <div className="error">❌ Error: {error}</div>;
+  if (!course) return <div className="error">❌ No course data available</div>;
 
-  if (error) {
-    return <div className="error">❌ Error: {error}</div>;
-  }
-
-  if (!course) {
-    return <div className="error">❌ No course data available</div>;
-  }
+  const getFileExtension = (url) => {
+    if (typeof url !== "string") return "Unknown";
+    return url.split(".").pop().toUpperCase();
+  };
 
   return (
     <div className="course-detail">
@@ -1056,7 +1051,24 @@ const CourseDetail = () => {
         <p className="course-teacher">Teacher: {course.teacher.name}</p>
         <p className="course-units">Units: {course.unitCount}</p>
         <p className="course-lessons">Lessons: {course.lessonCount}</p>
+
+        {course.materialUrl && (
+          <div className="course-material">
+            <h4>📎 Course Material</h4>
+            <p>File Type: {getFileExtension(course.materialUrl)}</p>
+            <a
+              href={`${API_BASE_URL}${course.materialUrl}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              download
+              className="material-download"
+            >
+              📥 Download Material
+            </a>
+          </div>
+        )}
       </div>
+
       <div className="course-content">
         {course.units.map((unit, index) => (
           <div className="unit" key={index}>
@@ -1091,6 +1103,7 @@ const CourseDetail = () => {
           </div>
         ))}
       </div>
+
       <div className="course-footer">
         {isStudent && (
           <>

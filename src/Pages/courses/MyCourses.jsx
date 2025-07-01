@@ -99,12 +99,14 @@ const MyCourses = () => {
         }
 
         const transformed = (res.data.courses || [])
-          .filter((course) => course?.id && course?.slug)
-          .map((course) => {
+          .filter((enrollment) => enrollment?.id && enrollment?.slug)
+          .map((courseOrEnrollment) => {
+            const course = courseOrEnrollment;
             const progressSeed = (course.id * 17) % 100;
             const title = course.title || "";
             return {
               ...course,
+              status: courseOrEnrollment.status || "approved", // ✅ Fix applied here
               category:
                 course.category && course.category !== "Uncategorized"
                   ? course.category
