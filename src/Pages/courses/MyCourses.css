@@ -423,6 +423,200 @@ select {
   background-color: #2980b9;
 }
 
+/* Add to existing styles or create new file */
+
+.my-courses-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.dark .my-courses-container {
+  background-color: #1a1a2e;
+  color: #e6e6ff;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+.tabs button {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  position: relative;
+}
+
+.tabs button.active {
+  font-weight: bold;
+  color: #4361ee;
+}
+
+.tabs button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: #4361ee;
+}
+
+.controls {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.search-bar {
+  flex: 1;
+  position: relative;
+  min-width: 250px;
+}
+
+.search-bar .icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #777;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 12px 20px 12px 40px;
+  border: 1px solid #ddd;
+  border-radius: 30px;
+  font-size: 16px;
+}
+
+select {
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 30px;
+  background: white;
+  min-width: 180px;
+}
+
+.dark select {
+  background: #16213e;
+  color: white;
+  border-color: #0f3460;
+}
+
+.course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.no-courses {
+  text-align: center;
+  padding: 50px 20px;
+  background: #f9f9f9;
+  border-radius: 10px;
+  margin: 30px 0;
+}
+
+.dark .no-courses {
+  background: #16213e;
+}
+
+.btn-explore {
+  margin-top: 20px;
+  padding: 12px 30px;
+  background: #4361ee;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn-explore:hover {
+  background: #3a56d4;
+}
+
+.pending-help {
+  margin-top: 15px;
+  color: #777;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.pagination {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  gap: 10px;
+}
+
+.page-item {
+  padding: 8px 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.page-item.active {
+  background: #4361ee;
+  color: white;
+  border-color: #4361ee;
+}
+
+.page-nav {
+  padding: 8px 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 70vh;
+}
+
+.spinner {
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #4361ee;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+
+
+
+
 @media (max-width: 768px) {
   .controls {
     flex-direction: column;
