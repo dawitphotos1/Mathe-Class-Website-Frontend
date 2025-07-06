@@ -905,14 +905,28 @@ const courseData = {
 };
 
 const CourseDetail = () => {
-  const { id } = useParams(); // Slug from URL
+  const { id } = useParams(); // slug
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isStudent = user?.role === "student";
+
   const [course, setCourse] = useState(null);
   const [error, setError] = useState(null);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "light"
+  );
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  };
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -927,17 +941,9 @@ const CourseDetail = () => {
           }
         );
 
-        if (!response.data.success) {
-          throw new Error(response.data.error || "Failed to fetch course");
-        }
-
-        const backendCourse = response.data;
-
-        const unitCount = backendCourse.units.length;
-        const lessonCount = backendCourse.units.reduce(
-          (count, unit) => count + unit.lessons.length,
-          0
-        );
+        const backendCourse = response.data.course || response.data;
+        const lessons = backendCourse.lessons || [];
+        const lessonCount = lessons.length;
 
         setCourse({
           id: backendCourse.id,
@@ -945,10 +951,9 @@ const CourseDetail = () => {
           slug: backendCourse.slug,
           price: backendCourse.price,
           description: backendCourse.description,
-          units: backendCourse.units,
+          lessons,
           teacher: backendCourse.teacher || { name: "Unknown" },
           materialUrl: backendCourse.materialUrl || null,
-          unitCount,
           lessonCount,
         });
 
@@ -1031,25 +1036,25 @@ const CourseDetail = () => {
     navigate(`/class/${id}`);
   };
 
-  if (loading) return <div className="loading">Loading...</div>;
-  if (error) return <div className="error">❌ Error: {error}</div>;
-  if (!course) return <div className="error">❌ No course data available</div>;
-
   const getFileExtension = (url) => {
     if (typeof url !== "string") return "Unknown";
     return url.split(".").pop().toUpperCase();
   };
 
+  if (loading) return <div className="loading">Loading...</div>;
+  if (error) return <div className="error">❌ Error: {error}</div>;
+  if (!course) return <div className="error">❌ No course data available</div>;
+
   return (
     <div className="course-detail">
       <div className="course-header">
+        <button className="theme-toggle" onClick={toggleTheme}>
+          {theme === "light" ? "🌙 Dark Mode" : "☀ Light Mode"}
+        </button>
         <h1>{course.title}</h1>
         <p className="course-description">{course.description}</p>
-        <p className="course-price">
-          Price: ${Number(course.price || 0).toFixed(2)}
-        </p>
+        
         <p className="course-teacher">Teacher: {course.teacher.name}</p>
-        <p className="course-units">Units: {course.unitCount}</p>
         <p className="course-lessons">Lessons: {course.lessonCount}</p>
 
         {course.materialUrl && (
@@ -1070,36 +1075,32 @@ const CourseDetail = () => {
       </div>
 
       <div className="course-content">
-        {course.units.map((unit, index) => (
-          <div className="unit" key={index}>
-            <h2 className="unit-title">{unit.unitName}</h2>
-            <ul className="lesson-list">
-              {unit.lessons.map((lesson, idx) => (
-                <li key={idx} className="lesson-item">
-                  {lesson.title}
-                  {lesson.contentUrl && (
-                    <a
-                      href={lesson.contentUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="lesson-download"
-                    >
-                      [Download]
-                    </a>
-                  )}
-                  {lesson.videoUrl && (
-                    <a
-                      href={lesson.videoUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="lesson-video"
-                    >
-                      [Watch Video]
-                    </a>
-                  )}
-                </li>
-              ))}
-            </ul>
+        <h2>Lessons</h2>
+        {course.lessons.length === 0 && <p>No lessons available yet.</p>}
+        {course.lessons.map((lesson, idx) => (
+          <div key={idx} className="lesson-item">
+            <h4>
+              {lesson.videoUrl ? "🎥" : lesson.contentUrl ? "📄" : "📘"}{" "}
+              {lesson.title}
+            </h4>
+            {lesson.contentUrl && (
+              <a
+                href={lesson.contentUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                📥 Download
+              </a>
+            )}
+            {lesson.videoUrl && (
+              <a
+                href={lesson.videoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                ▶ Watch Video
+              </a>
+            )}
           </div>
         ))}
       </div>

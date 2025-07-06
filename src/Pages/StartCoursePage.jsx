@@ -1,6 +1,4 @@
 
-// ✅ Full Updated StartCoursePage.jsx with Lesson Completion Tracking
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
@@ -35,6 +33,13 @@ const StartCoursePage = () => {
         );
 
         const courseData = courseRes.data;
+        if (!courseData) {
+          setError(
+            "Course not found. Please check the course slug or contact support."
+          );
+          setLoading(false);
+          return;
+        }
         setCourse(courseData);
 
         // Get lessons
@@ -44,17 +49,24 @@ const StartCoursePage = () => {
         );
 
         const flatLessons = lessonRes.data.units.flatMap((unit) => [
-          { id: `unit-${unit.unitName}`, title: unit.unitName, isUnitHeader: true },
-          ...unit.lessons.map((lesson) => ({ ...lesson, isUnitHeader: false }))
+          {
+            id: `unit-${unit.unitName}`,
+            title: unit.unitName,
+            isUnitHeader: true,
+          },
+          ...unit.lessons.map((lesson) => ({ ...lesson, isUnitHeader: false })),
         ]);
 
         setLessons(flatLessons);
 
         // Get progress
         const userId = JSON.parse(atob(token.split(".")[1])).id;
-        const progressRes = await axios.get(`/api/v1/progress/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const progressRes = await axios.get(
+          `${API_BASE_URL}/api/v1/progress/${userId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         const completed = progressRes.data.progress.map((p) => p.lessonId);
         setCompletedLessons(completed);
 
@@ -65,9 +77,11 @@ const StartCoursePage = () => {
           setError("Session expired. Please log in again.");
           navigate("/login");
         } else if (err.response?.status === 404) {
-          setError("Course not found.");
+          setError(
+            "Course not found. Please check the course slug or contact support."
+          );
         } else {
-          setError("Failed to load course or lessons. Please try again.");
+          setError("Failed to load course or lessons. Please try again later.");
         }
         setLoading(false);
       }
@@ -79,9 +93,11 @@ const StartCoursePage = () => {
   const markComplete = async (lessonId) => {
     try {
       await axios.post(
-        "/api/v1/progress/complete",
+        `${API_BASE_URL}/api/v1/progress/complete`,
         { lessonId },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
       );
       setCompletedLessons((prev) => [...new Set([...prev, lessonId])]);
       toast.success("Lesson marked complete!");
@@ -99,7 +115,11 @@ const StartCoursePage = () => {
   }
 
   if (!course || !lessons.length) {
-    return <div className="course-container">📭 No lessons available for this course yet.</div>;
+    return (
+      <div className="course-container">
+        📭 No lessons available for this course yet.
+      </div>
+    );
   }
 
   return (
@@ -111,7 +131,9 @@ const StartCoursePage = () => {
             <h3 className="lesson-title">
               {lesson.isUnitHeader ? "📚 Unit: " : "📝 "} {lesson.title}
             </h3>
-            {lesson.content && <p className="lesson-description">{lesson.content}</p>}
+            {lesson.content && (
+              <p className="lesson-description">{lesson.content}</p>
+            )}
             {lesson.videoUrl && (
               <video className="lesson-video" controls>
                 <source src={lesson.videoUrl} type="video/mp4" />
@@ -134,7 +156,9 @@ const StartCoursePage = () => {
                 onClick={() => markComplete(lesson.id)}
                 disabled={completedLessons.includes(lesson.id)}
               >
-                {completedLessons.includes(lesson.id) ? "✅ Completed" : "Mark as Complete"}
+                {completedLessons.includes(lesson.id)
+                  ? "✅ Completed"
+                  : "Mark as Complete"}
               </button>
             )}
           </div>
