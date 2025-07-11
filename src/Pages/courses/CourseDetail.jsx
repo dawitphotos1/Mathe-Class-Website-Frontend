@@ -974,10 +974,11 @@ const CourseDetail = () => {
         setError(null);
       } catch (err) {
         console.error("Fetch course error:", err);
-        setError(
-          err.response?.data?.details ||
-            "Failed to load course or lessons. Please try again."
-        );
+        const message = err.response?.data?.error || err.message;
+        console.error("Fetch course error:", message);
+        setError(`❌ ${message}`);
+        toast.error(`❌ ${message}`);
+
         toast.error("Failed to load course or lessons. Please try again.");
       } finally {
         setLoading(false);
@@ -993,7 +994,7 @@ const CourseDetail = () => {
       return navigate("/login");
     }
 
-    if (!course?.id || !course.title || !course.price) {
+    if (!course?.id || !course.title) {
       toast.error("Missing course details.");
       return;
     }
@@ -1008,7 +1009,7 @@ const CourseDetail = () => {
       const payload = {
         courseId: String(course.id),
         courseName: course.title,
-        coursePrice: parseFloat(course.price),
+        coursePrice: parseFloat(course.price), 
       };
 
       const { loadStripe } = await import("@stripe/stripe-js");
@@ -1024,9 +1025,12 @@ const CourseDetail = () => {
       await stripe.redirectToCheckout({ sessionId: response.data.sessionId });
     } catch (err) {
       console.error("Enroll error:", err.response?.data || err);
-      toast.error(err.response?.data?.error || "Failed to enroll");
+      toast.error(err.response?.data?.error || "Failed to start enrollment");
     }
   };
+  
+  
+
 
   const handleStartCourseClick = () => {
     if (!isEnrolled) {

@@ -1,4 +1,4 @@
-
+/* 
   .create-lesson-container {
     max-width: 800px;
     margin: 2rem auto;
@@ -115,4 +115,214 @@
     .cancel-btn {
       width: 100%;
     }
+  } */
+
+
+
+
+/* Enhanced CreateLesson.css - Fancy, Animated, Stylish, Confetti, Drag-and-Drop */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+:root {
+  --bg-light: #ffffff;
+  --bg-dark: #1e272e;
+  --text-light: #2f3542;
+  --text-dark: #ecf0f1;
+  --primary: #00cec9;
+  --secondary: #0984e3;
+  --danger: #d63031;
+  --accent: #e17055;
+  --radius: 12px;
+  --max-width: 720px;
+}
+
+body.dark-mode .create-lesson-container {
+  background: linear-gradient(145deg, #2f3640, #353b48);
+  color: var(--text-dark);
+}
+
+.create-lesson-container {
+  max-width: var(--max-width);
+  margin: 4rem auto;
+  padding: 3rem 2rem;
+  background: linear-gradient(135deg, var(--bg-light), #f0f4f8);
+  border-radius: var(--radius);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+  font-family: 'Inter', sans-serif;
+  animation: fadeSlideUp 0.6s ease-out forwards;
+  opacity: 0;
+  transform: translateY(30px);
+  position: relative;
+}
+
+@keyframes fadeSlideUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
+}
+
+.create-lesson-container h2 {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: var(--text-light);
+  background: linear-gradient(to right, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.form-group {
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.form-group label {
+  margin-bottom: 0.6rem;
+  font-weight: 600;
+  color: var(--text-light);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 0.9rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  background: #fff;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 206, 201, 0.2);
+}
+
+.form-group textarea {
+  min-height: 180px;
+  resize: vertical;
+}
+
+.form-group.checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+progress {
+  width: 100%;
+  height: 8px;
+  margin-top: 0.5rem;
+  border-radius: 4px;
+  appearance: none;
+  background-color: #eee;
+}
+
+progress::-webkit-progress-value {
+  background-color: var(--primary);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2.5rem;
+}
+
+.submit-btn,
+.cancel-btn {
+  padding: 0.85rem 1.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.submit-btn {
+  background: linear-gradient(to right, var(--primary), var(--secondary));
+  color: #fff;
+}
+
+.submit-btn:hover {
+  background: linear-gradient(to right, var(--secondary), var(--primary));
+  transform: translateY(-2px);
+}
+
+.cancel-btn {
+  background: linear-gradient(to right, var(--danger), var(--accent));
+  color: #fff;
+}
+
+.cancel-btn:hover {
+  background: linear-gradient(to right, var(--accent), var(--danger));
+  transform: translateY(-2px);
+}
+
+.dropzone {
+  border: 2px dashed #ccc;
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  text-align: center;
+  transition: background-color 0.3s;
+}
+
+.dropzone:hover {
+  background-color: #f8f9fa;
+  cursor: pointer;
+}
+
+.dropzone input[type="file"] {
+  opacity: 0;
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .create-lesson-container {
+    padding: 2rem 1.25rem;
+    margin: 1rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .submit-btn,
+  .cancel-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+body.dark-mode .form-group input,
+body.dark-mode .form-group select,
+body.dark-mode .form-group textarea {
+  background-color: #2d3436;
+  color: #ecf0f1;
+  border-color: #636e72;
+}
+
+body.dark-mode .submit-btn,
+body.dark-mode .cancel-btn {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+}

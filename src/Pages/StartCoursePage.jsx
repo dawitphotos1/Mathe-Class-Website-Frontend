@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
@@ -21,67 +20,50 @@ const StartCoursePage = () => {
         const token = localStorage.getItem("token");
         if (!token) {
           setError("Please log in to access this course.");
-          setLoading(false);
           navigate("/login");
           return;
         }
 
-        // Get course info by slug
+        const headers = { Authorization: `Bearer ${token}` };
+
+        // Fetch course by slug
         const courseRes = await axios.get(
           `${API_BASE_URL}/api/v1/courses/slug/${slug}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers }
         );
-
         const courseData = courseRes.data;
-        if (!courseData) {
-          setError(
-            "Course not found. Please check the course slug or contact support."
-          );
-          setLoading(false);
-          return;
+
+        if (!courseData?.id) {
+          throw new Error("Invalid course data");
         }
+
         setCourse(courseData);
 
-        // Get lessons
+        // Fetch lessons
         const lessonRes = await axios.get(
           `${API_BASE_URL}/api/v1/courses/${courseData.id}/lessons`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers }
         );
+        setLessons(lessonRes.data.lessons || []);
 
-        const flatLessons = lessonRes.data.units.flatMap((unit) => [
-          {
-            id: `unit-${unit.unitName}`,
-            title: unit.unitName,
-            isUnitHeader: true,
-          },
-          ...unit.lessons.map((lesson) => ({ ...lesson, isUnitHeader: false })),
-        ]);
-
-        setLessons(flatLessons);
-
-        // Get progress
+        // Fetch completed progress
         const userId = JSON.parse(atob(token.split(".")[1])).id;
         const progressRes = await axios.get(
           `${API_BASE_URL}/api/v1/progress/${userId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          { headers }
         );
-        const completed = progressRes.data.progress.map((p) => p.lessonId);
+        const completed =
+          progressRes.data?.progress?.map((p) => p.lessonId) || [];
         setCompletedLessons(completed);
 
         setLoading(false);
       } catch (err) {
-        console.error("Error loading course:", err);
+        console.error("🚨 Error loading course or lessons:", err);
         if (err.response?.status === 401) {
           setError("Session expired. Please log in again.");
           navigate("/login");
-        } else if (err.response?.status === 404) {
-          setError(
-            "Course not found. Please check the course slug or contact support."
-          );
         } else {
-          setError("Failed to load course or lessons. Please try again later.");
+          setError("❌ Course not found or failed to load.");
         }
         setLoading(false);
       }
@@ -100,46 +82,87 @@ const StartCoursePage = () => {
         }
       );
       setCompletedLessons((prev) => [...new Set([...prev, lessonId])]);
-      toast.success("Lesson marked complete!");
-    } catch (err) {
-      toast.error("Failed to update progress");
+      toast.success("✅ Lesson marked complete!");
+    } catch {
+      toast.error("❌ Failed to update progress");
     }
   };
 
-  if (loading) {
+  if (loading)
     return <div className="course-container">⏳ Loading course...</div>;
-  }
-
-  if (error) {
-    return <div className="course-container error">❌ {error}</div>;
-  }
-
-  if (!course || !lessons.length) {
-    return (
-      <div className="course-container">
-        📭 No lessons available for this course yet.
-      </div>
-    );
-  }
+  if (error) return <div className="course-container error">{error}</div>;
 
   return (
     <div className="course-container">
       <h1 className="course-title">📘 {course.title}</h1>
-      <div className="lessons-list">
-        {lessons.map((lesson) => (
+      {course.description && (
+        <p className="course-description">{course.description}</p>
+      )}
+
+      {course.teacher && (
+        <p className="course-teacher">
+          👨‍🏫 <strong>Instructor:</strong> {course.teacher.name} (
+          {course.teacher.email})
+        </p>
+      )}
+
+      {course.thumbnail && (
+        <img
+          src={`${API_BASE_URL}${course.thumbnail}`}
+          alt="Course Thumbnail"
+          className="course-thumbnail"
+        />
+      )}
+
+      {course.introVideoUrl && (
+        <video className="course-video" controls>
+          <source
+            src={`${API_BASE_URL}${course.introVideoUrl}`}
+            type="video/mp4"
+          />
+        </video>
+      )}
+
+      {course.attachmentUrls?.length > 0 && (
+        <div className="course-attachments">
+          <h3>📎 Attachments:</h3>
+          <ul>
+            {course.attachmentUrls.map((url, i) => (
+              <li key={i}>
+                <a
+                  href={`${API_BASE_URL}${url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  📄 Download file {i + 1}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <hr />
+      <h2>📚 Lessons</h2>
+      {!lessons.length ? (
+        <p>⚠️ This course has no lessons yet.</p>
+      ) : (
+        lessons.map((lesson) => (
           <div className="lesson-card" key={lesson.id}>
             <h3 className="lesson-title">
-              {lesson.isUnitHeader ? "📚 Unit: " : "📝 "} {lesson.title}
+              {lesson.isUnitHeader ? "📦 Unit: " : "📝 "} {lesson.title}
             </h3>
+
             {lesson.content && (
               <p className="lesson-description">{lesson.content}</p>
             )}
+
             {lesson.videoUrl && (
               <video className="lesson-video" controls>
                 <source src={lesson.videoUrl} type="video/mp4" />
-                Your browser does not support the video tag.
               </video>
             )}
+
             {lesson.contentUrl && (
               <a
                 href={lesson.contentUrl}
@@ -151,6 +174,7 @@ const StartCoursePage = () => {
                 ⬇️ Download Material
               </a>
             )}
+
             {!lesson.isUnitHeader && (
               <button
                 onClick={() => markComplete(lesson.id)}
@@ -162,8 +186,8 @@ const StartCoursePage = () => {
               </button>
             )}
           </div>
-        ))}
-      </div>
+        ))
+      )}
     </div>
   );
 };

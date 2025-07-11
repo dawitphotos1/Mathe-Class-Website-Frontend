@@ -12,7 +12,7 @@
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
-    "framer-motion": "^12.20.1",
+    "framer-motion": "^12.23.3",
     "jwt-decode": "^4.0.0",
     "lottie-react": "^2.4.1",
     "mathjs": "^14.4.0",
