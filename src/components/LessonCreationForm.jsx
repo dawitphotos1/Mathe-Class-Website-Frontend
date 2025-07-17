@@ -218,7 +218,6 @@
 
 
 
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
@@ -248,14 +247,19 @@ const LessonCreationForm = () => {
   useEffect(() => {
     const fetchUnits = async () => {
       try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setError("Please log in to create a lesson");
+          return;
+        }
         const response = await axios.get(
           `${API_BASE_URL}/api/v1/lessons/${courseId}/units`,
-          { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         setUnits(response.data.units || []);
       } catch (err) {
         console.error("Failed to fetch units:", err);
-        setError("Failed to load units");
+        setError("Failed to load units. You can still create a lesson.");
       }
     };
     fetchUnits();
@@ -275,7 +279,10 @@ const LessonCreationForm = () => {
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile && selectedFile.type !== "application/pdf") {
-      setFormErrors((prev) => ({ ...prev, file: "Only PDF files are allowed" }));
+      setFormErrors((prev) => ({
+        ...prev,
+        file: "Only PDF files are allowed",
+      }));
       setFile(null);
     } else {
       setFile(selectedFile);
@@ -328,13 +335,17 @@ const LessonCreationForm = () => {
     if (file) data.append("file", file);
 
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Please log in to create a lesson");
+      }
       await axios.post(
         `${API_BASE_URL}/api/v1/lessons/${courseId}/lessons`,
         data,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
           },
           onUploadProgress: (progressEvent) => {
             const progress = Math.round(
@@ -370,23 +381,68 @@ const LessonCreationForm = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-8">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Create New Lesson</h2>
+    <div
+      style={{
+        maxWidth: "672px",
+        margin: "32px auto",
+        padding: "24px",
+        backgroundColor: "#fff",
+        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+        borderRadius: "8px",
+      }}
+    >
+      <h2
+        style={{
+          fontSize: "24px",
+          fontWeight: "bold",
+          marginBottom: "24px",
+          color: "#1F2937",
+        }}
+      >
+        Create New Lesson
+      </h2>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
+        <div
+          style={{
+            marginBottom: "16px",
+            padding: "16px",
+            backgroundColor: "#FEE2E2",
+            color: "#B91C1C",
+            borderRadius: "4px",
+          }}
+        >
           {error}
         </div>
       )}
       {success && (
-        <div className="mb-4 p-4 bg-green-100 text-green-700 rounded">
+        <div
+          style={{
+            marginBottom: "16px",
+            padding: "16px",
+            backgroundColor: "#D1FAE5",
+            color: "#065F46",
+            borderRadius: "4px",
+          }}
+        >
           {success}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: "flex", flexDirection: "column", gap: "24px" }}
+      >
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label
+            style={{
+              display: "block",
+              fontSize: "14px",
+              fontWeight: "500",
+              color: "#374151",
+              marginBottom: "4px",
+            }}
+          >
             Lesson Title
           </label>
           <input
@@ -394,26 +450,48 @@ const LessonCreationForm = () => {
             name="title"
             value={formData.title}
             onChange={handleChange}
-            className={`mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
-              formErrors.title ? "border-red-500" : "border-gray-300"
-            }`}
+            style={{
+              width: "100%",
+              padding: "8px",
+              border: formErrors.title
+                ? "1px solid #B91C1C"
+                : "1px solid #D1D5DB",
+              borderRadius: "4px",
+              boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+            }}
             placeholder="Enter lesson title"
             required
           />
           {formErrors.title && (
-            <p className="mt-1 text-sm text-red-600">{formErrors.title}</p>
+            <p style={{ marginTop: "4px", color: "#B91C1C", fontSize: "12px" }}>
+              {formErrors.title}
+            </p>
           )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label
+            style={{
+              display: "block",
+              fontSize: "14px",
+              fontWeight: "500",
+              color: "#374151",
+              marginBottom: "4px",
+            }}
+          >
             Content Type
           </label>
           <select
             name="contentType"
             value={formData.contentType}
             onChange={handleChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            style={{
+              width: "100%",
+              padding: "8px",
+              border: "1px solid #D1D5DB",
+              borderRadius: "4px",
+              boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+            }}
           >
             <option value="text">Text</option>
             <option value="video">Video</option>
@@ -423,7 +501,15 @@ const LessonCreationForm = () => {
 
         {formData.contentType === "text" && (
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label
+              style={{
+                display: "block",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "#374151",
+                marginBottom: "4px",
+              }}
+            >
               Lesson Content
             </label>
             <textarea
@@ -431,20 +517,38 @@ const LessonCreationForm = () => {
               value={formData.content}
               onChange={handleChange}
               rows="6"
-              className={`mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
-                formErrors.content ? "border-red-500" : "border-gray-300"
-              }`}
+              style={{
+                width: "100%",
+                padding: "8px",
+                border: formErrors.content
+                  ? "1px solid #B91C1C"
+                  : "1px solid #D1D5DB",
+                borderRadius: "4px",
+                boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+              }}
               placeholder="Enter lesson content"
             />
             {formErrors.content && (
-              <p className="mt-1 text-sm text-red-600">{formErrors.content}</p>
+              <p
+                style={{ marginTop: "4px", color: "#B91C1C", fontSize: "12px" }}
+              >
+                {formErrors.content}
+              </p>
             )}
           </div>
         )}
 
         {formData.contentType === "video" && (
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label
+              style={{
+                display: "block",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "#374151",
+                marginBottom: "4px",
+              }}
+            >
               Video URL
             </label>
             <input
@@ -452,65 +556,129 @@ const LessonCreationForm = () => {
               name="videoUrl"
               value={formData.videoUrl}
               onChange={handleChange}
-              className={`mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
-                formErrors.videoUrl ? "border-red-500" : "border-gray-300"
-              }`}
+              style={{
+                width: "100%",
+                padding: "8px",
+                border: formErrors.videoUrl
+                  ? "1px solid #B91C1C"
+                  : "1px solid #D1D5DB",
+                borderRadius: "4px",
+                boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+              }}
               placeholder="Enter YouTube/Vimeo URL"
             />
             {formErrors.videoUrl && (
-              <p className="mt-1 text-sm text-red-600">{formErrors.videoUrl}</p>
+              <p
+                style={{ marginTop: "4px", color: "#B91C1C", fontSize: "12px" }}
+              >
+                {formErrors.videoUrl}
+              </p>
             )}
           </div>
         )}
 
         {formData.contentType === "file" && (
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label
+              style={{
+                display: "block",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "#374151",
+                marginBottom: "4px",
+              }}
+            >
               Upload PDF
             </label>
             <input
               type="file"
               accept="application/pdf"
               onChange={handleFileChange}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"
+              style={{
+                width: "100%",
+                padding: "8px",
+                border: "1px solid #D1D5DB",
+                borderRadius: "4px",
+              }}
             />
             {formErrors.file && (
-              <p className="mt-1 text-sm text-red-600">{formErrors.file}</p>
+              <p
+                style={{ marginTop: "4px", color: "#B91C1C", fontSize: "12px" }}
+              >
+                {formErrors.file}
+              </p>
             )}
             {uploadProgress > 0 && uploadProgress < 100 && (
-              <div className="mt-2 w-full bg-gray-200 rounded-full h-2.5">
+              <div
+                style={{
+                  marginTop: "8px",
+                  width: "100%",
+                  backgroundColor: "#E5E7EB",
+                  borderRadius: "9999px",
+                  height: "10px",
+                }}
+              >
                 <div
-                  className="bg-indigo-600 h-2.5 rounded-full"
-                  style={{ width: `${uploadProgress}%` }}
+                  style={{
+                    width: `${uploadProgress}%`,
+                    backgroundColor: "#4F46E5",
+                    height: "10px",
+                    borderRadius: "9999px",
+                  }}
                 ></div>
               </div>
             )}
           </div>
         )}
 
-        <div className="flex items-center space-x-2">
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <input
             type="checkbox"
             name="isUnitHeader"
             checked={formData.isUnitHeader}
             onChange={handleChange}
-            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+            style={{
+              width: "16px",
+              height: "16px",
+              border: "1px solid #D1D5DB",
+              borderRadius: "4px",
+            }}
           />
-          <label className="text-sm font-medium text-gray-700">
+          <label
+            style={{
+              fontSize: "14px",
+              fontWeight: "500",
+              color: "#374151",
+            }}
+          >
             Is this a Unit Header?
           </label>
         </div>
 
         {!formData.isUnitHeader && (
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label
+              style={{
+                display: "block",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "#374151",
+                marginBottom: "4px",
+              }}
+            >
               Unit (optional)
             </label>
             <select
               name="unitId"
               value={formData.unitId}
               onChange={handleChange}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              style={{
+                width: "100%",
+                padding: "8px",
+                border: "1px solid #D1D5DB",
+                borderRadius: "4px",
+                boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+              }}
             >
               <option value="">None</option>
               {units.map((unit) => (
@@ -523,7 +691,15 @@ const LessonCreationForm = () => {
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label
+            style={{
+              display: "block",
+              fontSize: "14px",
+              fontWeight: "500",
+              color: "#374151",
+              marginBottom: "4px",
+            }}
+          >
             Order Index
           </label>
           <input
@@ -532,24 +708,43 @@ const LessonCreationForm = () => {
             value={formData.orderIndex}
             onChange={handleChange}
             min="0"
-            className={`mt-1 block w-full p-2 border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 ${
-              formErrors.orderIndex ? "border-red-500" : "border-gray-300"
-            }`}
+            style={{
+              width: "100%",
+              padding: "8px",
+              border: formErrors.orderIndex
+                ? "1px solid #B91C1C"
+                : "1px solid #D1D5DB",
+              borderRadius: "4px",
+              boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+            }}
           />
           {formErrors.orderIndex && (
-            <p className="mt-1 text-sm text-red-600">{formErrors.orderIndex}</p>
+            <p style={{ marginTop: "4px", color: "#B91C1C", fontSize: "12px" }}>
+              {formErrors.orderIndex}
+            </p>
           )}
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <input
             type="checkbox"
             name="isPreview"
             checked={formData.isPreview}
             onChange={handleChange}
-            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+            style={{
+              width: "16px",
+              height: "16px",
+              border: "1px solid #D1D5DB",
+              borderRadius: "4px",
+            }}
           />
-          <label className="text-sm font-medium text-gray-700">
+          <label
+            style={{
+              fontSize: "14px",
+              fontWeight: "500",
+              color: "#374151",
+            }}
+          >
             Make this a preview lesson (visible to all)
           </label>
         </div>
@@ -557,9 +752,16 @@ const LessonCreationForm = () => {
         <button
           type="submit"
           disabled={isLoading}
-          className={`w-full p-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-            isLoading ? "opacity-50 cursor-not-allowed" : ""
-          }`}
+          style={{
+            width: "100%",
+            padding: "12px",
+            backgroundColor: isLoading ? "#9CA3AF" : "#4F46E5",
+            color: "#fff",
+            borderRadius: "4px",
+            cursor: isLoading ? "not-allowed" : "pointer",
+            fontSize: "16px",
+            fontWeight: "500",
+          }}
         >
           {isLoading ? "Creating..." : "Create Lesson"}
         </button>
