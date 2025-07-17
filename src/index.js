@@ -80,15 +80,17 @@
 
 
 
-
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import axios from "axios";
 import { API_BASE_URL } from "./config";
 
+// Set Axios base URL
 axios.defaults.baseURL = API_BASE_URL;
 
+// Axios request interceptor
 axios.interceptors.request.use(
   (config) => {
     console.log("Interceptor triggered:", config);
@@ -104,6 +106,7 @@ axios.interceptors.request.use(
   }
 );
 
+// Axios response interceptor
 axios.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -132,4 +135,10 @@ axios.interceptors.response.use(
   }
 );
 
-ReactDOM.render(<App />, document.getElementById("root"));
+// Render with createRoot and wrap App in BrowserRouter
+const root = createRoot(document.getElementById("root"));
+root.render(
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>
+);
