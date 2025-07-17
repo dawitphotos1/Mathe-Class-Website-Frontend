@@ -217,7 +217,6 @@
 // export default LessonCreationForm;
 
 
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
@@ -241,15 +240,18 @@ const LessonCreationForm = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isUnitsLoading, setIsUnitsLoading] = useState(true);
   const [formErrors, setFormErrors] = useState({});
 
   // Fetch units for the course
   useEffect(() => {
     const fetchUnits = async () => {
+      setIsUnitsLoading(true);
       try {
         const token = localStorage.getItem("token");
         if (!token) {
           setError("Please log in to create a lesson");
+          setIsUnitsLoading(false);
           return;
         }
         const response = await axios.get(
@@ -260,6 +262,8 @@ const LessonCreationForm = () => {
       } catch (err) {
         console.error("Failed to fetch units:", err);
         setError("Failed to load units. You can still create a lesson.");
+      } finally {
+        setIsUnitsLoading(false);
       }
     };
     fetchUnits();
@@ -429,6 +433,20 @@ const LessonCreationForm = () => {
         </div>
       )}
 
+      {isUnitsLoading && (
+        <div
+          style={{
+            marginBottom: "16px",
+            padding: "16px",
+            backgroundColor: "#EFF6FF",
+            color: "#1E40AF",
+            borderRadius: "4px",
+          }}
+        >
+          Loading units...
+        </div>
+      )}
+
       <form
         onSubmit={handleSubmit}
         style={{ display: "flex", flexDirection: "column", gap: "24px" }}
@@ -461,6 +479,7 @@ const LessonCreationForm = () => {
             }}
             placeholder="Enter lesson title"
             required
+            disabled={isLoading}
           />
           {formErrors.title && (
             <p style={{ marginTop: "4px", color: "#B91C1C", fontSize: "12px" }}>
@@ -492,6 +511,7 @@ const LessonCreationForm = () => {
               borderRadius: "4px",
               boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
             }}
+            disabled={isLoading}
           >
             <option value="text">Text</option>
             <option value="video">Video</option>
@@ -527,6 +547,7 @@ const LessonCreationForm = () => {
                 boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
               }}
               placeholder="Enter lesson content"
+              disabled={isLoading}
             />
             {formErrors.content && (
               <p
@@ -566,6 +587,7 @@ const LessonCreationForm = () => {
                 boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
               }}
               placeholder="Enter YouTube/Vimeo URL"
+              disabled={isLoading}
             />
             {formErrors.videoUrl && (
               <p
@@ -600,6 +622,7 @@ const LessonCreationForm = () => {
                 border: "1px solid #D1D5DB",
                 borderRadius: "4px",
               }}
+              disabled={isLoading}
             />
             {formErrors.file && (
               <p
@@ -643,6 +666,7 @@ const LessonCreationForm = () => {
               border: "1px solid #D1D5DB",
               borderRadius: "4px",
             }}
+            disabled={isLoading}
           />
           <label
             style={{
@@ -679,13 +703,20 @@ const LessonCreationForm = () => {
                 borderRadius: "4px",
                 boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
               }}
+              disabled={isLoading || isUnitsLoading}
             >
               <option value="">None</option>
-              {units.map((unit) => (
-                <option key={unit.id} value={unit.id}>
-                  {unit.title}
+              {units.length > 0 ? (
+                units.map((unit) => (
+                  <option key={unit.id} value={unit.id}>
+                    {unit.title}
+                  </option>
+                ))
+              ) : (
+                <option value="" disabled>
+                  {isUnitsLoading ? "Loading units..." : "No units available"}
                 </option>
-              ))}
+              )}
             </select>
           </div>
         )}
@@ -717,6 +748,7 @@ const LessonCreationForm = () => {
               borderRadius: "4px",
               boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
             }}
+            disabled={isLoading}
           />
           {formErrors.orderIndex && (
             <p style={{ marginTop: "4px", color: "#B91C1C", fontSize: "12px" }}>
@@ -737,6 +769,7 @@ const LessonCreationForm = () => {
               border: "1px solid #D1D5DB",
               borderRadius: "4px",
             }}
+            disabled={isLoading}
           />
           <label
             style={{
