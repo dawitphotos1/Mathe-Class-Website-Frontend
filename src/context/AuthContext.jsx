@@ -44,21 +44,29 @@
 
 
 
+// src/context/AuthContext.jsx
+import React, { createContext, useState, useEffect } from "react";
 
-import React, { createContext, useState, useContext, useEffect } from "react";
+// Create the AuthContext
+export const AuthContext = createContext();
 
-const AuthContext = createContext();
-
-const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
+  // Load user data from localStorage and verify token on page load
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const token = localStorage.getItem("token");
 
     if (storedUser && token && token.startsWith("eyJ")) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+      } catch (e) {
+        // Handle invalid or expired user data
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
     }
   }, []);
 
@@ -68,7 +76,3 @@ const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-
-const useAuth = () => useContext(AuthContext);
-
-export { AuthProvider, useAuth, AuthContext };

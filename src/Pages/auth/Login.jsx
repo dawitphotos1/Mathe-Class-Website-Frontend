@@ -4,12 +4,12 @@ import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { AuthContext } from "../../context/AuthContext";
+import { ThemeContext } from "../../context/ThemeContext";
 import { API_BASE_URL } from "../../config";
 import "./Login.css";
 
 const Login = () => {
-  const { setUser } = useContext(AuthContext);
+  const { setUser } = useContext(ThemeContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
