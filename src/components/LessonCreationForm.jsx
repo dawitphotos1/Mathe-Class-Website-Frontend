@@ -217,6 +217,10 @@
 // export default LessonCreationForm;
 
 
+
+
+
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
@@ -261,7 +265,9 @@ const LessonCreationForm = () => {
         setUnits(response.data.units || []);
       } catch (err) {
         console.error("Failed to fetch units:", err);
-        setError("Failed to load units. You can still create a lesson.");
+        setError(
+          "Failed to load units. You can still create a lesson without a unit."
+        );
       } finally {
         setIsUnitsLoading(false);
       }
@@ -374,11 +380,12 @@ const LessonCreationForm = () => {
       setUploadProgress(0);
     } catch (error) {
       console.error("Error creating lesson:", error);
-      setError(
+      const errorMessage =
         error.response?.data?.error ||
-          error.message ||
-          "Failed to create lesson"
-      );
+        error.response?.data?.details ||
+        error.message ||
+        "Failed to create lesson";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
