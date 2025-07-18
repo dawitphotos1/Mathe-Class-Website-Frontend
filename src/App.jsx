@@ -266,7 +266,9 @@ import React, { Suspense, useState, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
-import MyComponent from "./components/MyComponent"; // Correct import
+// // eslint-disable-next-line no-unused-vars
+
+// import MyComponent from "./components/MyComponent"; // Correct import
 import { API_BASE_URL } from "./config";
 
 import Navbar from "./components/Navbar";
