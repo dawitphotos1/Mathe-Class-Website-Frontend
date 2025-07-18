@@ -1,4 +1,4 @@
-
+/* 
    .my-teaching-courses {
     padding: 2rem;
     max-width: 1200px;
@@ -104,7 +104,7 @@
   
 
 
-  /* Theme Toggle */
+ 
 .theme-toggle {
   text-align: right;
   margin-bottom: 1rem;
@@ -123,7 +123,7 @@
   background: #eee;
 }
 
-/* Dark Theme */
+
 .my-teaching-courses.dark {
   background-color: #1e1e1e;
   color: #f1f1f1;
@@ -164,4 +164,124 @@
 }
 .my-teaching-courses.dark .theme-toggle button:hover {
   background-color: #444;
+}
+
+ */
+
+
+
+ .auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: var(--light);
+}
+
+.auth-container.dark {
+  background: #121212;
+  color: white;
+}
+
+.auth-form {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  width: 100%;
+}
+
+.auth-container.dark .auth-form {
+  background: #1e1e1e;
+  color: white;
+}
+
+.theme-toggle {
+  margin-bottom: 20px;
+  text-align: right;
+}
+
+.course-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.course-card {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.auth-container.dark .course-card {
+  background: #2c2c2c;
+}
+
+.course-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.btn-primary {
+  padding: 8px 16px;
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #4338ca;
+}
+
+.btn-delete {
+  padding: 8px 16px;
+  background: #ef233c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-delete:hover {
+  background: #d00000;
+}
+
+.lesson-list {
+  margin-top: 10px;
+}
+
+.lesson-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.auth-container.dark .lesson-item {
+  border-bottom: 1px solid #444;
+}
+
+.preview-badge {
+  background: #4cc9f0;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: 10px;
+  font-size: 0.8em;
+}
+
+.type-label {
+  color: #6c757d;
+  margin-left: 10px;
+  font-size: 0.9em;
+}
+
+.info {
+  text-align: center;
+  color: #6c757d;
 }

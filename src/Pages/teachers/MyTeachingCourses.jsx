@@ -271,7 +271,9 @@ const MyTeachingCourses = () => {
 
   useEffect(() => {
     if (!user) {
-      toast.error("Please log in to view your teaching courses");
+      toast.error("Please log in to view your teaching courses", {
+        toastId: "auth-error",
+      });
       navigate("/login");
       return;
     }
@@ -294,11 +296,16 @@ const MyTeachingCourses = () => {
           localStorage.removeItem("token");
           localStorage.removeItem("user");
           setUser(null);
-          toast.error("Session expired. Please log in again.");
+          toast.error("Session expired. Please log in again.", {
+            toastId: "session-expired",
+          });
           navigate("/login");
         } else {
           toast.error(
-            err.response?.data?.error || "Failed to fetch teaching courses"
+            err.response?.data?.error || "Failed to fetch teaching courses",
+            {
+              toastId: "fetch-courses-error",
+            }
           );
         }
       } finally {
@@ -341,14 +348,22 @@ const MyTeachingCourses = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         setUser(null);
-        toast.error("Session expired. Please log in again.");
+        toast.error("Session expired. Please log in again.", {
+          toastId: "session-expired-lessons",
+        });
         navigate("/login");
       } else if (err.response?.status === 429) {
-        toast.error("⚠️ Server is overloaded. Please try again shortly.");
+        toast.error("⚠️ Server is overloaded. Please try again shortly.", {
+          toastId: "rate-limit-error",
+        });
       } else if (err.response?.status === 404) {
-        toast.error("🚫 Lessons not found for this course.");
+        toast.error("🚫 Lessons not found for this course.", {
+          toastId: "lessons-not-found",
+        });
       } else {
-        toast.error(err.response?.data?.error || "❌ Failed to load lessons");
+        toast.error(err.response?.data?.error || "❌ Failed to load lessons", {
+          toastId: "fetch-lessons-error",
+        });
       }
     }
   };
@@ -367,7 +382,9 @@ const MyTeachingCourses = () => {
           await axios.delete(`${API_BASE_URL}/api/v1/lessons/${lessonId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
-          toast.success("✅ Lesson deleted");
+          toast.success("✅ Lesson deleted", {
+            toastId: "delete-lesson-success",
+          });
           toggleLessons(courseId);
         } catch (err) {
           console.error("Failed to delete lesson:", err);
@@ -375,11 +392,16 @@ const MyTeachingCourses = () => {
             localStorage.removeItem("token");
             localStorage.removeItem("user");
             setUser(null);
-            toast.error("Session expired. Please log in again.");
+            toast.error("Session expired. Please log in again.", {
+              toastId: "session-expired-delete",
+            });
             navigate("/login");
           } else {
             toast.error(
-              err.response?.data?.error || "❌ Failed to delete lesson"
+              err.response?.data?.error || "❌ Failed to delete lesson",
+              {
+                toastId: "delete-lesson-error",
+              }
             );
           }
         } finally {
@@ -404,7 +426,9 @@ const MyTeachingCourses = () => {
           await axios.delete(`${API_BASE_URL}/api/v1/courses/${courseId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
-          toast.success("✅ Course deleted");
+          toast.success("✅ Course deleted", {
+            toastId: "delete-course-success",
+          });
           setCourses((prev) => prev.filter((c) => c.id !== courseId));
           setExpandedCourseId(null);
         } catch (err) {
@@ -413,11 +437,16 @@ const MyTeachingCourses = () => {
             localStorage.removeItem("token");
             localStorage.removeItem("user");
             setUser(null);
-            toast.error("Session expired. Please log in again.");
+            toast.error("Session expired. Please log in again.", {
+              toastId: "session-expired-course",
+            });
             navigate("/login");
           } else {
             toast.error(
-              err.response?.data?.error || "❌ Failed to delete course"
+              err.response?.data?.error || "❌ Failed to delete course",
+              {
+                toastId: "delete-course-error",
+              }
             );
           }
         } finally {
