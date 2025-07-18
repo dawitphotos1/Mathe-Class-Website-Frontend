@@ -79,39 +79,37 @@
 
 
 
-
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import App from "./App";
 import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { AuthProvider } from "./context/AuthContext";
+import App from "./App";
 import { API_BASE_URL } from "./config";
+import "./index.css";
 
 // Set Axios base URL
 axios.defaults.baseURL = API_BASE_URL;
-
-// Axios request interceptor
-axios.interceptors.request.use(
-  (config) => {
-    console.log("Interceptor triggered:", config);
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    console.error("Interceptor request error:", error);
-    return Promise.reject(error);
-  }
-);
+axios.defaults.withCredentials = true;
 
 // Axios response interceptor
 axios.interceptors.response.use(
   (response) => response,
   async (error) => {
-    console.error("Interceptor response error:", error);
+    console.error("Interceptor response error:", {
+      status: error.response?.status,
+      url: error.config?.url,
+      headers: error.config?.headers,
+      responseData: error.response?.data,
+    });
     const originalRequest = error.config;
+    const isAuthRoute =
+      error.config?.url?.includes("/login") ||
+      error.config?.url?.includes("/register") ||
+      error.config?.url?.includes("/health");
+
     if (error.response?.status === 429 && !originalRequest._retry) {
       originalRequest._retry = true;
       const delay = Math.pow(2, originalRequest._retryCount || 1) * 2000;
@@ -122,10 +120,13 @@ axios.interceptors.response.use(
         return axios(originalRequest);
       }
     }
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !isAuthRoute) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
+      toast.error("Session expired. Please log in again.");
       window.location.href = "/login";
+    } else if (error.code === "ERR_NETWORK") {
+      toast.error("Network Error: Cannot connect to the server.");
     }
     return Promise.reject(
       new Error(
@@ -135,10 +136,40 @@ axios.interceptors.response.use(
   }
 );
 
-// Render with createRoot and wrap App in BrowserRouter
+// Unregister service workers
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker
+    .getRegistrations()
+    .then((registrations) => {
+      for (let registration of registrations) {
+        registration.unregister().then(() => {
+          console.log("Service worker unregistered:", registration);
+        });
+      }
+    })
+    .catch((err) => {
+      console.error("Failed to unregister service workers:", err);
+    });
+}
+
 const root = createRoot(document.getElementById("root"));
 root.render(
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>
+  <React.StrictMode>
+    <AuthProvider>
+      <BrowserRouter>
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
+        <App />
+      </BrowserRouter>
+    </AuthProvider>
+  </React.StrictMode>
 );
