@@ -293,18 +293,16 @@
 
 
 
-
 import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { ThemeContext } from "../../context/ThemeContext"; // Import ThemeContext
+import { AuthContext } from "../../context/AuthContext";
 import { API_BASE_URL } from "../../config";
 import "./Register.css";
 
 const Register = () => {
-  // Use setUser from ThemeContext directly here
-  const { setUser } = useContext(ThemeContext);
+  const { setUser } = useContext(AuthContext);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [confirmEmail, setConfirmEmail] = useState("");
@@ -341,29 +339,29 @@ const Register = () => {
 
     if (!name.trim() || !email.trim() || !password || !role) {
       setError("Please fill in all required fields.");
-      setLoading(false);
       toast.error("Please fill in all required fields.");
+      setLoading(false);
       return;
     }
 
     if (showConfirmEmail && email.trim() !== confirmEmail.trim()) {
       setError("Emails do not match.");
-      setLoading(false);
       toast.error("Emails do not match.");
+      setLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
-      setLoading(false);
       toast.error("Passwords do not match.");
+      setLoading(false);
       return;
     }
 
     if ((role === "student" || role === "teacher") && !subject.trim()) {
       setError("Subject is required for students and teachers.");
-      setLoading(false);
       toast.error("Subject is required for students and teachers.");
+      setLoading(false);
       return;
     }
 
@@ -375,29 +373,19 @@ const Register = () => {
         role,
         subject: role !== "admin" ? subject.trim() : null,
       };
-      console.log("Registration request:", {
-        ...userData,
-        password: "****", // Hide password in logs
-      });
 
       const response = await axios.post(
-        `${API_BASE_URL}/api/v1/auth/register`,
+        `${API_BASE_URL}/api/v1/users/register`,
         userData,
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
+          headers: { "Content-Type": "application/json" },
         }
       );
-      console.log("Registration response:", response.data);
 
       const { token, user } = response.data;
-
-      // Store token and user data
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
-      setUser(user); // Using setUser from ThemeContext
+      setUser(user);
 
       if (user.role === "student") {
         toast.info(
@@ -414,20 +402,15 @@ const Register = () => {
       }
     } catch (err) {
       const serverError =
-        err.response?.data?.error ||
-        err.response?.data?.details ||
-        "Registration failed. Please try again.";
+        err.response?.status === 400
+          ? "Invalid input data"
+          : err.response?.data?.error ||
+            "Registration failed. Please try again.";
       const validationErrors = err.response?.data?.validationErrors || [];
       const fullMessage =
         validationErrors.length > 0
           ? `${serverError}: ${validationErrors.join(", ")}`
           : serverError;
-
-      console.error("Registration error:", {
-        message: err.message,
-        status: err.response?.status,
-        data: err.response?.data,
-      });
 
       setError(fullMessage);
       toast.error(fullMessage);
@@ -576,6 +559,9 @@ const Register = () => {
             Note: Your account will be reviewed before it is approved.
           </p>
         )}
+        <div className="auth-footer">
+          Already have an account? <Link to="/login">Login here</Link>
+        </div>
       </div>
     </div>
   );

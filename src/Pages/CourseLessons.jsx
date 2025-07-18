@@ -111,38 +111,52 @@
 
 
 
-
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
-import { ThemeContext } from "../context/ThemeContext";
+import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { AuthContext } from "../context/AuthContext";
 import { API_BASE_URL } from "../config";
+import "./CourseLessons.css";
 
 const CourseLessons = () => {
   const { courseId } = useParams();
-  const { user } = useContext(ThemeContext);
+  const { user, setUser } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [lessons, setLessons] = useState([]);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!user) {
+      toast.error("Please log in to view lessons");
+      navigate("/login");
+      return;
+    }
+
     let retries = 3;
     const fetchLessons = async () => {
       setIsLoading(true);
       try {
         const token = localStorage.getItem("token");
         if (!token) {
-          throw new Error("Please log in to view lessons");
+          throw new Error("No authentication token found");
         }
         const response = await axios.get(
-          `${API_BASE_URL}/api/v1/lessons/${courseId}/lessons`,
+          `${API_BASE_URL}/api/v1/lessons/${courseId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setLessons(response.data.lessons || []);
+        setLessons(Array.isArray(response.data) ? response.data : []);
         setError(null);
       } catch (err) {
         console.error("Failed to fetch lessons:", err);
-        if (err.response?.status === 429 && retries > 0) {
+        if (err.response?.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          setUser(null);
+          toast.error("Session expired. Please log in again.");
+          navigate("/login");
+        } else if (err.response?.status === 429 && retries > 0) {
           retries--;
           console.log(`Retrying (${3 - retries}/3) after 429 error...`);
           setTimeout(fetchLessons, 2000 * (4 - retries));
@@ -156,13 +170,13 @@ const CourseLessons = () => {
       }
     };
     fetchLessons();
-  }, [courseId]);
+  }, [courseId, user, navigate, setUser]);
 
   const handleTogglePreview = async (lessonId, currentPreview) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        throw new Error("Please log in to toggle preview");
+        throw new Error("No authentication token found");
       }
       const response = await axios.patch(
         `${API_BASE_URL}/api/v1/lessons/${lessonId}/toggle-preview`,
@@ -176,12 +190,24 @@ const CourseLessons = () => {
             : lesson
         )
       );
+      toast.success(
+        `Preview ${response.data.isPreview ? "enabled" : "disabled"}`
+      );
       setError(null);
     } catch (err) {
       console.error("Failed to toggle preview:", err);
-      setError(
-        err.response?.data?.error || err.message || "Failed to toggle preview"
-      );
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        setUser(null);
+        toast.error("Session expired. Please log in again.");
+        navigate("/login");
+      } else {
+        setError(
+          err.response?.data?.error || err.message || "Failed to toggle preview"
+        );
+        toast.error(err.response?.data?.error || "Failed to toggle preview");
+      }
     }
   };
 
@@ -190,18 +216,28 @@ const CourseLessons = () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        throw new Error("Please log in to delete lessons");
+        throw new Error("No authentication token found");
       }
       await axios.delete(`${API_BASE_URL}/api/v1/lessons/${lessonId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setLessons(lessons.filter((lesson) => lesson.id !== lessonId));
+      toast.success("Lesson deleted successfully");
       setError(null);
     } catch (err) {
       console.error("Failed to delete lesson:", err);
-      setError(
-        err.response?.data?.error || err.message || "Failed to delete lesson"
-      );
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        setUser(null);
+        toast.error("Session expired. Please log in again.");
+        navigate("/login");
+      } else {
+        setError(
+          err.response?.data?.error || err.message || "Failed to delete lesson"
+        );
+        toast.error(err.response?.data?.error || "Failed to delete lesson");
+      }
     }
   };
 
@@ -223,148 +259,74 @@ const CourseLessons = () => {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: "672px",
-        margin: "32px auto",
-        padding: "24px",
-        backgroundColor: "#fff",
-        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-        borderRadius: "8px",
-      }}
-    >
-      <h2
-        style={{
-          fontSize: "24px",
-          fontWeight: "bold",
-          marginBottom: "24px",
-          color: "#1F2937",
-        }}
-      >
-        Lessons for Course {courseId}
-      </h2>
-
-      {error && (
-        <div
-          style={{
-            marginBottom: "16px",
-            padding: "16px",
-            backgroundColor: "#FEE2E2",
-            color: "#B91C1C",
-            borderRadius: "4px",
-          }}
-        >
-          {error}
-        </div>
-      )}
-
-      {isLoading && (
-        <div
-          style={{
-            marginBottom: "16px",
-            padding: "16px",
-            backgroundColor: "#EFF6FF",
-            color: "#1E40AF",
-            borderRadius: "4px",
-          }}
-        >
-          Loading lessons...
-        </div>
-      )}
-
-      {!isLoading && lessons.length === 0 && (
-        <p style={{ color: "#374151" }}>No lessons found.</p>
-      )}
-
-      {lessons.map((lesson) => (
-        <div
-          key={lesson.id}
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "16px",
-            border: "1px solid #D1D5DB",
-            borderRadius: "4px",
-            marginBottom: "8px",
-          }}
-        >
-          <div>
-            <h3
-              style={{ fontSize: "18px", fontWeight: "500", color: "#1F2937" }}
-            >
-              {lesson.title} {lesson.isPreview && "(Preview)"}
-              {lesson.contentType && `(${lesson.contentType})`}
-            </h3>
-            {lesson.contentType === "file" && lesson.contentUrl && (
-              <a
-                href={lesson.contentUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => testFileUrl(lesson.contentUrl)}
-                style={{
-                  color: "#4F46E5",
-                  textDecoration: "underline",
-                  marginTop: "8px",
-                  display: "inline-block",
-                }}
-              >
-                View Lesson
-              </a>
-            )}
-            {lesson.contentType === "video" && lesson.videoUrl && (
-              <a
-                href={lesson.videoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  color: "#4F46E5",
-                  textDecoration: "underline",
-                  marginTop: "8px",
-                  display: "inline-block",
-                }}
-              >
-                View Lesson
-              </a>
-            )}
-            {lesson.contentType === "text" && lesson.content && (
-              <p style={{ color: "#374151", marginTop: "8px" }}>
-                {lesson.content.substring(0, 100)}...
-              </p>
+    <div className="auth-container">
+      <div className="auth-form">
+        <h2>Lessons for Course {courseId}</h2>
+        {error && <p className="error">{error}</p>}
+        {isLoading && <p className="info">Loading lessons...</p>}
+        {!isLoading && lessons.length === 0 && <p>No lessons found.</p>}
+        {lessons.map((lesson) => (
+          <div key={lesson.id} className="lesson-item">
+            <div>
+              <h3>
+                {lesson.title}{" "}
+                {lesson.isPreview && (
+                  <span className="preview-badge">(Preview)</span>
+                )}
+                {lesson.contentType && (
+                  <span className="type-label">({lesson.contentType})</span>
+                )}
+              </h3>
+              {lesson.contentType === "file" && lesson.contentUrl && (
+                <a
+                  href={lesson.contentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => testFileUrl(lesson.contentUrl)}
+                  className="lesson-link"
+                >
+                  View Lesson
+                </a>
+              )}
+              {lesson.contentType === "video" && lesson.videoUrl && (
+                <a
+                  href={lesson.videoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="lesson-link"
+                >
+                  View Lesson
+                </a>
+              )}
+              {lesson.contentType === "text" && lesson.content && (
+                <p>{lesson.content.substring(0, 100)}...</p>
+              )}
+            </div>
+            {user?.role === "teacher" && (
+              <div className="lesson-actions">
+                <button
+                  onClick={() =>
+                    handleTogglePreview(lesson.id, lesson.isPreview)
+                  }
+                  className={
+                    lesson.isPreview ? "btn-preview-active" : "btn-preview"
+                  }
+                  disabled={isLoading}
+                >
+                  {lesson.isPreview ? "Disable Preview" : "Enable Preview"}
+                </button>
+                <button
+                  onClick={() => handleDelete(lesson.id)}
+                  className="btn-delete"
+                  disabled={isLoading}
+                >
+                  🗑 Delete
+                </button>
+              </div>
             )}
           </div>
-          {user?.role === "teacher" && (
-            <div style={{ display: "flex", gap: "8px" }}>
-              <button
-                onClick={() => handleTogglePreview(lesson.id, lesson.isPreview)}
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: lesson.isPreview ? "#D1FAE5" : "#E5E7EB",
-                  color: lesson.isPreview ? "#065F46" : "#374151",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-                disabled={isLoading}
-              >
-                {lesson.isPreview ? "Disable Preview" : "Enable Preview"}
-              </button>
-              <button
-                onClick={() => handleDelete(lesson.id)}
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: "#FEE2E2",
-                  color: "#B91C1C",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-                disabled={isLoading}
-              >
-                🗑 Delete
-              </button>
-            </div>
-          )}
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 };

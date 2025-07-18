@@ -1,0 +1,102 @@
+.auth-container {
+    max-width: 672px;
+    margin: 32px auto;
+    padding: 24px;
+  }
+
+  .auth-form {
+    background-color: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 24px;
+  }
+
+  h2 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 24px;
+    color: #1f2937;
+  }
+
+  .error {
+    margin-bottom: 16px;
+    padding: 16px;
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border-radius: 4px;
+  }
+
+  .info {
+    margin-bottom: 16px;
+    padding: 16px;
+    background-color: #eff6ff;
+    color: #1e40af;
+    border-radius: 4px;
+  }
+
+  .lesson-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+
+  .lesson-item h3 {
+    font-size: 18px;
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 8px;
+  }
+
+  .preview-badge {
+    margin-left: 8px;
+    padding: 2px 8px;
+    background-color: #d1fae5;
+    color: #065f46;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  .type-label {
+    margin-left: 8px;
+    color: #6b7280;
+    font-size: 14px;
+  }
+
+  .lesson-link {
+    color: #4f46e5;
+    text-decoration: underline;
+    margin-top: 8px;
+    display: inline-block;
+  }
+
+  .lesson-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-preview,
+  .btn-preview-active,
+  .btn-delete {
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .btn-preview {
+    background-color: #e5e7eb;
+    color: #374151;
+  }
+
+  .btn-preview-active {
+    background-color: #d1fae5;
+    color: #065f46;
+  }
+
+  .btn-delete {
+    background-color: #fee2e2;
+    color: #b91c1c;
+  }
