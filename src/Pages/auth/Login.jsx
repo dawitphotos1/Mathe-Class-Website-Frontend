@@ -106,32 +106,66 @@
 
 
 
-
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AuthContext } from "../../context/AuthContext";
 import { API_BASE_URL } from "../../config";
-import "./Login.css";
+import "./Auth.css";
 
 const Login = () => {
-  const { setUser } = useContext(AuthContext);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const { user, setUser } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate(user.role === "student" ? "/courses" : "/dashboard");
+    }
+  }, [user, navigate]);
+
+  // Load saved theme
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("darkMode");
+    if (savedTheme) setDarkMode(JSON.parse(savedTheme));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("darkMode", JSON.stringify(darkMode));
+  }, [darkMode]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value.trim() }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.email) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
+      newErrors.email = "Invalid email";
+    if (!formData.password) newErrors.password = "Password is required";
+    return newErrors;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setErrors({});
     setLoading(true);
 
-    if (!email.trim() || !password.trim()) {
-      setError("Please fill in all required fields.");
-      toast.error("Please fill in all required fields.");
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       setLoading(false);
       return;
     }
@@ -140,8 +174,8 @@ const Login = () => {
       const { data } = await axios.post(
         `${API_BASE_URL}/api/v1/users/login`,
         {
-          email: email.toLowerCase().trim(),
-          password: password.trim(),
+          email: formData.email.toLowerCase(),
+          password: formData.password,
         },
         {
           headers: { "Content-Type": "application/json" },
@@ -151,45 +185,54 @@ const Login = () => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       setUser(data.user);
-      toast.success("Logged in successfully");
+      toast.success("✅ Logged in successfully", { toastId: "login-success" });
       navigate(data.user.role === "student" ? "/courses" : "/dashboard");
     } catch (err) {
-      const msg =
-        err.response?.status === 401
-          ? "Invalid email or password"
-          : err.response?.data?.error || "Login failed";
-      setError(msg);
-      toast.error(msg);
+      const msg = err.response?.data?.error || "Login failed";
+      setErrors({ server: msg });
+      toast.error(msg, { toastId: "login-error" });
     } finally {
       setLoading(false);
     }
   };
 
+  const toggleTheme = () => setDarkMode((prev) => !prev);
+
   return (
-    <div className="auth-container">
+    <div className={`auth-container ${darkMode ? "dark" : ""}`}>
       <div className="auth-form">
+        <div className="theme-toggle">
+          <button onClick={toggleTheme} className="btn-secondary">
+            {darkMode ? "🌞 Light Mode" : "🌙 Dark Mode"}
+          </button>
+        </div>
         <h2>Login to MathClass 📘</h2>
-        {error && <p className="error">{error}</p>}
+        {errors.server && <p className="error">{errors.server}</p>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Email</label>
+            <label htmlFor="email">Email</label>
             <input
               type="email"
+              name="email"
+              id="email"
+              value={formData.email}
+              onChange={handleChange}
               placeholder="Email Address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
             />
+            {errors.email && <span className="error">{errors.email}</span>}
           </div>
           <div className="form-group password-group">
-            <label>Password</label>
+            <label htmlFor="password">Password</label>
             <div className="password-input">
               <input
                 type={showPassword ? "text" : "password"}
+                name="password"
+                id="password"
+                value={formData.password}
+                onChange={handleChange}
                 placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={loading}
               />
@@ -202,6 +245,9 @@ const Login = () => {
                 {showPassword ? "🙈" : "👁️"}
               </button>
             </div>
+            {errors.password && (
+              <span className="error">{errors.password}</span>
+            )}
           </div>
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? "Logging in..." : "Login"}

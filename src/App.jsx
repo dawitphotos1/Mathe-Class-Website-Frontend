@@ -279,7 +279,7 @@ import StartCoursePage from "./Pages/StartCoursePage";
 import FileManager from "./Pages/FileManager";
 import ManageLessons from "./Pages/ManageLessons";
 import EditLesson from "./Pages/EditLesson";
-import MyTeachingCourses from "./Pages/teachers/MyTeachingCourses"; // Updated path
+import MyTeachingCourses from "./Pages/teachers/MyTeachingCourses";
 import CreateCourse from "./Pages/CreateCourse";
 import CourseLessons from "./Pages/CourseLessons";
 import LessonCreationForm from "./components/LessonCreationForm";
@@ -299,7 +299,6 @@ const Payment = React.lazy(() => import("./Pages/payments/Payment"));
 const Cancel = React.lazy(() => import("./Pages/payments/Cancel"));
 const NotFound = React.lazy(() => import("./Pages/NotFound"));
 
-// ... (rest of App.jsx remains unchanged; include full content if needed)
 function App() {
   const { user, setUser } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -316,8 +315,11 @@ function App() {
         } catch (err) {
           console.error("Auth check failed:", err);
           localStorage.removeItem("token");
+          localStorage.removeItem("user");
           setUser(null);
-          toast.error("Session expired. Please log in again.");
+          toast.error("Session expired. Please log in again.", {
+            toastId: "session-expired",
+          });
           navigate("/login");
         }
       }
@@ -341,6 +343,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <MyCoursesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute role="teacher">
+                <MyTeachingCourses />
               </ProtectedRoute>
             }
           />

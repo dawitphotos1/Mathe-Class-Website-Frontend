@@ -78,7 +78,6 @@
 // );
 
 
-
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
@@ -123,10 +122,14 @@ axios.interceptors.response.use(
     if (error.response?.status === 401 && !isAuthRoute) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      toast.error("Session expired. Please log in again.");
+      toast.error("Session expired. Please log in again.", {
+        toastId: "session-expired",
+      });
       window.location.href = "/login";
     } else if (error.code === "ERR_NETWORK") {
-      toast.error("Network Error: Cannot connect to the server.");
+      toast.error("Network Error: Cannot connect to the server.", {
+        toastId: "network-error",
+      });
     }
     return Promise.reject(
       new Error(
