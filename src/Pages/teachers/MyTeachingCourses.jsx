@@ -201,7 +201,25 @@ const MyTeachingCourses = () => {
                             <span className="type-label">
                               ({lesson.contentType})
                             </span>
+
+                            {lesson.contentType === "file" &&
+                              lesson.contentUrl && (
+                                <a
+                                  href={`http://localhost:5000${lesson.contentUrl}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="btn-preview"
+                                  style={{
+                                    display: "inline-block",
+                                    marginLeft: "10px",
+                                    color: "#007bff",
+                                  }}
+                                >
+                                  📄 Open File
+                                </a>
+                              )}
                           </div>
+
                           <button
                             className="btn-delete"
                             onClick={() => deleteLesson(lesson.id, course.id)}
