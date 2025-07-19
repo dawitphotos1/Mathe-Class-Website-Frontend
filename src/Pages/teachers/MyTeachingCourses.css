@@ -1,15 +1,14 @@
-
 .my-teaching-courses {
   padding: 2rem;
   max-width: 1200px;
   margin: auto;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: "Segoe UI", sans-serif;
 }
 
 .course-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1.5rem;	
+  gap: 1.5rem;
 }
 
 .course-card {
@@ -102,66 +101,168 @@
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
 }
 
-
 /* Theme Toggle */
 .theme-toggle {
-text-align: right;
-margin-bottom: 1rem;
+  text-align: right;
+  margin-bottom: 1rem;
 }
 .theme-toggle button {
-background-color: #ddd;
-border: none;
-padding: 0.5rem 1rem;
-border-radius: 8px;
-font-weight: bold;
-cursor: pointer;
-transition: background 0.3s;
+  background-color: #ddd;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
 }
 
 .theme-toggle button:hover {
-background: #eee;
+  background: #eee;
 }
 
 /* Dark Theme */
 .my-teaching-courses.dark {
-background-color: #1e1e1e;
-color: #f1f1f1;
+  background-color: #1e1e1e;
+  color: #f1f1f1;
 }
 
 .my-teaching-courses.dark .course-card {
-background: #2c2c2c;
-color: #f1f1f1;
-box-shadow: 0 4px 12px rgba(255, 255, 255, 0.05);
+  background: #2c2c2c;
+  color: #f1f1f1;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.05);
 }
 
 .my-teaching-courses.dark .lesson-item {
-background: #3b3b3b;
+  background: #3b3b3b;
 }
 
 .my-teaching-courses.dark .btn-manage,
 .my-teaching-courses.dark .btn-create,
 .my-teaching-courses.dark .btn-delete {
-color: white;
+  color: white;
 }
 
 .my-teaching-courses.dark .btn-manage:hover {
-background-color: #2471a3;
+  background-color: #2471a3;
 }
 
 .my-teaching-courses.dark .btn-create:hover {
-background-color: #229954;
+  background-color: #229954;
 }
 
 .my-teaching-courses.dark .btn-delete:hover {
-background-color: #a93226;
+  background-color: #a93226;
 }
 
 .my-teaching-courses.dark .theme-toggle button {
-background-color: #333;
-color: #fff;
-border: 1px solid #555;
+  background-color: #333;
+  color: #fff;
+  border: 1px solid #555;
 }
 .my-teaching-courses.dark .theme-toggle button:hover {
-background-color: #444;
+  background-color: #444;
 }
 
+.btn-file {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 6px 12px;
+  background-color: #007bff;
+  color: white;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.btn-file:hover {
+  background-color: #0056b3;
+}
+
+
+
+.lesson-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 15px;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.lesson-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.preview-badge {
+  background-color: #ffc107;
+  color: #333;
+  font-size: 0.75em;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.type-label {
+  font-size: 0.85em;
+  color: #666;
+}
+
+.lesson-file-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  margin: 6px 0;
+}
+
+.file-icon {
+  font-size: 20px;
+}
+
+.file-name {
+  font-weight: 500;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #333;
+}
+
+.file-size {
+  color: #888;
+  font-size: 0.85em;
+}
+
+.btn-file {
+  margin-left: auto;
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: white;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.btn-file:hover {
+  background-color: #0056b3;
+}
+
+.btn-delete {
+  margin-top: 10px;
+  padding: 5px 8px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-delete:hover {
+  background-color: #bd2130;
+}
