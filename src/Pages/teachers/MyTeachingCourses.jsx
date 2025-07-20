@@ -513,7 +513,11 @@ const MyTeachingCourses = () => {
                             </div>
 
                             {lesson.contentType === "file" && lesson.contentUrl && (() => {
-                              const fileUrl = `http://localhost:5000${lesson.contentUrl}`;
+                             const backendBaseUrl =
+                               process.env.REACT_APP_API_URL ||
+                               "http://localhost:5000";
+                             const fileUrl = `${backendBaseUrl}${lesson.contentUrl}`;
+                             
                               const fileName = lesson.contentUrl.split("/").pop();
                               const fileExtension = fileName.split(".").pop().toLowerCase();
                               const previewableTypes = ["pdf", "png", "jpg", "jpeg", "gif", "webp"];
