@@ -1,25 +1,32 @@
+
 // import React, { useEffect, useState } from "react";
-// import { Link } from "react-router-dom";
+// import { Link, useNavigate } from "react-router-dom";
 // import { toast } from "react-toastify";
 // import { motion } from "framer-motion";
 // import ConfirmModal from "../../components/ConfirmModal";
-// import api from "../../api/axios"; // ✅ Use custom axios instance
+// import api from "../../api/axios";
 // import "./MyTeachingCourses.css";
 
 // const MyTeachingCourses = () => {
+//   const navigate = useNavigate();
+//   const [user, setUser] = useState(null);
 //   const [courses, setCourses] = useState([]);
-//   const [lessons, setLessons] = useState({});
 //   const [expandedCourseId, setExpandedCourseId] = useState(null);
 //   const [loading, setLoading] = useState(true);
 //   const [darkMode, setDarkMode] = useState(false);
-//   const [modal, setModal] = useState({
-//     show: false,
-//     title: "",
-//     message: "",
-//     onConfirm: () => {},
-//   });
+//   const [modal, setModal] = useState({ show: false });
+//   const [pdfPreview, setPdfPreview] = useState(null);
 
-//   const user = JSON.parse(localStorage.getItem("user"));
+//   useEffect(() => {
+//     try {
+//       const storedUser = JSON.parse(localStorage.getItem("user"));
+//       if (!storedUser) throw new Error("No user found");
+//       setUser(storedUser);
+//     } catch {
+//       toast.error("❌ Please log in first.");
+//       navigate("/login");
+//     }
+//   }, [navigate]);
 
 //   useEffect(() => {
 //     const savedTheme = localStorage.getItem("darkMode");
@@ -30,21 +37,6 @@
 //     localStorage.setItem("darkMode", JSON.stringify(darkMode));
 //   }, [darkMode]);
 
-//   const formatFileSize = (bytes) => {
-//     if (!bytes) return "";
-//     if (bytes < 1024) return `${bytes} B`;
-//     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-//     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-//   };
-
-//   const trackLessonView = async (lessonId) => {
-//     try {
-//       await api.post(`/lessons/${lessonId}/track-view`);
-//     } catch (err) {
-//       console.warn("View tracking failed", err);
-//     }
-//   };
-
 //   const fetchMyCourses = async () => {
 //     try {
 //       const res = await api.get("/courses");
@@ -53,53 +45,16 @@
 //         : [];
 //       setCourses(myCourses);
 //     } catch (err) {
-//       toast.error("❌ Failed to fetch teaching courses");
+//       console.error("❌ fetchMyCourses error:", err);
+//       toast.error("❌ Failed to fetch courses");
 //     } finally {
 //       setLoading(false);
 //     }
 //   };
 
 //   useEffect(() => {
-//     fetchMyCourses();
+//     if (user) fetchMyCourses();
 //   }, [user]);
-
-//   const toggleLessons = async (courseId) => {
-//     if (expandedCourseId === courseId) return setExpandedCourseId(null);
-
-//     try {
-//       const res = await api.get(`/courses/${courseId}/lessons`);
-//       const fetchedLessons = Array.isArray(res.data.lessons)
-//         ? res.data.lessons
-//         : res.data;
-//       const safeLessons = fetchedLessons.map((l, index) => ({
-//         ...l,
-//         id: l.id || index + 1,
-//       }));
-//       setLessons((prev) => ({ ...prev, [courseId]: safeLessons }));
-//       setExpandedCourseId(courseId);
-//     } catch (err) {
-//       toast.error("❌ Failed to load lessons");
-//     }
-//   };
-
-//   const deleteLesson = async (lessonId, courseId) => {
-//     setModal({
-//       show: true,
-//       title: "Delete Lesson",
-//       message: "Are you sure you want to delete this lesson?",
-//       onConfirm: async () => {
-//         try {
-//           await api.delete(`/lessons/${lessonId}`);
-//           toast.success("✅ Lesson deleted");
-//           toggleLessons(courseId);
-//         } catch (err) {
-//           toast.error("❌ Failed to delete lesson");
-//         } finally {
-//           setModal({ ...modal, show: false });
-//         }
-//       },
-//     });
-//   };
 
 //   const deleteCourse = async (courseId) => {
 //     setModal({
@@ -110,14 +65,11 @@
 //       onConfirm: async () => {
 //         try {
 //           const token = localStorage.getItem("token");
-
 //           await api.delete(`/courses/${courseId}`, {
 //             headers: {
 //               Authorization: `Bearer ${token}`,
 //             },
-//             withCredentials: true,
 //           });
-
 //           toast.success("✅ Course deleted");
 //           setCourses((prev) => prev.filter((c) => c.id !== courseId));
 //           setExpandedCourseId(null);
@@ -125,14 +77,21 @@
 //           console.error("❌ Course deletion error:", err);
 //           toast.error("❌ Failed to delete course");
 //         } finally {
-//           setModal((prev) => ({ ...prev, show: false }));
+//           setModal({ ...modal, show: false });
 //         }
 //       },
 //     });
 //   };
-  
 
 //   const toggleTheme = () => setDarkMode((prev) => !prev);
+
+//   const handlePreviewPdf = (url) => {
+//     setPdfPreview(url);
+//   };
+
+//   const handleClosePdfPreview = () => {
+//     setPdfPreview(null);
+//   };
 
 //   return (
 //     <div className={`my-teaching-courses ${darkMode ? "dark" : ""}`}>
@@ -153,6 +112,34 @@
 //             <div key={course.id} className="course-card">
 //               <h3>{course.title}</h3>
 //               <p>{course.description || "No description provided."}</p>
+
+//               {course.attachmentUrls?.length > 0 && (
+//                 <div className="attachment-list">
+//                   <strong>📎 Attachments:</strong>
+//                   {course.attachmentUrls.map((url, idx) => {
+//                     const fileName = url.split("/").pop();
+//                     const isPdf = url.toLowerCase().endsWith(".pdf");
+
+//                     return (
+//                       <div key={idx} className="attachment-item">
+//                         <span>{fileName}</span>
+//                         <button onClick={() => handlePreviewPdf(url)}>
+//                           📄 Preview
+//                         </button>
+//                         <a
+//                           href={url}
+//                           download
+//                           target="_blank"
+//                           rel="noopener noreferrer"
+//                         >
+//                           ⬇️ Download
+//                         </a>
+//                       </div>
+//                     );
+//                   })}
+//                 </div>
+//               )}
+
 //               <div className="course-actions">
 //                 <Link to={`/courses/${course.id}/manage-lessons`}>
 //                   <button className="btn-manage">🛠 Manage Lessons</button>
@@ -160,11 +147,6 @@
 //                 <Link to={`/courses/${course.id}/lessons/new`}>
 //                   <button className="btn-create">➕ Create Lesson</button>
 //                 </Link>
-//                 <button onClick={() => toggleLessons(course.id)}>
-//                   {expandedCourseId === course.id
-//                     ? "➖ Hide Lessons"
-//                     : "📂 View Lessons"}
-//                 </button>
 //                 <button
 //                   className="btn-delete"
 //                   onClick={() => deleteCourse(course.id)}
@@ -172,195 +154,24 @@
 //                   🗑 Delete Course
 //                 </button>
 //               </div>
-
-//               {expandedCourseId === course.id && (
-//                 <motion.div
-//                   className="lesson-list"
-//                   initial={{ opacity: 0, y: -10 }}
-//                   animate={{ opacity: 1, y: 0 }}
-//                   transition={{ duration: 0.3 }}
-//                 >
-//                   {lessons[course.id]?.length === 0 ? (
-//                     <p>No lessons yet.</p>
-//                   ) : (
-//                     <motion.ul layout>
-//                       {lessons[course.id].map((lesson) => (
-//                         <motion.li
-//                           layout
-//                           key={lesson.id}
-//                           className="lesson-item"
-//                           whileHover={{ scale: 1.02 }}
-//                         >
-//                           <div style={{ flex: 1 }}>
-//                             <div className="lesson-header">
-//                               <strong>{lesson.title}</strong>
-//                               {lesson.isPreview && (
-//                                 <span className="preview-badge">Preview</span>
-//                               )}
-//                               <span className="type-label">
-//                                 ({lesson.contentType})
-//                               </span>
-//                             </div>
-
-//                             {lesson.contentType === "file" &&
-//                               lesson.contentUrl &&
-//                               (() => {
-//                                 const backendBaseUrl =
-//                                   process.env.REACT_APP_API_URL ||
-//                                   "http://localhost:5000";
-//                                 const fileUrl = `${backendBaseUrl}${lesson.contentUrl}`;
-//                                 const fileName = lesson.contentUrl
-//                                   .split("/")
-//                                   .pop();
-//                                 const fileExtension = fileName
-//                                   .split(".")
-//                                   .pop()
-//                                   .toLowerCase();
-//                                 const previewableTypes = [
-//                                   "pdf",
-//                                   "png",
-//                                   "jpg",
-//                                   "jpeg",
-//                                   "gif",
-//                                   "webp",
-//                                 ];
-//                                 const isPreviewable =
-//                                   previewableTypes.includes(fileExtension);
-//                                 const iconMap = {
-//                                   pdf: "📄",
-//                                   jpg: "🖼️",
-//                                   jpeg: "🖼️",
-//                                   png: "🖼️",
-//                                   gif: "🖼️",
-//                                   webp: "🖼️",
-//                                   zip: "🗜️",
-//                                   mp4: "🎞️",
-//                                   docx: "📃",
-//                                   pptx: "📊",
-//                                   xlsx: "📈",
-//                                   default: "📁",
-//                                 };
-//                                 const fileIcon =
-//                                   iconMap[fileExtension] || iconMap.default;
-
-//                                 return (
-//                                   <div className="lesson-file-box">
-//                                     <span className="file-icon">
-//                                       {fileIcon}
-//                                     </span>
-//                                     <span className="file-name">
-//                                       {fileName}
-//                                     </span>
-//                                     <span className="file-size">
-//                                       {formatFileSize(lesson.fileSize)}
-//                                     </span>
-//                                     {user?.role === "teacher" &&
-//                                       (isPreviewable ? (
-//                                         <a
-//                                           href={fileUrl}
-//                                           onClick={() =>
-//                                             trackLessonView(lesson.id)
-//                                           }
-//                                           target="_blank"
-//                                           rel="noopener noreferrer"
-//                                           className="btn-file"
-//                                         >
-//                                           🔍 Preview
-//                                         </a>
-//                                       ) : (
-//                                         <a
-//                                           href={fileUrl}
-//                                           onClick={() =>
-//                                             trackLessonView(lesson.id)
-//                                           }
-//                                           download
-//                                           className="btn-file"
-//                                         >
-//                                           ⬇️ Download
-//                                         </a>
-//                                       ))}
-//                                   </div>
-//                                 );
-//                               })()}
-
-//                             {lesson.contentType === "video" &&
-//                               lesson.videoUrl && (
-//                                 <video
-//                                   controls
-//                                   width="100%"
-//                                   style={{
-//                                     marginTop: "10px",
-//                                     borderRadius: "8px",
-//                                   }}
-//                                 >
-//                                   <source
-//                                     src={lesson.videoUrl}
-//                                     type="video/mp4"
-//                                   />
-//                                   Your browser does not support the video tag.
-//                                 </video>
-//                               )}
-
-//                             {lesson.contentType === "link" &&
-//                               lesson.linkUrl && (
-//                                 <div style={{ marginTop: "10px" }}>
-//                                   🌐{" "}
-//                                   <a
-//                                     href={lesson.linkUrl}
-//                                     onClick={() => trackLessonView(lesson.id)}
-//                                     target="_blank"
-//                                     rel="noopener noreferrer"
-//                                   >
-//                                     {lesson.linkUrl}
-//                                   </a>
-//                                 </div>
-//                               )}
-
-//                             {lesson.contentType === "quiz" &&
-//                               lesson.quizTitle && (
-//                                 <div
-//                                   style={{
-//                                     marginTop: "10px",
-//                                     fontStyle: "italic",
-//                                   }}
-//                                 >
-//                                   🧠 Quiz: {lesson.quizTitle}
-//                                 </div>
-//                               )}
-
-//                             {lesson.contentType === "embed" &&
-//                               lesson.embedUrl && (
-//                                 <div className="embed-container">
-//                                   <iframe
-//                                     src={lesson.embedUrl}
-//                                     title="Embedded"
-//                                     frameBorder="0"
-//                                     allowFullScreen
-//                                     style={{
-//                                       width: "100%",
-//                                       height: "480px",
-//                                       borderRadius: "8px",
-//                                     }}
-//                                   ></iframe>
-//                                 </div>
-//                               )}
-//                           </div>
-//                           {user?.role === "teacher" && (
-//                             <button
-//                               className="btn-delete"
-//                               onClick={() => deleteLesson(lesson.id, course.id)}
-//                             >
-//                               🗑 Delete
-//                             </button>
-//                           )}
-//                         </motion.li>
-//                       ))}
-//                     </motion.ul>
-//                   )}
-//                 </motion.div>
-//               )}
 //             </div>
 //           ))}
+//         </div>
+//       )}
+
+//       {pdfPreview && (
+//         <div className="pdf-modal">
+//           <div className="pdf-modal-content">
+//             <button className="pdf-close" onClick={handleClosePdfPreview}>
+//               ❌ Close
+//             </button>
+//             <iframe
+//               src={pdfPreview}
+//               title="PDF Preview"
+//               width="100%"
+//               height="600px"
+//             />
+//           </div>
 //         </div>
 //       )}
 
@@ -387,6 +198,8 @@ import { motion } from "framer-motion";
 import ConfirmModal from "../../components/ConfirmModal";
 import api from "../../api/axios";
 import "./MyTeachingCourses.css";
+
+const BASE_URL = "https://mathe-class-website-backend-1.onrender.com";
 
 const MyTeachingCourses = () => {
   const navigate = useNavigate();
@@ -499,16 +312,16 @@ const MyTeachingCourses = () => {
                   <strong>📎 Attachments:</strong>
                   {course.attachmentUrls.map((url, idx) => {
                     const fileName = url.split("/").pop();
-                    const isPdf = url.toLowerCase().endsWith(".pdf");
+                    const fullUrl = `${BASE_URL}${url}`;
 
                     return (
                       <div key={idx} className="attachment-item">
                         <span>{fileName}</span>
-                        <button onClick={() => handlePreviewPdf(url)}>
+                        <button onClick={() => handlePreviewPdf(fullUrl)}>
                           📄 Preview
                         </button>
                         <a
-                          href={url}
+                          href={fullUrl}
                           download
                           target="_blank"
                           rel="noopener noreferrer"
