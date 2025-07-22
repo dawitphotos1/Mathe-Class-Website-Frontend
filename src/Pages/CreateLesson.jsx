@@ -1,6 +1,4 @@
-
-
-""import React from "react";
+import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import confetti from "canvas-confetti";
