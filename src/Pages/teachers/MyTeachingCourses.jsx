@@ -380,17 +380,17 @@
 
 
 
-
-
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import ConfirmModal from "../../components/ConfirmModal";
-import api from "../../api/axios"; // ✅ Use custom axios instance
+import api from "../../api/axios";
 import "./MyTeachingCourses.css";
 
 const MyTeachingCourses = () => {
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
   const [courses, setCourses] = useState([]);
   const [lessons, setLessons] = useState({});
   const [expandedCourseId, setExpandedCourseId] = useState(null);
@@ -403,7 +403,16 @@ const MyTeachingCourses = () => {
     onConfirm: () => {},
   });
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  useEffect(() => {
+    try {
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      if (!storedUser) throw new Error("No user found");
+      setUser(storedUser);
+    } catch {
+      toast.error("❌ Please log in first.");
+      navigate("/login");
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("darkMode");
@@ -432,11 +441,14 @@ const MyTeachingCourses = () => {
   const fetchMyCourses = async () => {
     try {
       const res = await api.get("/courses");
+      console.log("📦 Fetched courses:", res.data);
+      console.log("👤 Current user:", user);
       const myCourses = Array.isArray(res.data)
         ? res.data.filter((c) => c.teacherId === user?.id)
         : [];
       setCourses(myCourses);
     } catch (err) {
+      console.error("❌ fetchMyCourses error:", err);
       toast.error("❌ Failed to fetch teaching courses");
     } finally {
       setLoading(false);
@@ -444,7 +456,7 @@ const MyTeachingCourses = () => {
   };
 
   useEffect(() => {
-    fetchMyCourses();
+    if (user) fetchMyCourses();
   }, [user]);
 
   const toggleLessons = async (courseId) => {
@@ -466,6 +478,33 @@ const MyTeachingCourses = () => {
     }
   };
 
+  const deleteCourse = async (courseId) => {
+    setModal({
+      show: true,
+      title: "Delete Course",
+      message:
+        "Are you sure you want to permanently delete this course and all its lessons?",
+      onConfirm: async () => {
+        try {
+          const token = localStorage.getItem("token");
+          await api.delete(`/courses/${courseId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          toast.success("✅ Course deleted");
+          setCourses((prev) => prev.filter((c) => c.id !== courseId));
+          setExpandedCourseId(null);
+        } catch (err) {
+          console.error("❌ Course deletion error:", err);
+          toast.error("❌ Failed to delete course");
+        } finally {
+          setModal({ ...modal, show: false });
+        }
+      },
+    });
+  };
+
   const deleteLesson = async (lessonId, courseId) => {
     setModal({
       show: true,
@@ -485,40 +524,52 @@ const MyTeachingCourses = () => {
     });
   };
 
-  const deleteCourse = async (courseId) => {
-    setModal({
-      show: true,
-      title: "Delete Course",
-      message:
-        "Are you sure you want to permanently delete this course and all its lessons?",
-      onConfirm: async () => {
-        try {
-          const token = JSON.parse(localStorage.getItem("token"));
-          await api.delete(`/courses/${courseId}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            withCredentials: true,
-          });
-
-          toast.success("✅ Course deleted successfully");
-          setCourses((prev) => prev.filter((c) => c.id !== courseId));
-          setExpandedCourseId(null);
-        } catch (err) {
-          console.error("❌ Course deletion error:", err);
-          toast.error("❌ Failed to delete course");
-        } finally {
-          setModal((prev) => ({ ...prev, show: false }));
-        }
-      },
-    });
-  };
-
   const toggleTheme = () => setDarkMode((prev) => !prev);
+
+  if (!user) return null;
 
   return (
     <div className={`my-teaching-courses ${darkMode ? "dark" : ""}`}>
-      {/* ... existing JSX ... */}
+      <div className="theme-toggle">
+        <button onClick={toggleTheme}>
+          {darkMode ? "🌞 Light Mode" : "🌙 Dark Mode"}
+        </button>
+      </div>
+      <h2>📘 My Teaching Courses</h2>
+
+      {loading ? (
+        <p>Loading...</p>
+      ) : courses.length === 0 ? (
+        <p>No courses found.</p>
+      ) : (
+        <div className="course-grid">
+          {courses.map((course) => (
+            <div key={course.id} className="course-card">
+              <h3>{course.title}</h3>
+              <p>{course.description || "No description provided."}</p>
+              <div className="course-actions">
+                <Link to={`/courses/${course.id}/manage-lessons`}>
+                  <button className="btn-manage">🛠 Manage Lessons</button>
+                </Link>
+                <Link to={`/courses/${course.id}/lessons/new`}>
+                  <button className="btn-create">➕ Create Lesson</button>
+                </Link>
+                <button onClick={() => toggleLessons(course.id)}>
+                  {expandedCourseId === course.id
+                    ? "➖ Hide Lessons"
+                    : "📂 View Lessons"}
+                </button>
+                <button
+                  className="btn-delete"
+                  onClick={() => deleteCourse(course.id)}
+                >
+                  🗑 Delete Course
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <ConfirmModal
         show={modal.show}
