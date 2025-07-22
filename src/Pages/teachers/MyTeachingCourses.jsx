@@ -392,16 +392,11 @@ const MyTeachingCourses = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [courses, setCourses] = useState([]);
-  const [lessons, setLessons] = useState({});
   const [expandedCourseId, setExpandedCourseId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
-  const [modal, setModal] = useState({
-    show: false,
-    title: "",
-    message: "",
-    onConfirm: () => {},
-  });
+  const [modal, setModal] = useState({ show: false });
+  const [pdfPreview, setPdfPreview] = useState(null);
 
   useEffect(() => {
     try {
@@ -423,33 +418,16 @@ const MyTeachingCourses = () => {
     localStorage.setItem("darkMode", JSON.stringify(darkMode));
   }, [darkMode]);
 
-  const formatFileSize = (bytes) => {
-    if (!bytes) return "";
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
-  const trackLessonView = async (lessonId) => {
-    try {
-      await api.post(`/lessons/${lessonId}/track-view`);
-    } catch (err) {
-      console.warn("View tracking failed", err);
-    }
-  };
-
   const fetchMyCourses = async () => {
     try {
       const res = await api.get("/courses");
-      console.log("📦 Fetched courses:", res.data);
-      console.log("👤 Current user:", user);
       const myCourses = Array.isArray(res.data)
         ? res.data.filter((c) => c.teacherId === user?.id)
         : [];
       setCourses(myCourses);
     } catch (err) {
       console.error("❌ fetchMyCourses error:", err);
-      toast.error("❌ Failed to fetch teaching courses");
+      toast.error("❌ Failed to fetch courses");
     } finally {
       setLoading(false);
     }
@@ -458,25 +436,6 @@ const MyTeachingCourses = () => {
   useEffect(() => {
     if (user) fetchMyCourses();
   }, [user]);
-
-  const toggleLessons = async (courseId) => {
-    if (expandedCourseId === courseId) return setExpandedCourseId(null);
-
-    try {
-      const res = await api.get(`/courses/${courseId}/lessons`);
-      const fetchedLessons = Array.isArray(res.data.lessons)
-        ? res.data.lessons
-        : res.data;
-      const safeLessons = fetchedLessons.map((l, index) => ({
-        ...l,
-        id: l.id || index + 1,
-      }));
-      setLessons((prev) => ({ ...prev, [courseId]: safeLessons }));
-      setExpandedCourseId(courseId);
-    } catch (err) {
-      toast.error("❌ Failed to load lessons");
-    }
-  };
 
   const deleteCourse = async (courseId) => {
     setModal({
@@ -505,28 +464,15 @@ const MyTeachingCourses = () => {
     });
   };
 
-  const deleteLesson = async (lessonId, courseId) => {
-    setModal({
-      show: true,
-      title: "Delete Lesson",
-      message: "Are you sure you want to delete this lesson?",
-      onConfirm: async () => {
-        try {
-          await api.delete(`/lessons/${lessonId}`);
-          toast.success("✅ Lesson deleted");
-          toggleLessons(courseId);
-        } catch (err) {
-          toast.error("❌ Failed to delete lesson");
-        } finally {
-          setModal({ ...modal, show: false });
-        }
-      },
-    });
-  };
-
   const toggleTheme = () => setDarkMode((prev) => !prev);
 
-  if (!user) return null;
+  const handlePreviewPdf = (url) => {
+    setPdfPreview(url);
+  };
+
+  const handleClosePdfPreview = () => {
+    setPdfPreview(null);
+  };
 
   return (
     <div className={`my-teaching-courses ${darkMode ? "dark" : ""}`}>
@@ -547,6 +493,34 @@ const MyTeachingCourses = () => {
             <div key={course.id} className="course-card">
               <h3>{course.title}</h3>
               <p>{course.description || "No description provided."}</p>
+
+              {course.attachmentUrls?.length > 0 && (
+                <div className="attachment-list">
+                  <strong>📎 Attachments:</strong>
+                  {course.attachmentUrls.map((url, idx) => {
+                    const fileName = url.split("/").pop();
+                    const isPdf = url.toLowerCase().endsWith(".pdf");
+
+                    return (
+                      <div key={idx} className="attachment-item">
+                        <span>{fileName}</span>
+                        <button onClick={() => handlePreviewPdf(url)}>
+                          📄 Preview
+                        </button>
+                        <a
+                          href={url}
+                          download
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          ⬇️ Download
+                        </a>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
               <div className="course-actions">
                 <Link to={`/courses/${course.id}/manage-lessons`}>
                   <button className="btn-manage">🛠 Manage Lessons</button>
@@ -554,11 +528,6 @@ const MyTeachingCourses = () => {
                 <Link to={`/courses/${course.id}/lessons/new`}>
                   <button className="btn-create">➕ Create Lesson</button>
                 </Link>
-                <button onClick={() => toggleLessons(course.id)}>
-                  {expandedCourseId === course.id
-                    ? "➖ Hide Lessons"
-                    : "📂 View Lessons"}
-                </button>
                 <button
                   className="btn-delete"
                   onClick={() => deleteCourse(course.id)}
@@ -568,6 +537,22 @@ const MyTeachingCourses = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {pdfPreview && (
+        <div className="pdf-modal">
+          <div className="pdf-modal-content">
+            <button className="pdf-close" onClick={handleClosePdfPreview}>
+              ❌ Close
+            </button>
+            <iframe
+              src={pdfPreview}
+              title="PDF Preview"
+              width="100%"
+              height="600px"
+            />
+          </div>
         </div>
       )}
 
