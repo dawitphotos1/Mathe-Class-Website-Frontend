@@ -10,6 +10,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import Loading from "./components/Loading";
 import Contact from "./components/Contact";
 import Login from "./Pages/auth/Login";
+import EditCourse from "./Pages/teachers/EditCourse"; // adjust path as needed
 import PaymentSuccess from "./Pages/payments/PaymentSuccess";
 import PaymentCancel from "./Pages/payments/PaymentCancel";
 import Unauthorized from "./Pages/Unauthorized";
@@ -120,6 +121,7 @@ function App() {
               <Route path="/unauthorized" element={<Unauthorized />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/cancel" element={<Cancel />} />
+              <Route path="/courses/:id/edit" element={<EditCourse />} />
               <Route path="/class/:slug" element={<StartCoursePage />} />
 
               {/* ✅ Admin-Only Routes */}
