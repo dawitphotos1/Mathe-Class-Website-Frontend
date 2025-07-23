@@ -216,3 +216,33 @@
 .my-teaching-courses.dark .theme-toggle button:hover {
   background-color: #444;
 }
+
+
+.rename-section {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+}
+
+.rename-section input {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  width: 180px;
+}
+
+.rename-section button {
+  background-color: #f39c12;
+  color: white;
+  border: none;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.rename-section button:hover {
+  background-color: #d35400;
+}
