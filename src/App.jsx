@@ -24,7 +24,7 @@ import CourseLessons from "./Pages/CourseLessons";
 import LessonCreationForm from "./components/LessonCreationForm";
 import MyCoursesPage from "./Pages/courses/MyCourses";
 import TeacherCourseProgress from "./Pages/courses/TeacherCourseProgress";
-
+import CourseLessonManager from "./Pages/CourseLessonManager";
 import AdminLessonLogs from "./Pages/AdminLessonLogs";
 
 import { ThemeProvider } from "./context/ThemeContext";
@@ -123,6 +123,9 @@ function App() {
               <Route path="/cancel" element={<Cancel />} />
               <Route path="/courses/:id/edit" element={<EditCourse />} />
               <Route path="/class/:slug" element={<StartCoursePage />} />
+              <Route path="/courses/:courseId/manage-lessons"
+                element={<CourseLessonManager />}
+              />
 
               {/* ✅ Admin-Only Routes */}
               <Route

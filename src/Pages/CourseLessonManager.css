@@ -1,0 +1,84 @@
+.lesson-manager {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.05);
+    font-family: "Segoe UI", sans-serif;
+  }
+  
+  .lesson-actions {
+    display: flex;
+    justify-content: space-between;
+    margin: 1rem 0;
+  }
+  
+  .lesson-actions .btn-create,
+  .lesson-actions .btn-back {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.95rem;
+  }
+  
+  .btn-create {
+    background-color: #2ecc71;
+    color: white;
+  }
+  .btn-back {
+    background-color: #ccc;
+    color: #333;
+  }
+  
+  .lesson-list {
+    list-style: none;
+    padding: 0;
+  }
+  .lesson-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f7f7f7;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 6px;
+  }
+  
+  .lesson-item a {
+    color: #3498db;
+    font-weight: 500;
+  }
+  .lesson-controls button {
+    padding: 0.3rem 0.6rem;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .lesson-controls button:hover {
+    background-color: #c0392b;
+  }
+  
+  .lesson-edit-input {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    margin-right: 0.4rem;
+    min-width: 220px;
+  }
+  
+  .lesson-controls button {
+    margin-left: 0.5rem;
+  }
+  
+  .preview-inline {
+    margin-left: 0.5rem;
+    font-style: italic;
+    color: #666;
+  }
+  

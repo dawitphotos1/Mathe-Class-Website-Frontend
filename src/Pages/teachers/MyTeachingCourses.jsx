@@ -11,11 +11,11 @@ const MyTeachingCourses = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [courses, setCourses] = useState([]);
+  const [courseLessons, setCourseLessons] = useState({});
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [modal, setModal] = useState({ show: false });
   const [pdfPreview, setPdfPreview] = useState(null);
-
   const [renaming, setRenaming] = useState({});
   const [editingName, setEditingName] = useState({});
 
@@ -41,6 +41,16 @@ const MyTeachingCourses = () => {
 
   const toggleTheme = () => setDarkMode((prev) => !prev);
 
+  const fetchLessonsForCourse = async (courseId) => {
+    try {
+      const res = await api.get(`/lessons/${courseId}/lessons`);
+      return res.data.lessons || [];
+    } catch (err) {
+      console.error(`❌ Failed to fetch lessons for course ${courseId}:`, err);
+      return [];
+    }
+  };
+
   const fetchCourses = async () => {
     try {
       const res = await api.get("/courses");
@@ -48,6 +58,13 @@ const MyTeachingCourses = () => {
         ? res.data.filter((c) => c.teacherId === user?.id)
         : [];
       setCourses(myCourses);
+
+      const lessonsMap = {};
+      for (const course of myCourses) {
+        const lessons = await fetchLessonsForCourse(course.id);
+        lessonsMap[course.id] = lessons;
+      }
+      setCourseLessons(lessonsMap);
     } catch (err) {
       toast.error("❌ Failed to fetch courses");
     } finally {
@@ -235,6 +252,32 @@ const MyTeachingCourses = () => {
                       </div>
                     );
                   })}
+                </div>
+              )}
+
+              {courseLessons[course.id]?.length > 0 && (
+                <div className="lesson-list">
+                  <strong>📚 Lessons:</strong>
+                  <ul>
+                    {courseLessons[course.id].map((lesson) => (
+                      <li key={lesson.id}>
+                        <strong>{lesson.title}</strong> — {lesson.contentType}
+                        {lesson.contentType === "file" && lesson.contentUrl && (
+                          <>
+                            {" "}
+                            —{" "}
+                            <a
+                              href={`${BASE_URL}${lesson.contentUrl}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              📄 View PDF
+                            </a>
+                          </>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
 

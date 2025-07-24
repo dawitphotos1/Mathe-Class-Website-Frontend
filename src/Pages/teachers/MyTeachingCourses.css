@@ -246,3 +246,20 @@
 .rename-section button:hover {
   background-color: #d35400;
 }
+
+
+
+.lesson-list {
+  margin-top: 1rem;
+  padding-left: 0.5rem;
+  border-left: 3px solid #2ecc71;
+  font-size: 0.95rem;
+}
+.lesson-list ul {
+  padding-left: 1rem;
+  list-style: disc;
+}
+.lesson-list a {
+  color: #3498db;
+  text-decoration: underline;
+}
