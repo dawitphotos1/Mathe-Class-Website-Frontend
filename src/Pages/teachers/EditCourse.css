@@ -1,73 +1,78 @@
-   .edit-course-page {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-    font-family: 'Segoe UI', sans-serif;
-  }
-  
-  .edit-course-page h2 {
-    font-size: 1.8rem;
-    margin-bottom: 1.2rem;
-    text-align: center;
-    color: #333;
-  }
-  
-  .edit-course-page form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .edit-course-page label {
-    font-weight: bold;
-    color: #444;
-  }
-  
-  .edit-course-page input,
-  .edit-course-page textarea,
-  .edit-course-page select {
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 1rem;
-    background: #fafafa;
-  }
-  
-  .edit-course-page input[type="file"] {
-    background: none;
-  }
-  
-  .edit-course-page .attachment-preview {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  
-  .edit-course-page .attachment-preview a {
-    text-decoration: none;
-    color: #2980b9;
-    background: #eef6fb;
-    padding: 0.4rem 0.6rem;
-    border-radius: 6px;
-    font-size: 0.9rem;
-  }
-  
-  .edit-course-page button {
-    background: #3498db;
-    color: white;
-    padding: 0.75rem 1.25rem;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    cursor: pointer;
-    margin-top: 1rem;
-    transition: background 0.3s ease;
-  }
-  
-  .edit-course-page button:hover {
-    background: #2980b9;
-  }
-  
+.edit-course-container {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+}
+
+.edit-course-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-section label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-section input,
+.form-section textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.file-preview img {
+  width: 150px;
+  height: auto;
+  margin-top: 10px;
+  border-radius: 8px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+}
+
+.attachments-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.attachment-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.attachment-name {
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.rename-input {
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.danger {
+  color: red;
+}
+
+.save-button {
+  background-color: #4caf50;
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.save-button:hover {
+  background-color: #388e3c;
+}
