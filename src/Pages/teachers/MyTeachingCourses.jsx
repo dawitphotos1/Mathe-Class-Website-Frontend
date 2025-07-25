@@ -1,3 +1,4 @@
+
 // import React, { useEffect, useState } from "react";
 // import { Link, useNavigate } from "react-router-dom";
 // import { toast } from "react-toastify";
@@ -6,6 +7,7 @@
 // import "./MyTeachingCourses.css";
 
 // const BASE_URL = "https://mathe-class-website-backend-1.onrender.com";
+// const normalizeUrl = (url) => url?.replace(/^\/uploads/i, "/Uploads");
 
 // const MyTeachingCourses = () => {
 //   const navigate = useNavigate();
@@ -96,13 +98,8 @@
 //     });
 //   };
 
-//   const handlePreviewPdf = (url) => {
-//     setPdfPreview(url);
-//   };
-
-//   const handleClosePdfPreview = () => {
-//     setPdfPreview(null);
-//   };
+//   const handlePreviewPdf = (url) => setPdfPreview(url);
+//   const handleClosePdfPreview = () => setPdfPreview(null);
 
 //   const startRenaming = (courseId, index, oldName) => {
 //     setRenaming({ courseId, index });
@@ -191,6 +188,18 @@
 //         <div className="course-grid">
 //           {courses.map((course) => (
 //             <div key={course.id} className="course-card">
+//               {course.thumbnailUrl && (
+//                 <img
+//                   src={`${BASE_URL}${normalizeUrl(course.thumbnailUrl)}`}
+//                   alt="Course Thumbnail"
+//                   style={{
+//                     maxWidth: "100%",
+//                     marginBottom: "0.5rem",
+//                     borderRadius: "8px",
+//                   }}
+//                 />
+//               )}
+
 //               <h3>{course.title}</h3>
 //               <p>{course.description || "No description available."}</p>
 
@@ -199,7 +208,12 @@
 //                   <strong>📎 Attachments:</strong>
 //                   {course.attachmentUrls.map((url, idx) => {
 //                     const fileName = url.split("/").pop();
-//                     const fileUrl = `${BASE_URL}${url}`;
+//                     const fileUrl = `${BASE_URL}${normalizeUrl(url)}`;
+//                     const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(
+//                       fileName
+//                     );
+//                     const isPDF = /\.pdf$/i.test(fileName);
+//                     const isVideo = /\.(mp4|webm|mov)$/i.test(fileName);
 
 //                     return (
 //                       <div key={idx} className="attachment-item">
@@ -224,9 +238,31 @@
 //                         ) : (
 //                           <>
 //                             <span>{fileName}</span>
-//                             <button onClick={() => handlePreviewPdf(fileUrl)}>
-//                               📄 Preview
-//                             </button>
+
+//                             {isImage && (
+//                               <img
+//                                 src={fileUrl}
+//                                 alt={fileName}
+//                                 style={{
+//                                   maxWidth: "120px",
+//                                   borderRadius: "6px",
+//                                 }}
+//                               />
+//                             )}
+
+//                             {isVideo && (
+//                               <video controls width="200">
+//                                 <source src={fileUrl} type="video/mp4" />
+//                                 Your browser does not support the video tag.
+//                               </video>
+//                             )}
+
+//                             {isPDF && (
+//                               <button onClick={() => handlePreviewPdf(fileUrl)}>
+//                                 📄 Preview
+//                               </button>
+//                             )}
+
 //                             <a
 //                               href={fileUrl}
 //                               target="_blank"
@@ -235,6 +271,7 @@
 //                             >
 //                               ⬇️ Download
 //                             </a>
+
 //                             <button
 //                               onClick={() =>
 //                                 startRenaming(course.id, idx, fileName)
@@ -267,11 +304,13 @@
 //                             {" "}
 //                             —{" "}
 //                             <a
-//                               href={`${BASE_URL}${lesson.contentUrl}`}
+//                               href={`${BASE_URL}${normalizeUrl(
+//                                 lesson.contentUrl
+//                               )}`}
 //                               target="_blank"
 //                               rel="noopener noreferrer"
 //                             >
-//                               📄 View PDF
+//                               📄 View File
 //                             </a>
 //                           </>
 //                         )}
@@ -334,6 +373,7 @@
 
 
 
+
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -342,7 +382,6 @@ import ConfirmModal from "../../components/ConfirmModal";
 import "./MyTeachingCourses.css";
 
 const BASE_URL = "https://mathe-class-website-backend-1.onrender.com";
-
 const normalizeUrl = (url) => url?.replace(/^\/uploads/i, "/Uploads");
 
 const MyTeachingCourses = () => {
@@ -434,50 +473,28 @@ const MyTeachingCourses = () => {
     });
   };
 
-  const handleDeleteLesson = async (lessonId, courseId) => {
-    setModal({
-      show: true,
-      title: "Delete Lesson",
-      message: "Are you sure you want to delete this lesson?",
-      onConfirm: async () => {
-        try {
-          await api.delete(`/lessons/${lessonId}`);
-          toast.success("✅ Lesson deleted");
-          setCourseLessons((prev) => {
-            const updated = { ...prev };
-            updated[courseId] = updated[courseId].filter(
-              (l) => l.id !== lessonId
-            );
-            return updated;
-          });
-        } catch {
-          toast.error("❌ Failed to delete lesson");
-        } finally {
-          setModal({ show: false });
-        }
-      },
-    });
-  };
-
   const handlePreviewPdf = (url) => setPdfPreview(url);
   const handleClosePdfPreview = () => setPdfPreview(null);
 
   const startRenaming = (courseId, index, oldName) => {
     setRenaming({ courseId, index });
-    const nameWithoutExt = oldName.replace(/\.[^/.]+$/, "");
-    setEditingName({ name: nameWithoutExt });
+    setEditingName({ name: oldName.replace(/\.[^/.]+$/, "") });
   };
 
   const confirmRename = async () => {
     const { courseId, index } = renaming;
     const { name } = editingName;
     if (!name.trim()) return toast.warning("Please enter a valid name");
+
     try {
       const res = await api.patch(
         `/courses/${courseId}/attachments/${index}/rename`,
-        { newName: name.trim() }
+        {
+          newName: name.trim(),
+        }
       );
       toast.success("✅ File renamed");
+
       setCourses((prev) =>
         prev.map((course) =>
           course.id === courseId
@@ -509,6 +526,7 @@ const MyTeachingCourses = () => {
             removeAttachmentIndex: index,
           });
           toast.success("✅ Attachment deleted");
+
           setCourses((prev) =>
             prev.map((course) =>
               course.id === courseId
@@ -541,198 +559,162 @@ const MyTeachingCourses = () => {
         <p>No courses found.</p>
       ) : (
         <div className="course-grid">
-          {courses.map((course) => {
-            const thumbnailUrl = course.thumbnail
-              ? `${BASE_URL}${normalizeUrl(course.thumbnail)}`
-              : null;
+          {courses.map((course) => (
+            <div key={course.id} className="course-card">
+              {course.thumbnailUrl && (
+                <img
+                  src={`${BASE_URL}${normalizeUrl(course.thumbnailUrl)}`}
+                  alt="Course Thumbnail"
+                  style={{
+                    maxWidth: "100%",
+                    marginBottom: "0.5rem",
+                    borderRadius: "8px",
+                    objectFit: "cover",
+                  }}
+                />
+              )}
+              <h3>{course.title}</h3>
+              <p>{course.description || "No description available."}</p>
 
-            return (
-              <div key={course.id} className="course-card">
-                {thumbnailUrl && (
-                  <img
-                    src={thumbnailUrl}
-                    alt="Course thumbnail"
-                    className="course-thumbnail"
-                  />
-                )}
-                <h3>{course.title}</h3>
-                <p>{course.description || "No description available."}</p>
+              {course.attachmentUrls?.length > 0 && (
+                <div className="attachment-list">
+                  <strong>📎 Attachments:</strong>
+                  {course.attachmentUrls.map((url, idx) => {
+                    const fileName = url.split("/").pop();
+                    const fileUrl = `${BASE_URL}${normalizeUrl(url)}`;
 
-                {course.attachmentUrls?.length > 0 && (
-                  <div className="attachment-list">
-                    <strong>📎 Attachments:</strong>
-                    {course.attachmentUrls.map((url, idx) => {
-                      const fileName = url.split("/").pop();
-                      const fileUrl = `${BASE_URL}${normalizeUrl(url)}`;
-                      const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(
-                        fileName
-                      );
-                      const isPdf = /\.pdf$/i.test(fileName);
-                      const isVideo = /\.(mp4|webm|ogg)$/i.test(fileName);
-
-                      return (
-                        <div key={idx} className="attachment-item">
-                          {renaming.courseId === course.id &&
-                          renaming.index === idx ? (
-                            <div className="rename-section">
-                              <input
-                                value={editingName.name}
-                                onChange={(e) =>
-                                  setEditingName((prev) => ({
-                                    ...prev,
-                                    name: e.target.value,
-                                  }))
-                                }
-                              />
-                              <button onClick={confirmRename}>💾 Save</button>
-                              <button onClick={() => setRenaming({})}>
-                                ❌ Cancel
-                              </button>
-                            </div>
-                          ) : (
-                            <>
-                              <span>{fileName}</span>
-                              {isPdf && (
-                                <button
-                                  onClick={() => handlePreviewPdf(fileUrl)}
-                                >
-                                  📄 Preview
-                                </button>
-                              )}
-                              {isImage && (
-                                <img
-                                  src={fileUrl}
-                                  alt="Preview"
-                                  style={{ maxWidth: "150px" }}
-                                />
-                              )}
-                              {isVideo && (
-                                <video controls width="200">
-                                  <source src={fileUrl} type="video/mp4" />
-                                  Your browser does not support the video tag.
-                                </video>
-                              )}
-                              <a
-                                href={fileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                download
-                              >
-                                ⬇️ Download
-                              </a>
-                              <button
-                                onClick={() =>
-                                  startRenaming(course.id, idx, fileName)
-                                }
-                              >
-                                ✏️ Rename
-                              </button>
-                              <button
-                                onClick={() => deleteAttachment(course.id, idx)}
-                              >
-                                🗑️ Delete
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {courseLessons[course.id]?.length > 0 && (
-                  <div className="lesson-list">
-                    <strong>📚 Lessons:</strong>
-                    <ul>
-                      {courseLessons[course.id].map((lesson) => {
-                        const fileUrl = `${BASE_URL}${normalizeUrl(
-                          lesson.contentUrl
-                        )}`;
-                        return (
-                          <li key={lesson.id}>
-                            <strong>{lesson.title}</strong> —{" "}
-                            {lesson.contentType}
-                            {lesson.contentType === "file" &&
-                              lesson.contentUrl && (
-                                <>
-                                  {lesson.contentUrl.endsWith(".pdf") ? (
-                                    <>
-                                      {" "}
-                                      —{" "}
-                                      <a
-                                        href={fileUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                      >
-                                        📄 View PDF
-                                      </a>
-                                    </>
-                                  ) : lesson.contentUrl.match(
-                                      /\.(jpg|jpeg|png|gif|webp)$/i
-                                    ) ? (
-                                    <img
-                                      src={fileUrl}
-                                      alt="Lesson"
-                                      style={{ maxWidth: "100px" }}
-                                    />
-                                  ) : lesson.contentUrl.match(
-                                      /\.(mp4|webm)$/i
-                                    ) ? (
-                                    <video controls width="200">
-                                      <source src={fileUrl} type="video/mp4" />
-                                    </video>
-                                  ) : (
-                                    <a
-                                      href={fileUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                    >
-                                      📁 View File
-                                    </a>
-                                  )}
-                                </>
-                              )}
+                    return (
+                      <div key={idx} className="attachment-item">
+                        {renaming.courseId === course.id &&
+                        renaming.index === idx ? (
+                          <>
+                            <input
+                              value={editingName.name}
+                              onChange={(e) =>
+                                setEditingName((prev) => ({
+                                  ...prev,
+                                  name: e.target.value,
+                                }))
+                              }
+                              className="rename-input"
+                            />
+                            <button onClick={confirmRename}>💾 Save</button>
+                            <button onClick={() => setRenaming({})}>
+                              ❌ Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <span>{fileName}</span>
+                            <button onClick={() => handlePreviewPdf(fileUrl)}>
+                              📄 Preview
+                            </button>
+                            <a
+                              href={fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              download
+                            >
+                              ⬇️ Download
+                            </a>
                             <button
                               onClick={() =>
-                                navigate(`/lessons/${lesson.id}/edit`)
+                                startRenaming(course.id, idx, fileName)
                               }
                             >
-                              ✏️ Edit
+                              ✏️ Rename
                             </button>
                             <button
-                              onClick={() =>
-                                handleDeleteLesson(lesson.id, course.id)
-                              }
+                              onClick={() => deleteAttachment(course.id, idx)}
                             >
                               🗑️ Delete
                             </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                )}
-
-                <div className="course-actions">
-                  <Link to={`/courses/${course.id}/manage-lessons`}>
-                    <button className="btn-manage">🛠 Manage Lessons</button>
-                  </Link>
-                  <Link to={`/courses/${course.id}/lessons/new`}>
-                    <button className="btn-create">➕ Create Lesson</button>
-                  </Link>
-                  <Link to={`/courses/${course.id}/edit`}>
-                    <button className="btn-edit">✏️ Edit Course</button>
-                  </Link>
-                  <button
-                    className="btn-delete"
-                    onClick={() => deleteCourse(course.id)}
-                  >
-                    🗑 Delete Course
-                  </button>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
+              )}
+
+              {courseLessons[course.id]?.length > 0 && (
+                <div className="lesson-list">
+                  <strong>📚 Lessons:</strong>
+                  <ul>
+                    {courseLessons[course.id].map((lesson) => (
+                      <li key={lesson.id}>
+                        <strong>{lesson.title}</strong> — {lesson.contentType}
+                        {lesson.contentUrl && (
+                          <>
+                            {" "}
+                            —{" "}
+                            {lesson.contentUrl.match(/\.(pdf)$/i) && (
+                              <a
+                                href={`${BASE_URL}${normalizeUrl(
+                                  lesson.contentUrl
+                                )}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                📄 View PDF
+                              </a>
+                            )}
+                            {lesson.contentUrl.match(
+                              /\.(jpg|jpeg|png|gif)$/i
+                            ) && (
+                              <img
+                                src={`${BASE_URL}${normalizeUrl(
+                                  lesson.contentUrl
+                                )}`}
+                                alt="Lesson Preview"
+                                style={{
+                                  display: "block",
+                                  maxWidth: "150px",
+                                  marginTop: "0.5rem",
+                                  borderRadius: "8px",
+                                }}
+                              />
+                            )}
+                            {lesson.contentUrl.match(/\.(mp4|webm)$/i) && (
+                              <video
+                                controls
+                                src={`${BASE_URL}${normalizeUrl(
+                                  lesson.contentUrl
+                                )}`}
+                                style={{
+                                  display: "block",
+                                  maxWidth: "240px",
+                                  marginTop: "0.5rem",
+                                }}
+                              />
+                            )}
+                          </>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="course-actions">
+                <Link to={`/courses/${course.id}/manage-lessons`}>
+                  <button className="btn-manage">🛠 Manage Lessons</button>
+                </Link>
+                <Link to={`/courses/${course.id}/lessons/new`}>
+                  <button className="btn-create">➕ Create Lesson</button>
+                </Link>
+                <Link to={`/courses/${course.id}/edit`}>
+                  <button className="btn-edit">✏️ Edit Course</button>
+                </Link>
+                <button
+                  className="btn-delete"
+                  onClick={() => deleteCourse(course.id)}
+                >
+                  🗑 Delete Course
+                </button>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       )}
 
