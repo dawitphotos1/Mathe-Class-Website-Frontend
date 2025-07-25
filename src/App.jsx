@@ -17,7 +17,7 @@ import Unauthorized from "./Pages/Unauthorized";
 import StartCoursePage from "./Pages/StartCoursePage";
 import FileManager from "./Pages/FileManager";
 import ManageLessons from "./Pages/ManageLessons";
-import EditLesson from "./Pages/EditLesson";
+// import EditLesson from "./Pages/EditLesson";
 import MyTeachingCourses from "./Pages/teachers/MyTeachingCourses";
 import CreateCourse from "./Pages/CreateCourse";
 import CourseLessons from "./Pages/CourseLessons";
@@ -26,7 +26,7 @@ import MyCoursesPage from "./Pages/courses/MyCourses";
 import TeacherCourseProgress from "./Pages/courses/TeacherCourseProgress";
 import CourseLessonManager from "./Pages/CourseLessonManager";
 import AdminLessonLogs from "./Pages/AdminLessonLogs";
-
+import EditLesson from "./Pages/teachers/EditLesson";
 import { ThemeProvider } from "./context/ThemeContext";
 
 // ✅ Lazy-loaded pages
@@ -123,9 +123,11 @@ function App() {
               <Route path="/cancel" element={<Cancel />} />
               <Route path="/courses/:id/edit" element={<EditCourse />} />
               <Route path="/class/:slug" element={<StartCoursePage />} />
-              <Route path="/courses/:courseId/manage-lessons"
+              <Route
+                path="/courses/:courseId/manage-lessons"
                 element={<CourseLessonManager />}
               />
+              <Route path="/lessons/:lessonId/edit" element={<EditLesson />} />
 
               {/* ✅ Admin-Only Routes */}
               <Route
