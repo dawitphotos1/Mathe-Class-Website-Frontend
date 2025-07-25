@@ -343,6 +343,8 @@ import "./MyTeachingCourses.css";
 
 const BASE_URL = "https://mathe-class-website-backend-1.onrender.com";
 
+const normalizeUrl = (url) => url?.replace(/^\/uploads/i, "/Uploads");
+
 const MyTeachingCourses = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -352,10 +354,9 @@ const MyTeachingCourses = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [modal, setModal] = useState({ show: false });
   const [pdfPreview, setPdfPreview] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [renaming, setRenaming] = useState({});
   const [editingName, setEditingName] = useState({});
-
-  const normalizeUrl = (url) => url?.replace(/^\/uploads/i, "/Uploads");
 
   useEffect(() => {
     try {
@@ -459,13 +460,10 @@ const MyTeachingCourses = () => {
     });
   };
 
-  const handlePreviewPdf = (url) => {
-    setPdfPreview(url);
-  };
-
-  const handleClosePdfPreview = () => {
-    setPdfPreview(null);
-  };
+  const handlePreviewPdf = (url) => setPdfPreview(url);
+  const handleClosePdfPreview = () => setPdfPreview(null);
+  const handlePreviewImage = (url) => setImagePreview(url);
+  const handleCloseImagePreview = () => setImagePreview(null);
 
   const startRenaming = (courseId, index, oldName) => {
     setRenaming({ courseId, index });
@@ -563,6 +561,11 @@ const MyTeachingCourses = () => {
                   {course.attachmentUrls.map((url, idx) => {
                     const fileName = url.split("/").pop();
                     const fileUrl = `${BASE_URL}${normalizeUrl(url)}`;
+                    const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(
+                      fileName
+                    );
+                    const isPdf = /\.pdf$/i.test(fileName);
+                    const isVideo = /\.(mp4|webm|ogg)$/i.test(fileName);
 
                     return (
                       <div key={idx} className="attachment-item">
@@ -587,20 +590,18 @@ const MyTeachingCourses = () => {
                         ) : (
                           <>
                             <span>{fileName}</span>
-                            {fileUrl.match(/\.(jpg|jpeg|png|gif)$/i) ? (
-                              <img
-                                src={fileUrl}
-                                alt="Preview"
-                                style={{
-                                  maxWidth: "120px",
-                                  display: "block",
-                                  marginTop: "0.5rem",
-                                }}
-                              />
-                            ) : null}
-                            <button onClick={() => handlePreviewPdf(fileUrl)}>
-                              📄 Preview
-                            </button>
+                            {isPdf && (
+                              <button onClick={() => handlePreviewPdf(fileUrl)}>
+                                📄 Preview
+                              </button>
+                            )}
+                            {isImage && (
+                              <button
+                                onClick={() => handlePreviewImage(fileUrl)}
+                              >
+                                🖼️ Preview
+                              </button>
+                            )}
                             <a
                               href={fileUrl}
                               target="_blank"
@@ -629,36 +630,66 @@ const MyTeachingCourses = () => {
                 </div>
               )}
 
+              {/* Lessons */}
               {courseLessons[course.id]?.length > 0 && (
                 <div className="lesson-list">
                   <strong>📚 Lessons:</strong>
                   <ul>
                     {courseLessons[course.id].map((lesson) => {
-                      const lessonUrl = normalizeUrl(lesson.contentUrl);
-                      const fileUrl = `${BASE_URL}${lessonUrl}`;
+                      const fileUrl = `${BASE_URL}${normalizeUrl(
+                        lesson.contentUrl
+                      )}`;
                       return (
                         <li key={lesson.id}>
                           <strong>{lesson.title}</strong> — {lesson.contentType}
                           {lesson.contentType === "file" &&
                             lesson.contentUrl && (
                               <>
-                                {lessonUrl.match(/\.(jpg|jpeg|png|gif)$/i) ? (
-                                  <img
-                                    src={fileUrl}
-                                    alt="Preview"
-                                    style={{
-                                      maxWidth: "100px",
-                                      marginLeft: "10px",
-                                    }}
-                                  />
+                                {lesson.contentUrl.match(/\.pdf$/i) ? (
+                                  <>
+                                    —{" "}
+                                    <a
+                                      href={fileUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      📄 View PDF
+                                    </a>
+                                  </>
+                                ) : lesson.contentUrl.match(
+                                    /\.(jpg|jpeg|png|gif|webp)$/i
+                                  ) ? (
+                                  <>
+                                    —{" "}
+                                    <button
+                                      onClick={() =>
+                                        handlePreviewImage(fileUrl)
+                                      }
+                                    >
+                                      🖼️ Preview
+                                    </button>
+                                    <a
+                                      href={fileUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      download
+                                    >
+                                      ⬇️ Download
+                                    </a>
+                                  </>
+                                ) : lesson.contentUrl.match(
+                                    /\.(mp4|webm)$/i
+                                  ) ? (
+                                  <video controls width="200">
+                                    <source src={fileUrl} type="video/mp4" />
+                                  </video>
                                 ) : (
                                   <a
                                     href={fileUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    style={{ marginLeft: "10px" }}
                                   >
-                                    📄 View
+                                    📁 View File
                                   </a>
                                 )}
                               </>
@@ -717,6 +748,21 @@ const MyTeachingCourses = () => {
               width="100%"
               height="600px"
               title="PDF Preview"
+            />
+          </div>
+        </div>
+      )}
+
+      {imagePreview && (
+        <div className="pdf-modal">
+          <div className="pdf-modal-content">
+            <button className="pdf-close" onClick={handleCloseImagePreview}>
+              ❌ Close
+            </button>
+            <img
+              src={imagePreview}
+              alt="Preview"
+              style={{ maxWidth: "100%" }}
             />
           </div>
         </div>

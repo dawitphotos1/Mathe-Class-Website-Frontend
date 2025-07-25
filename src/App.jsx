@@ -17,7 +17,6 @@ import Unauthorized from "./Pages/Unauthorized";
 import StartCoursePage from "./Pages/StartCoursePage";
 import FileManager from "./Pages/FileManager";
 import ManageLessons from "./Pages/ManageLessons";
-// import EditLesson from "./Pages/EditLesson";
 import MyTeachingCourses from "./Pages/teachers/MyTeachingCourses";
 import CreateCourse from "./Pages/CreateCourse";
 import CourseLessons from "./Pages/CourseLessons";
