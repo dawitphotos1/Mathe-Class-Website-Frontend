@@ -654,7 +654,6 @@ const MyTeachingCourses = () => {
                                   lesson.contentUrl
                                 )}`}
                                 target="_blank"
-                                rel="noopener noreferrer"
                               >
                                 📄 View PDF
                               </a>
