@@ -209,6 +209,7 @@
 
 
 
+
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -238,9 +239,20 @@ function EditCourse() {
 
   const fetchCourse = async () => {
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("Please log in first");
+        navigate("/login");
+        return;
+      }
+
       const res = await axios.get(`${API_BASE_URL}/api/v1/courses/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         withCredentials: true,
       });
+
       const courseData = res.data.course;
       setCourse(courseData);
       setTitle(courseData.title || "");
@@ -274,10 +286,16 @@ function EditCourse() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const token = localStorage.getItem("token");
       await axios.patch(
         `${API_BASE_URL}/api/v1/courses/${id}`,
         { title, description },
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        }
       );
       toast.success("Course updated successfully!");
       navigate("/my-teaching-courses");
@@ -298,10 +316,16 @@ function EditCourse() {
 
   const confirmRename = async () => {
     try {
+      const token = localStorage.getItem("token");
       await axios.patch(
         `${API_BASE_URL}/api/v1/courses/${renaming.courseId}/attachments/${renaming.index}/rename`,
         { newName: editingName.name },
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        }
       );
       toast.success("File renamed!");
       setRenaming({});
@@ -313,10 +337,16 @@ function EditCourse() {
 
   const deleteAttachment = async (courseId, index) => {
     try {
+      const token = localStorage.getItem("token");
       await axios.patch(
         `${API_BASE_URL}/api/v1/courses/${courseId}/attachments/${index}/delete`,
         {},
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        }
       );
       toast.success("Attachment deleted");
       fetchCourse();
