@@ -209,7 +209,6 @@
 
 
 
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -228,6 +227,9 @@ function EditCourse() {
   const [attachmentUrls, setAttachmentUrls] = useState([]);
   const [renaming, setRenaming] = useState({});
   const [editingName, setEditingName] = useState({ name: "" });
+
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     fetchCourse();
@@ -249,11 +251,15 @@ function EditCourse() {
       console.error("Fetch course error:", err);
       if (err.response?.status === 404) {
         toast.error("Course not found");
+        setNotFound(true);
       } else if (err.response?.status === 403) {
         toast.error("Access denied");
+        setNotFound(true);
       } else {
         toast.error("Failed to fetch course");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -319,9 +325,10 @@ function EditCourse() {
     }
   };
 
-  if (!course) {
-    return <div className="loading">Loading course...</div>;
-  }
+  // === UI Rendering Logic ===
+  if (loading) return <div className="loading">⏳ Loading course...</div>;
+  if (notFound)
+    return <div className="error">❌ Course not found or access denied.</div>;
 
   return (
     <div className="edit-course-container">
