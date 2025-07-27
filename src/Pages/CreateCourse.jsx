@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -17,40 +16,45 @@ const CreateCourse = () => {
   const [attachments, setAttachments] = useState([]);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const formData = new FormData();
+  
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  const formData = new FormData();
 
-    formData.append("title", title);
-    formData.append("description", description);
-    formData.append("category", category);
-    if (thumbnail) formData.append("thumbnail", thumbnail);
-    if (introVideo) formData.append("introVideo", introVideo);
-    attachments.forEach((file) => formData.append("attachments", file));
+  formData.append("title", title);
+  formData.append("description", description);
+  formData.append("category", category);
+  if (thumbnail) formData.append("thumbnail", thumbnail);
+  if (introVideo) formData.append("introVideo", introVideo);
+  attachments.forEach((file) => formData.append("attachments", file));
 
-    try {
-      const token = localStorage.getItem("token");
-      await axios.post(`${API_BASE_URL}/api/v1/courses`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
+  try {
+    const token = localStorage.getItem("token");
+    await axios.post(`${API_BASE_URL}/api/v1/courses/create`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
+      withCredentials: true, // ✅ Added
+    });
 
-      toast.success("✅ Course created successfully!");
-      navigate("/dashboard");
-    } catch (err) {
-      console.error(err);
-      let message = "❌ Failed to create course.";
-      if (err.response?.data?.details?.includes("slug")) {
-        message =
-          "❌ A course with a similar title already exists. Please use a different name.";
-      } else if (err.response?.data?.error) {
-        message = err.response.data.error;
-      }
-      toast.error(message);
+    toast.success("✅ Course created successfully!");
+    navigate("/dashboard");
+  } catch (err) {
+    console.error("Course creation error:", err);
+    let message = "❌ Failed to create course.";
+    if (err.response?.data?.details?.includes("slug")) {
+      message =
+        "❌ A course with a similar title already exists. Please use a different name.";
+    } else if (err.response?.data?.error) {
+      message = err.response.data.error;
     }
-  };
+    toast.error(message);
+  }
+};
+
+
+
 
   return (
     <div className="create-course-container">

@@ -1,17 +1,15 @@
-
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import api from "../../api/axios";
+import axios from "axios";
 import ConfirmModal from "../../components/ConfirmModal";
 import "./MyTeachingCourses.css";
 
-const BASE_URL = "https://mathe-class-website-backend-1.onrender.com";
+const BASE_URL = "https://mathe-class-website-backend-1.onrender.com/api/v1";
 const normalizeUrl = (url) => url?.replace(/^\/uploads/i, "/Uploads");
 
 const MyTeachingCourses = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
   const [courses, setCourses] = useState([]);
   const [courseLessons, setCourseLessons] = useState({});
   const [loading, setLoading] = useState(true);
@@ -21,17 +19,7 @@ const MyTeachingCourses = () => {
   const [renaming, setRenaming] = useState({});
   const [editingName, setEditingName] = useState({});
 
-  useEffect(() => {
-    try {
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      if (!storedUser) throw new Error("No user found");
-      setUser(storedUser);
-    } catch {
-      toast.error("❌ Please log in first.");
-      navigate("/login");
-    }
-  }, [navigate]);
-
+  // ✅ Load theme preference
   useEffect(() => {
     const savedTheme = localStorage.getItem("darkMode");
     if (savedTheme) setDarkMode(JSON.parse(savedTheme));
@@ -43,9 +31,13 @@ const MyTeachingCourses = () => {
 
   const toggleTheme = () => setDarkMode((prev) => !prev);
 
-  const fetchLessonsForCourse = async (courseId) => {
+  // ✅ Fetch lessons for a specific course
+  const fetchLessonsForCourse = async (courseId, token) => {
     try {
-      const res = await api.get(`/lessons/${courseId}/lessons`);
+      const res = await axios.get(`${BASE_URL}/lessons/${courseId}/lessons`, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
       return res.data.lessons || [];
     } catch (err) {
       console.error(`❌ Failed to fetch lessons for course ${courseId}:`, err);
@@ -53,21 +45,37 @@ const MyTeachingCourses = () => {
     }
   };
 
+  // ✅ Fetch teacher's courses
   const fetchCourses = async () => {
+    setLoading(true);
     try {
-      const res = await api.get("/courses");
-      const myCourses = Array.isArray(res.data)
-        ? res.data.filter((c) => c.teacherId === user?.id)
-        : [];
-      setCourses(myCourses);
-
-      const lessonsMap = {};
-      for (const course of myCourses) {
-        const lessons = await fetchLessonsForCourse(course.id);
-        lessonsMap[course.id] = lessons;
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("❌ Please log in first.");
+        navigate("/login");
+        return;
       }
-      setCourseLessons(lessonsMap);
+
+      const res = await axios.get(`${BASE_URL}/courses`, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
+
+      if (res.data.success && Array.isArray(res.data.courses)) {
+        setCourses(res.data.courses);
+
+        // Fetch lessons for each course
+        const lessonsMap = {};
+        for (const course of res.data.courses) {
+          const lessons = await fetchLessonsForCourse(course.id, token);
+          lessonsMap[course.id] = lessons;
+        }
+        setCourseLessons(lessonsMap);
+      } else {
+        setCourses([]);
+      }
     } catch (err) {
+      console.error("❌ Error fetching courses:", err);
       toast.error("❌ Failed to fetch courses");
     } finally {
       setLoading(false);
@@ -75,10 +83,11 @@ const MyTeachingCourses = () => {
   };
 
   useEffect(() => {
-    if (user) fetchCourses();
-  }, [user]);
+    fetchCourses();
+  }, []);
 
-  const deleteCourse = async (courseId) => {
+  // ✅ Delete a course
+  const deleteCourse = (courseId) => {
     setModal({
       show: true,
       title: "Delete Course",
@@ -86,7 +95,11 @@ const MyTeachingCourses = () => {
         "Are you sure you want to delete this course and all its lessons?",
       onConfirm: async () => {
         try {
-          await api.delete(`/courses/${courseId}`);
+          const token = localStorage.getItem("token");
+          await axios.delete(`${BASE_URL}/courses/${courseId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+            withCredentials: true,
+          });
           toast.success("✅ Course deleted");
           setCourses((prev) => prev.filter((c) => c.id !== courseId));
         } catch {
@@ -112,10 +125,13 @@ const MyTeachingCourses = () => {
     if (!name.trim()) return toast.warning("Please enter a valid name");
 
     try {
-      const res = await api.patch(
-        `/courses/${courseId}/attachments/${index}/rename`,
+      const token = localStorage.getItem("token");
+      const res = await axios.patch(
+        `${BASE_URL}/courses/${courseId}/attachments/${index}/rename`,
+        { newName: name.trim() },
         {
-          newName: name.trim(),
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
         }
       );
       toast.success("✅ File renamed");
@@ -147,9 +163,15 @@ const MyTeachingCourses = () => {
       message: "Are you sure you want to delete this attachment?",
       onConfirm: async () => {
         try {
-          const res = await api.patch(`/courses/${courseId}`, {
-            removeAttachmentIndex: index,
-          });
+          const token = localStorage.getItem("token");
+          const res = await axios.patch(
+            `${BASE_URL}/courses/${courseId}`,
+            { removeAttachmentIndex: index },
+            {
+              headers: { Authorization: `Bearer ${token}` },
+              withCredentials: true,
+            }
+          );
           toast.success("✅ Attachment deleted");
 
           setCourses((prev) =>
@@ -188,7 +210,9 @@ const MyTeachingCourses = () => {
             <div key={course.id} className="course-card">
               {course.thumbnailUrl && (
                 <img
-                  src={`${BASE_URL}${normalizeUrl(course.thumbnailUrl)}`}
+                  src={`${BASE_URL.replace("/api/v1", "")}${normalizeUrl(
+                    course.thumbnailUrl
+                  )}`}
                   alt="Course Thumbnail"
                   style={{
                     maxWidth: "100%",
@@ -201,12 +225,16 @@ const MyTeachingCourses = () => {
               <h3>{course.title}</h3>
               <p>{course.description || "No description available."}</p>
 
+              {/* Attachments */}
               {course.attachmentUrls?.length > 0 && (
                 <div className="attachment-list">
                   <strong>📎 Attachments:</strong>
                   {course.attachmentUrls.map((url, idx) => {
                     const fileName = url.split("/").pop();
-                    const fileUrl = `${BASE_URL}${normalizeUrl(url)}`;
+                    const fileUrl = `${BASE_URL.replace(
+                      "/api/v1",
+                      ""
+                    )}${normalizeUrl(url)}`;
 
                     return (
                       <div key={idx} className="attachment-item">
@@ -262,6 +290,7 @@ const MyTeachingCourses = () => {
                 </div>
               )}
 
+              {/* Lessons */}
               {courseLessons[course.id]?.length > 0 && (
                 <div className="lesson-list">
                   <strong>📚 Lessons:</strong>
@@ -269,51 +298,6 @@ const MyTeachingCourses = () => {
                     {courseLessons[course.id].map((lesson) => (
                       <li key={lesson.id}>
                         <strong>{lesson.title}</strong> — {lesson.contentType}
-                        {lesson.contentUrl && (
-                          <>
-                            {" "}
-                            —{" "}
-                            {lesson.contentUrl.match(/\.(pdf)$/i) && (
-                              <a
-                                href={`${BASE_URL}${normalizeUrl(
-                                  lesson.contentUrl
-                                )}`}
-                                target="_blank"
-                              >
-                                📄 View PDF
-                              </a>
-                            )}
-                            {lesson.contentUrl.match(
-                              /\.(jpg|jpeg|png|gif)$/i
-                            ) && (
-                              <img
-                                src={`${BASE_URL}${normalizeUrl(
-                                  lesson.contentUrl
-                                )}`}
-                                alt="Lesson Preview"
-                                style={{
-                                  display: "block",
-                                  maxWidth: "150px",
-                                  marginTop: "0.5rem",
-                                  borderRadius: "8px",
-                                }}
-                              />
-                            )}
-                            {lesson.contentUrl.match(/\.(mp4|webm)$/i) && (
-                              <video
-                                controls
-                                src={`${BASE_URL}${normalizeUrl(
-                                  lesson.contentUrl
-                                )}`}
-                                style={{
-                                  display: "block",
-                                  maxWidth: "240px",
-                                  marginTop: "0.5rem",
-                                }}
-                              />
-                            )}
-                          </>
-                        )}
                       </li>
                     ))}
                   </ul>
