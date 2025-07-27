@@ -210,7 +210,6 @@
 
 
 
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -232,20 +231,29 @@ function EditCourse() {
 
   useEffect(() => {
     fetchCourse();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchCourse = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/v1/courses/${id}`);
-      const courseData = res.data.course; // ✅ FIXED: Access nested `course`
+      const res = await axios.get(`${API_BASE_URL}/api/v1/courses/${id}`, {
+        withCredentials: true,
+      });
+      const courseData = res.data.course;
       setCourse(courseData);
       setTitle(courseData.title || "");
       setDescription(courseData.description || "");
       setThumbnailUrl(courseData.thumbnailUrl || "");
       setAttachmentUrls(courseData.attachmentUrls || []);
     } catch (err) {
-      toast.error("Failed to fetch course");
-      console.error(err);
+      console.error("Fetch course error:", err);
+      if (err.response?.status === 404) {
+        toast.error("Course not found");
+      } else if (err.response?.status === 403) {
+        toast.error("Access denied");
+      } else {
+        toast.error("Failed to fetch course");
+      }
     }
   };
 
@@ -260,15 +268,16 @@ function EditCourse() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.patch(`${API_BASE_URL}/api/v1/courses/${id}`, {
-        title,
-        description,
-      });
+      await axios.patch(
+        `${API_BASE_URL}/api/v1/courses/${id}`,
+        { title, description },
+        { withCredentials: true }
+      );
       toast.success("Course updated successfully!");
       navigate("/my-teaching-courses");
     } catch (err) {
+      console.error("Update error:", err);
       toast.error("Failed to update course");
-      console.error(err);
     }
   };
 
@@ -283,9 +292,10 @@ function EditCourse() {
 
   const confirmRename = async () => {
     try {
-      const res = await axios.patch(
+      await axios.patch(
         `${API_BASE_URL}/api/v1/courses/${renaming.courseId}/attachments/${renaming.index}/rename`,
-        { newName: editingName.name }
+        { newName: editingName.name },
+        { withCredentials: true }
       );
       toast.success("File renamed!");
       setRenaming({});
@@ -298,7 +308,9 @@ function EditCourse() {
   const deleteAttachment = async (courseId, index) => {
     try {
       await axios.patch(
-        `${API_BASE_URL}/api/v1/courses/${courseId}/attachments/${index}/delete`
+        `${API_BASE_URL}/api/v1/courses/${courseId}/attachments/${index}/delete`,
+        {},
+        { withCredentials: true }
       );
       toast.success("Attachment deleted");
       fetchCourse();
@@ -307,7 +319,9 @@ function EditCourse() {
     }
   };
 
-  if (!course) return <div className="loading">Loading course...</div>;
+  if (!course) {
+    return <div className="loading">Loading course...</div>;
+  }
 
   return (
     <div className="edit-course-container">
@@ -348,7 +362,6 @@ function EditCourse() {
             <ul className="attachments-list">
               {attachmentUrls.map((fileUrl, idx) => {
                 const fileName = fileUrl.split("/").pop();
-
                 return (
                   <li key={idx} className="attachment-actions">
                     {renaming.courseId === course.id &&
@@ -357,10 +370,7 @@ function EditCourse() {
                         <input
                           value={editingName.name}
                           onChange={(e) =>
-                            setEditingName((prev) => ({
-                              ...prev,
-                              name: e.target.value,
-                            }))
+                            setEditingName({ name: e.target.value })
                           }
                           className="rename-input"
                         />
