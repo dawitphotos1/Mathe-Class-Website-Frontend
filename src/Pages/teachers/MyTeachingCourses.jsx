@@ -311,7 +311,7 @@ const MyTeachingCourses = () => {
                 <Link to={`/courses/${course.id}/lessons/new`}>
                   <button className="btn-create">➕ Create Lesson</button>
                 </Link>
-                <Link to={`/courses/${course.id}/edit`}>
+                <Link to={`/courses/${course.slug}/edit`}>
                   <button className="btn-edit">✏️ Edit Course</button>
                 </Link>
                 <button
