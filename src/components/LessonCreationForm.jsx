@@ -253,7 +253,6 @@
 
 
 
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
@@ -285,7 +284,7 @@ const LessonCreationForm = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `${API_BASE_URL}/api/v1/courses/${courseId}/units`,
+          `${API_BASE_URL}/api/v1/lessons/course/${courseId}/units`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setUnits(response.data.units || []);
@@ -332,7 +331,7 @@ const LessonCreationForm = () => {
       if (file) form.append("file", file);
 
       await axios.post(
-        `${API_BASE_URL}/api/v1/lessons/${courseId}/lessons`,
+        `${API_BASE_URL}/api/v1/lessons/course/${courseId}`,
         form,
         {
           headers: {
