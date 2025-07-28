@@ -120,7 +120,7 @@ function App() {
               <Route path="/unauthorized" element={<Unauthorized />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/cancel" element={<Cancel />} />
-              <Route path="/courses/:id/edit" element={<EditCourse />} />
+              <Route path="/courses/:slug/edit" element={<EditCourse />} />
               <Route path="/class/:slug" element={<StartCoursePage />} />
               <Route
                 path="/courses/:courseId/manage-lessons"

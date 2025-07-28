@@ -219,7 +219,7 @@ import { toast } from "react-toastify";
 import "./EditCourse.css";
 
 function EditCourse() {
-  const { id } = useParams();
+  const { slug } = useParams(); // now using slug
   const navigate = useNavigate();
 
   const [course, setCourse] = useState(null);
@@ -232,12 +232,12 @@ function EditCourse() {
 
   useEffect(() => {
     fetchCourse();
-  }, []);
+  }, [slug]);
 
   const fetchCourse = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/v1/courses/${id}`);
-      const courseData = res.data.course; // ✅ FIXED: Access nested `course`
+      const res = await axios.get(`${API_BASE_URL}/api/v1/courses/${slug}`);
+      const courseData = res.data.course;
       setCourse(courseData);
       setTitle(courseData.title || "");
       setDescription(courseData.description || "");
@@ -260,7 +260,7 @@ function EditCourse() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.patch(`${API_BASE_URL}/api/v1/courses/${id}`, {
+      await axios.patch(`${API_BASE_URL}/api/v1/courses/${course.id}`, {
         title,
         description,
       });
@@ -278,18 +278,18 @@ function EditCourse() {
 
   const startRenaming = (courseId, index, fileName) => {
     setRenaming({ courseId, index });
-    setEditingName({ name: fileName.replace(/\.[^/.]+$/, "") });
+    setEditingName({ name: fileName.replace(/\.[^/.]+$/, "") }); // Remove extension
   };
 
   const confirmRename = async () => {
     try {
-      const res = await axios.patch(
+      await axios.patch(
         `${API_BASE_URL}/api/v1/courses/${renaming.courseId}/attachments/${renaming.index}/rename`,
         { newName: editingName.name }
       );
       toast.success("File renamed!");
       setRenaming({});
-      fetchCourse();
+      fetchCourse(); // Refresh attachments
     } catch (err) {
       toast.error("Rename failed");
     }
@@ -301,7 +301,7 @@ function EditCourse() {
         `${API_BASE_URL}/api/v1/courses/${courseId}/attachments/${index}/delete`
       );
       toast.success("Attachment deleted");
-      fetchCourse();
+      fetchCourse(); // Refresh list
     } catch (err) {
       toast.error("Delete failed");
     }
@@ -364,10 +364,8 @@ function EditCourse() {
                           }
                           className="rename-input"
                         />
-                        <button type="button" onClick={confirmRename}>
-                          💾 Save
-                        </button>
-                        <button type="button" onClick={() => setRenaming({})}>
+                        <button onClick={confirmRename}>💾 Save</button>
+                        <button onClick={() => setRenaming({})}>
                           ❌ Cancel
                         </button>
                       </>
