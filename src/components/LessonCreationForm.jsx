@@ -75,22 +75,18 @@ const LessonCreationForm = () => {
       });
       if (file) form.append("file", file);
 
-      await axios.post(
-        `${API_BASE_URL}/api/v1/lessons/${courseId}/lessons`,
-        form,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-          onUploadProgress: (progressEvent) => {
-            const percent = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
-            setUploadProgress(percent);
-          },
-        }
-      );
+      await axios.post(`${API_BASE_URL}/api/v1/lessons`, form, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+        onUploadProgress: (progressEvent) => {
+          const percent = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          setUploadProgress(percent);
+        },
+      });
 
       setSuccess("✅ Lesson created successfully!");
       setFormData({
