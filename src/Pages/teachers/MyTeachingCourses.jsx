@@ -34,16 +34,20 @@ const MyTeachingCourses = () => {
   // ✅ Fetch lessons for a specific course
   const fetchLessonsForCourse = async (courseId, token) => {
     try {
-      const res = await axios.get(`${BASE_URL}/lessons/${courseId}/lessons`, {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true,
-      });
+      const res = await axios.get(
+        `${BASE_URL}/lessons/course/${courseId}/lessons`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      );
       return res.data.lessons || [];
     } catch (err) {
       console.error(`❌ Failed to fetch lessons for course ${courseId}:`, err);
       return [];
     }
   };
+
 
   // ✅ Fetch teacher's courses
   const fetchCourses = async () => {
