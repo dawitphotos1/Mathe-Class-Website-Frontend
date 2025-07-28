@@ -210,6 +210,7 @@
 
 
 
+
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -229,49 +230,22 @@ function EditCourse() {
   const [renaming, setRenaming] = useState({});
   const [editingName, setEditingName] = useState({ name: "" });
 
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
-
   useEffect(() => {
     fetchCourse();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchCourse = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        toast.error("Please log in first");
-        navigate("/login");
-        return;
-      }
-
-      const res = await axios.get(`${API_BASE_URL}/api/v1/courses/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        withCredentials: true,
-      });
-
-      const courseData = res.data.course;
+      const res = await axios.get(`${API_BASE_URL}/api/v1/courses/${id}`);
+      const courseData = res.data.course; // ✅ FIXED: Access nested `course`
       setCourse(courseData);
       setTitle(courseData.title || "");
       setDescription(courseData.description || "");
       setThumbnailUrl(courseData.thumbnailUrl || "");
       setAttachmentUrls(courseData.attachmentUrls || []);
     } catch (err) {
-      console.error("Fetch course error:", err);
-      if (err.response?.status === 404) {
-        toast.error("Course not found");
-        setNotFound(true);
-      } else if (err.response?.status === 403) {
-        toast.error("Access denied");
-        setNotFound(true);
-      } else {
-        toast.error("Failed to fetch course");
-      }
-    } finally {
-      setLoading(false);
+      toast.error("Failed to fetch course");
+      console.error(err);
     }
   };
 
@@ -286,22 +260,15 @@ function EditCourse() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("token");
-      await axios.patch(
-        `${API_BASE_URL}/api/v1/courses/${id}`,
-        { title, description },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          withCredentials: true,
-        }
-      );
+      await axios.patch(`${API_BASE_URL}/api/v1/courses/${id}`, {
+        title,
+        description,
+      });
       toast.success("Course updated successfully!");
       navigate("/my-teaching-courses");
     } catch (err) {
-      console.error("Update error:", err);
       toast.error("Failed to update course");
+      console.error(err);
     }
   };
 
@@ -316,16 +283,9 @@ function EditCourse() {
 
   const confirmRename = async () => {
     try {
-      const token = localStorage.getItem("token");
-      await axios.patch(
+      const res = await axios.patch(
         `${API_BASE_URL}/api/v1/courses/${renaming.courseId}/attachments/${renaming.index}/rename`,
-        { newName: editingName.name },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          withCredentials: true,
-        }
+        { newName: editingName.name }
       );
       toast.success("File renamed!");
       setRenaming({});
@@ -337,16 +297,8 @@ function EditCourse() {
 
   const deleteAttachment = async (courseId, index) => {
     try {
-      const token = localStorage.getItem("token");
       await axios.patch(
-        `${API_BASE_URL}/api/v1/courses/${courseId}/attachments/${index}/delete`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          withCredentials: true,
-        }
+        `${API_BASE_URL}/api/v1/courses/${courseId}/attachments/${index}/delete`
       );
       toast.success("Attachment deleted");
       fetchCourse();
@@ -355,10 +307,7 @@ function EditCourse() {
     }
   };
 
-  // === UI Rendering Logic ===
-  if (loading) return <div className="loading">⏳ Loading course...</div>;
-  if (notFound)
-    return <div className="error">❌ Course not found or access denied.</div>;
+  if (!course) return <div className="loading">Loading course...</div>;
 
   return (
     <div className="edit-course-container">
@@ -399,6 +348,7 @@ function EditCourse() {
             <ul className="attachments-list">
               {attachmentUrls.map((fileUrl, idx) => {
                 const fileName = fileUrl.split("/").pop();
+
                 return (
                   <li key={idx} className="attachment-actions">
                     {renaming.courseId === course.id &&
@@ -407,7 +357,10 @@ function EditCourse() {
                         <input
                           value={editingName.name}
                           onChange={(e) =>
-                            setEditingName({ name: e.target.value })
+                            setEditingName((prev) => ({
+                              ...prev,
+                              name: e.target.value,
+                            }))
                           }
                           className="rename-input"
                         />
