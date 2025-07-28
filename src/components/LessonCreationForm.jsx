@@ -331,7 +331,7 @@ const LessonCreationForm = () => {
       if (file) form.append("file", file);
 
       await axios.post(
-        `${API_BASE_URL}/api/v1/lessons/course/${courseId}`,
+        `${API_BASE_URL}/api/v1/lessons/course/${courseId}/lessons`,
         form,
         {
           headers: {
