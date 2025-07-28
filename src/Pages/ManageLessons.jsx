@@ -120,14 +120,13 @@ const ManageLessons = () => {
     const fetchLessons = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${BASE_URL}/api/v1/courses/${courseId}/lessons`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const lessonList = res.data.units.flatMap((unit) => [
-          { ...unit, isUnitHeader: true },
-          ...unit.lessons.map((l) => ({ ...l, unitName: unit.unitName })),
-        ]);
-        setLessons(lessonList);
+        const res = await axios.get(
+          `${BASE_URL}/api/v1/lessons/${courseId}/lessons`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setLessons(res.data.lessons || []);
       } catch (err) {
         toast.error("Failed to fetch lessons");
       } finally {
