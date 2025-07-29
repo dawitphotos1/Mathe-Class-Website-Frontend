@@ -65,7 +65,9 @@ const CreateLesson = () => {
 
       confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
       toast.success("🎉 Lesson created successfully");
-      navigate(`/courses/${courseId}/manage-lessons`);
+
+      // ✅ Redirect back to MyTeachingCourses with refresh flag
+      navigate("/my-teaching-courses", { state: { refresh: true } });
     } catch (err) {
       toast.error(err.response?.data?.error || "Lesson creation failed");
     } finally {
@@ -174,3 +176,4 @@ const CreateLesson = () => {
 };
 
 export default CreateLesson;
+

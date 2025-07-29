@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
 import ConfirmModal from "../../components/ConfirmModal";
@@ -10,8 +10,10 @@ const normalizeUrl = (url) => url?.replace(/^\/uploads/i, "/Uploads");
 
 const MyTeachingCourses = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [courses, setCourses] = useState([]);
   const [courseLessons, setCourseLessons] = useState({});
+  const [expandedUnits, setExpandedUnits] = useState({});
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [modal, setModal] = useState({ show: false });
@@ -19,7 +21,6 @@ const MyTeachingCourses = () => {
   const [renaming, setRenaming] = useState({});
   const [editingName, setEditingName] = useState({});
 
-  // ✅ Load theme preference
   useEffect(() => {
     const savedTheme = localStorage.getItem("darkMode");
     if (savedTheme) setDarkMode(JSON.parse(savedTheme));
@@ -31,24 +32,31 @@ const MyTeachingCourses = () => {
 
   const toggleTheme = () => setDarkMode((prev) => !prev);
 
-  // ✅ Fetch lessons for a specific course
   const fetchLessonsForCourse = async (courseId, token) => {
     try {
-      const res = await axios.get(
-        `${BASE_URL}/lessons/course/${courseId}/lessons`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true,
-        }
-      );
-      return res.data.lessons || [];
+      const res = await axios.get(`${BASE_URL}/lessons/course/${courseId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
+
+      if (res.data.units) {
+        return res.data.units;
+      } else if (res.data.lessons) {
+        return [
+          {
+            unitName: "Ungrouped Lessons",
+            lessons: res.data.lessons,
+          },
+        ];
+      }
+
+      return [];
     } catch (err) {
       console.error(`❌ Failed to fetch lessons for course ${courseId}:`, err);
       return [];
     }
   };
 
-  // ✅ Fetch teacher's courses
   const fetchCourses = async () => {
     setLoading(true);
     try {
@@ -67,11 +75,10 @@ const MyTeachingCourses = () => {
       if (res.data.success && Array.isArray(res.data.courses)) {
         setCourses(res.data.courses);
 
-        // Fetch lessons for each course
         const lessonsMap = {};
         for (const course of res.data.courses) {
-          const lessons = await fetchLessonsForCourse(course.id, token);
-          lessonsMap[course.id] = lessons;
+          const units = await fetchLessonsForCourse(course.id, token);
+          lessonsMap[course.id] = units;
         }
         setCourseLessons(lessonsMap);
       } else {
@@ -87,9 +94,20 @@ const MyTeachingCourses = () => {
 
   useEffect(() => {
     fetchCourses();
+
+    const handleFocus = () => fetchCourses();
+    window.addEventListener("focus", handleFocus);
+
+    if (location.state?.refresh) {
+      fetchCourses();
+      window.history.replaceState({}, document.title);
+    }
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
   }, []);
 
-  // ✅ Delete a course
   const deleteCourse = (courseId) => {
     setModal({
       show: true,
@@ -112,6 +130,36 @@ const MyTeachingCourses = () => {
         }
       },
     });
+  };
+
+  const deleteLesson = (lessonId, courseId) => {
+    setModal({
+      show: true,
+      title: "Delete Lesson",
+      message: "Are you sure you want to delete this lesson?",
+      onConfirm: async () => {
+        try {
+          const token = localStorage.getItem("token");
+          await axios.delete(`${BASE_URL}/lessons/${lessonId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+            withCredentials: true,
+          });
+          toast.success("✅ Lesson deleted");
+          fetchCourses(); // Refresh list
+        } catch {
+          toast.error("❌ Failed to delete lesson");
+        } finally {
+          setModal({ show: false });
+        }
+      },
+    });
+  };
+
+  const toggleUnit = (courseId, unitName) => {
+    setExpandedUnits((prev) => ({
+      ...prev,
+      [`${courseId}-${unitName}`]: !prev[`${courseId}-${unitName}`],
+    }));
   };
 
   const handlePreviewPdf = (url) => setPdfPreview(url);
@@ -294,17 +342,66 @@ const MyTeachingCourses = () => {
               )}
 
               {/* Lessons */}
-              {courseLessons[course.id]?.length > 0 && (
+              {courseLessons[course.id]?.length > 0 ? (
                 <div className="lesson-list">
                   <strong>📚 Lessons:</strong>
-                  <ul>
-                    {courseLessons[course.id].map((lesson) => (
-                      <li key={lesson.id}>
-                        <strong>{lesson.title}</strong> — {lesson.contentType}
-                      </li>
-                    ))}
-                  </ul>
+                  {courseLessons[course.id].map((unit) => {
+                    const key = `${course.id}-${unit.unitName}`;
+                    return (
+                      <div key={key} className="unit-section">
+                        <h4
+                          onClick={() => toggleUnit(course.id, unit.unitName)}
+                          style={{ cursor: "pointer" }}
+                        >
+                          📦 {unit.unitName} {expandedUnits[key] ? "🔽" : "▶️"}
+                        </h4>
+                        {expandedUnits[key] &&
+                          unit.lessons.map((lesson) => (
+                            <div key={lesson.id} className="lesson-item">
+                              <strong>{lesson.title}</strong> —{" "}
+                              {lesson.contentType}
+                              <div style={{ marginTop: "0.3rem" }}>
+                                <button
+                                  onClick={() =>
+                                    navigate(
+                                      `/courses/${course.id}/lessons/${lesson.id}/edit`
+                                    )
+                                  }
+                                >
+                                  📝 Edit
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    deleteLesson(lesson.id, course.id)
+                                  }
+                                >
+                                  🗑 Delete
+                                </button>
+                                {lesson.fileUrl && (
+                                  <button
+                                    onClick={() =>
+                                      handlePreviewPdf(
+                                        `${BASE_URL.replace(
+                                          "/api/v1",
+                                          ""
+                                        )}${normalizeUrl(lesson.fileUrl)}`
+                                      )
+                                    }
+                                  >
+                                    📄 Preview
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    );
+                  })}
                 </div>
+              ) : (
+                <p style={{ fontStyle: "italic" }}>
+                  📭 No lessons yet for this course.
+                </p>
               )}
 
               <div className="course-actions">
