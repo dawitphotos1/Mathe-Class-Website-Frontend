@@ -34,10 +34,13 @@ const MyTeachingCourses = () => {
 
   const fetchLessonsForCourse = async (courseId, token) => {
     try {
-      const res = await axios.get(`${BASE_URL}/lessons/course/${courseId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true,
-      });
+      const res = await axios.get(
+        `${BASE_URL}/lessons/course/${courseId}/lessons`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      );
 
       if (res.data.units) {
         return res.data.units;
@@ -49,7 +52,6 @@ const MyTeachingCourses = () => {
           },
         ];
       }
-
       return [];
     } catch (err) {
       console.error(`❌ Failed to fetch lessons for course ${courseId}:`, err);
@@ -81,6 +83,15 @@ const MyTeachingCourses = () => {
           lessonsMap[course.id] = units;
         }
         setCourseLessons(lessonsMap);
+
+        // ✅ NEW: Auto-expand all unit sections
+        const expandedMap = {};
+        Object.keys(lessonsMap).forEach((courseId) => {
+          lessonsMap[courseId].forEach((unit) => {
+            expandedMap[`${courseId}-${unit.unitName}`] = true;
+          });
+        });
+        setExpandedUnits(expandedMap);
       } else {
         setCourses([]);
       }
@@ -276,7 +287,7 @@ const MyTeachingCourses = () => {
               <h3>{course.title}</h3>
               <p>{course.description || "No description available."}</p>
 
-              {/* Attachments */}
+              {/* Course Attachments */}
               {course.attachmentUrls?.length > 0 && (
                 <div className="attachment-list">
                   <strong>📎 Attachments:</strong>
@@ -286,7 +297,6 @@ const MyTeachingCourses = () => {
                       "/api/v1",
                       ""
                     )}${normalizeUrl(url)}`;
-
                     return (
                       <div key={idx} className="attachment-item">
                         {renaming.courseId === course.id &&
@@ -313,12 +323,7 @@ const MyTeachingCourses = () => {
                             <button onClick={() => handlePreviewPdf(fileUrl)}>
                               📄 Preview
                             </button>
-                            <a
-                              href={fileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              download
-                            >
+                            <a href={fileUrl} download>
                               ⬇️ Download
                             </a>
                             <button
@@ -370,27 +375,44 @@ const MyTeachingCourses = () => {
                                 >
                                   📝 Edit
                                 </button>
-                                <button
-                                  onClick={() =>
-                                    deleteLesson(lesson.id, course.id)
-                                  }
-                                >
-                                  🗑 Delete
-                                </button>
-                                {lesson.fileUrl && (
-                                  <button
-                                    onClick={() =>
-                                      handlePreviewPdf(
-                                        `${BASE_URL.replace(
+                                {/* ✅ Show PDF controls for file-based lessons */}
+                                {lesson.contentType === "file" &&
+                                  lesson.contentUrl && (
+                                    <>
+                                      <button
+                                        onClick={() =>
+                                          handlePreviewPdf(
+                                            `${BASE_URL.replace(
+                                              "/api/v1",
+                                              ""
+                                            )}${normalizeUrl(
+                                              lesson.contentUrl
+                                            )}`
+                                          )
+                                        }
+                                      >
+                                        📄 Preview
+                                      </button>
+                                      <a
+                                        href={`${BASE_URL.replace(
                                           "/api/v1",
                                           ""
-                                        )}${normalizeUrl(lesson.fileUrl)}`
-                                      )
-                                    }
-                                  >
-                                    📄 Preview
-                                  </button>
-                                )}
+                                        )}${normalizeUrl(lesson.contentUrl)}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        download
+                                      >
+                                        ⬇️ Download
+                                      </a>
+                                      <button
+                                        onClick={() =>
+                                          deleteLesson(lesson.id, course.id)
+                                        }
+                                      >
+                                        🗑️ Delete
+                                      </button>
+                                    </>
+                                  )}
                               </div>
                             </div>
                           ))}
@@ -426,6 +448,7 @@ const MyTeachingCourses = () => {
         </div>
       )}
 
+      {/* PDF Modal */}
       {pdfPreview && (
         <div className="pdf-modal">
           <div className="pdf-modal-content">
@@ -454,5 +477,3 @@ const MyTeachingCourses = () => {
 };
 
 export default MyTeachingCourses;
-
-

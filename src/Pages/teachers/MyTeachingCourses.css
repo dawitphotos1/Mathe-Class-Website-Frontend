@@ -217,7 +217,6 @@
   background-color: #444;
 }
 
-
 .rename-section {
   display: flex;
   align-items: center;
@@ -248,7 +247,6 @@
 }
 
 
-
 .lesson-list {
   margin-top: 1rem;
   padding-left: 0.5rem;
@@ -263,3 +261,100 @@
   color: #3498db;
   text-decoration: underline;
 }
+
+/* Lessons Display Styling */
+.unit-section {
+  margin-top: 1rem;
+}
+.unit-section h4 {
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.3rem;
+  color: #2c3e50;
+}
+.lesson-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.4rem 0 0.4rem 1rem;
+  background: #eef8f1;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  border: 1px solid #c8e6c9;
+}
+.lesson-item strong {
+  font-weight: 600;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lesson-item button,
+.lesson-item a {
+  font-size: 0.8rem;
+  padding: 3px 6px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #ddd;
+  transition: background 0.2s;
+}
+
+.lesson-item button:hover,
+.lesson-item a:hover {
+  background-color: #ccc;
+}
+
+.lesson-item .delete {
+  background-color: #e74c3c;
+  color: white;
+}
+.lesson-item .delete:hover {
+  background-color: #c0392b;
+}
+
+.lesson-item .rename {
+  background-color: #f1c40f;
+  color: black;
+}
+.lesson-item .rename:hover {
+  background-color: #d4ac0d;
+}
+
+.lesson-item .preview {
+  background-color: #2980b9;
+  color: white;
+}
+.lesson-item .preview:hover {
+  background-color: #2471a3;
+}
+
+.lesson-item .edit {
+  background-color: #8e44ad;
+  color: white;
+}
+.lesson-item .edit:hover {
+  background-color: #6c3483;
+}
+
+/* Dark Mode lesson items */
+.my-teaching-courses.dark .lesson-item {
+  background: #3a4a3a;
+  border-color: #555;
+}
+.my-teaching-courses.dark .lesson-item button,
+.my-teaching-courses.dark .lesson-item a {
+  background-color: #555;
+  color: #fff;
+}
+.my-teaching-courses.dark .lesson-item button:hover,
+.my-teaching-courses.dark .lesson-item a:hover {
+  background-color: #777;
+}
+

@@ -1,8 +1,8 @@
-import React from "react";
+
+import React, { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import confetti from "canvas-confetti";
-import FileUpload from "../components/FileUpload";
 import { useLessonForm } from "../hooks/useLessonForm";
 import axios from "../utils/axios";
 import "./CreateLesson.css";
@@ -10,18 +10,50 @@ import "./CreateLesson.css";
 const CreateLesson = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
+  const dropRef = useRef();
+  const [previewUrl, setPreviewUrl] = useState(null);
+
   const {
     formData,
     setFormData,
     units,
     uploading,
     uploadProgress,
-    previewFile,
     loading,
     setLoading,
     handleChange,
-    handleFileUpload,
   } = useLessonForm(courseId);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData((prev) => ({ ...prev, file }));
+      const isPreviewable =
+        file.type.startsWith("image/") || file.type.startsWith("video/");
+      if (isPreviewable) {
+        setPreviewUrl(URL.createObjectURL(file));
+      } else {
+        setPreviewUrl(null);
+      }
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      setFormData((prev) => ({ ...prev, file }));
+      const isPreviewable =
+        file.type.startsWith("image/") || file.type.startsWith("video/");
+      if (isPreviewable) {
+        setPreviewUrl(URL.createObjectURL(file));
+      } else {
+        setPreviewUrl(null);
+      }
+    }
+  };
+
+  const handleDragOver = (e) => e.preventDefault();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -65,8 +97,6 @@ const CreateLesson = () => {
 
       confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
       toast.success("🎉 Lesson created successfully");
-
-      // ✅ Redirect back to MyTeachingCourses with refresh flag
       navigate("/my-teaching-courses", { state: { refresh: true } });
     } catch (err) {
       toast.error(err.response?.data?.error || "Lesson creation failed");
@@ -91,17 +121,32 @@ const CreateLesson = () => {
           />
         </div>
 
-        <FileUpload
-          uploading={uploading}
-          uploadProgress={uploadProgress}
-          previewFile={previewFile}
-          onUpload={(file) => {
-            setFormData((prev) => ({
-              ...prev,
-              file,
-            }));
-          }}
-        />
+        <div
+          className="file-drop-zone"
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          ref={dropRef}
+        >
+          <p>📤 Drag & drop a file here, or click to browse</p>
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx,.ppt,.pptx,image/*,video/*"
+            onChange={handleFileChange}
+            className="file-input-hidden"
+          />
+        </div>
+
+        {formData.file && (
+          <p className="file-name">✅ Selected: {formData.file.name}</p>
+        )}
+
+        {previewUrl && formData.file?.type.startsWith("image/") && (
+          <img src={previewUrl} alt="Preview" className="file-preview" />
+        )}
+
+        {previewUrl && formData.file?.type.startsWith("video/") && (
+          <video src={previewUrl} controls className="file-preview" />
+        )}
 
         <div className="form-group checkbox">
           <label>
@@ -176,4 +221,3 @@ const CreateLesson = () => {
 };
 
 export default CreateLesson;
-
