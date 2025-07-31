@@ -80,37 +80,67 @@
 // export default ClassPage;
 
 
-
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { useParams } from "react-router-dom";
-import api from "../../api/axios";
 import "./ClassPage.css";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || "";
+const getFileIcon = (url) => {
+  if (!url) return "📁";
+  if (url.endsWith(".pdf")) return "📄";
+  if (url.endsWith(".mp4") || url.includes("video")) return "🎬";
+  if (url.match(/\.(jpg|jpeg|png|gif)$/i)) return "🖼️";
+  return "📎";
+};
 
 const ClassPage = () => {
   const { slug } = useParams();
   const [course, setCourse] = useState(null);
   const [lessons, setLessons] = useState([]);
+  const [expandedUnits, setExpandedUnits] = useState({});
+  const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [openLessonId, setOpenLessonId] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const res = await api.get("/enrollments/my-courses", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+        const token = localStorage.getItem("token");
+        const enrolledRes = await axios.get("/api/v1/enrollments/my-courses", {
+          headers: { Authorization: `Bearer ${token}` },
         });
+        const matched = enrolledRes.data.courses.find((c) => c.slug === slug);
+        if (!matched) {
+          setError("Course not found or not enrolled.");
+          setLoading(false);
+          return;
+        }
+        setCourse(matched);
 
-        const match = res.data.courses.find((c) => c.slug === slug);
-        if (!match) throw new Error("Course not found or not enrolled");
-        setCourse(match);
-        setLessons(match.lessons || []);
+        const lessonsRes = await axios.get(
+          `/api/v1/lessons/course/${matched.id}/lessons`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        const grouped = lessonsRes.data.lessons.reduce((acc, lesson) => {
+          const unit = lesson.unitTitle || "General";
+          if (!acc[unit]) acc[unit] = [];
+          acc[unit].push(lesson);
+          return acc;
+        }, {});
+
+        setLessons(grouped);
+        setExpandedUnits(
+          Object.keys(grouped).reduce((acc, unit) => {
+            acc[unit] = true;
+            return acc;
+          }, {})
+        );
+        setLoading(false);
       } catch (err) {
-        console.error("Error loading course:", err);
-      } finally {
+        setError("Failed to load course or lessons.");
         setLoading(false);
       }
     };
@@ -118,75 +148,109 @@ const ClassPage = () => {
     fetchCourse();
   }, [slug]);
 
-  const toggleLesson = (id) => {
-    setOpenLessonId(openLessonId === id ? null : id);
-  };
-
   if (loading) return <div className="class-loading">Loading...</div>;
-  if (!course) return <div className="class-error">Course not found.</div>;
+  if (error) return <div className="class-error">{error}</div>;
+  if (!course) return null;
 
   return (
     <div className="class-page">
-      <h2 className="course-title">{course.title}</h2>
+      <h2>{course.title}</h2>
       <p className="class-description">{course.description}</p>
 
       <div className="lesson-list">
-        {lessons.length === 0 ? (
-          <p>No lessons yet.</p>
-        ) : (
-          lessons.map((lesson) => (
+        {Object.entries(lessons).map(([unit, unitLessons]) => (
+          <div className="unit-section" key={unit}>
             <div
-              key={lesson.id}
-              className={`lesson-item ${
-                openLessonId === lesson.id ? "open" : ""
-              }`}
+              className="unit-toggle"
+              onClick={() =>
+                setExpandedUnits((prev) => ({
+                  ...prev,
+                  [unit]: !prev[unit],
+                }))
+              }
             >
-              <div
-                className="lesson-header"
-                onClick={() => toggleLesson(lesson.id)}
-              >
-                <img
-                  src="/thumbnail-icon.png"
-                  alt="Thumbnail"
-                  className="lesson-thumbnail"
-                />
-                <h4>{lesson.title}</h4>
-                <span className="toggle-icon">
-                  {openLessonId === lesson.id ? "▲" : "▼"}
-                </span>
-              </div>
-
-              {openLessonId === lesson.id && (
-                <div className="lesson-content">
-                  {lesson.contentType === "text" && (
-                    <p className="text-content">{lesson.textContent}</p>
-                  )}
-                  {lesson.contentType === "video" && lesson.videoUrl && (
-                    <video
-                      controls
-                      src={lesson.videoUrl}
-                      className="lesson-video"
-                    />
-                  )}
-                  {lesson.contentType === "file" && lesson.contentUrl && (
-                    <a
-                      href={`${BASE_URL}${lesson.contentUrl}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="lesson-download"
-                    >
-                      Download Attachment
-                    </a>
-                  )}
-                </div>
-              )}
+              {expandedUnits[unit] ? "▼" : "►"} {unit}
             </div>
-          ))
-        )}
+
+            {expandedUnits[unit] && (
+              <div className="unit-lessons">
+                {unitLessons.map((lesson) => (
+                  <div className="lesson-item with-thumbnail" key={lesson.id}>
+                    {lesson.contentUrl && (
+                      <img
+                        className="lesson-thumb"
+                        src={
+                          lesson.contentUrl.endsWith(".mp4")
+                            ? "/images/video-thumb.jpg"
+                            : "/images/pdf-thumb.jpg"
+                        }
+                        alt="thumb"
+                      />
+                    )}
+                    <div className="lesson-content">
+                      <h4>
+                        {getFileIcon(lesson.contentUrl)} {lesson.title}
+                        {lesson.contentType !== "text" && (
+                          <span
+                            className="preview-icon"
+                            onClick={() => setPreview(lesson)}
+                          >
+                            🔍
+                          </span>
+                        )}
+                      </h4>
+                      {lesson.contentType === "text" && <p>{lesson.text}</p>}
+                      {lesson.contentType === "video" && lesson.videoUrl && (
+                        <video
+                          className="lesson-video"
+                          controls
+                          src={lesson.videoUrl}
+                        ></video>
+                      )}
+                      {lesson.contentType === "file" && lesson.contentUrl && (
+                        <a
+                          href={lesson.contentUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="lesson-download"
+                        >
+                          Download File
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
       </div>
+
+      {preview && (
+        <div className="modal-overlay" onClick={() => setPreview(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <span className="modal-close" onClick={() => setPreview(null)}>
+              ✖
+            </span>
+            {preview.contentType === "file" &&
+            preview.contentUrl.endsWith(".pdf") ? (
+              <iframe
+                src={preview.contentUrl}
+                className="preview-pdf"
+                title="Preview PDF"
+              />
+            ) : preview.contentType === "video" ? (
+              <video
+                className="preview-video"
+                controls
+                src={preview.videoUrl}
+              ></video>
+            ) : null}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default ClassPage;
-
