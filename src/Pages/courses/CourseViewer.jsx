@@ -82,13 +82,16 @@
 // export default CourseViewer;
 
 
-
 // src/pages/CourseViewer.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "./CourseViewer.css";
+
+const BACKEND_BASE =
+  process.env.REACT_APP_API_BASE_URL ||
+  "https://mathe-class-website-backend-1.onrender.com";
 
 const CourseViewer = () => {
   const { slug } = useParams();
@@ -99,17 +102,24 @@ const CourseViewer = () => {
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get(`/api/v1/courses/slug/${slug}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        console.log("Fetching course with slug:", slug);
+        const res = await axios.get(
+          `${BACKEND_BASE}/api/v1/courses/slug/${slug}`
+        );
 
-        if (!res.data.success) throw new Error("Unauthorized or not enrolled");
+        if (!res.data?.success) {
+          console.warn("Unexpected response shape:", res.data);
+          throw new Error("Course fetch failed");
+        }
 
-        // ✅ Extract the actual course object from the response
         setCourse(res.data.course);
       } catch (err) {
-        toast.error("You are not enrolled in this course.");
+        console.error("Fetch course error:", err);
+        if (err.response?.status === 404) {
+          toast.error("Course not found."); // slug likely invalid/missing
+        } else {
+          toast.error("You are not enrolled in this course or it failed to load.");
+        }
         navigate("/my-courses");
       } finally {
         setLoading(false);
