@@ -2045,8 +2045,9 @@ const courseData = {
     ],
   },
 };
+
 const CourseDetail = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // slug
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isStudent = user?.role === "student";
@@ -2064,19 +2065,21 @@ const CourseDetail = () => {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  const toggleTheme = () =>
+  const toggleTheme = () => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  };
 
   useEffect(() => {
     const fetchCourse = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem("token");
 
         const res = await axios.get(
           `${API_BASE_URL}/api/v1/courses/slug/${id}`,
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
           }
         );
 
@@ -2099,21 +2102,28 @@ const CourseDetail = () => {
           lessons: lessonsArray,
           teacher: backendCourse.teacher || { name: "Unknown" },
           materialUrl: backendCourse.materialUrl || null,
+          lessonCount: lessonsArray.length,
         });
 
         if (isStudent && backendCourse.id) {
           const enrollRes = await axios.get(
             `${API_BASE_URL}/api/v1/enrollments/check/${backendCourse.id}`,
-            { headers: { Authorization: `Bearer ${token}` } }
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
           );
           setIsEnrolled(enrollRes.data?.isEnrolled === true);
+        } else {
+          setIsEnrolled(false);
         }
 
         setError(null);
       } catch (err) {
         console.error("Fetch course error:", err);
         const msg = err.response?.data?.error || err.message;
-        setError(`❌ ${msg}`);
+        setError(`❌ Error: ${msg}`);
         toast.error(`❌ ${msg}`);
       } finally {
         setLoading(false);
@@ -2190,7 +2200,7 @@ const CourseDetail = () => {
         <h1>{course.title}</h1>
         <p className="course-description">{course.description}</p>
         <p className="course-teacher">Teacher: {course.teacher.name}</p>
-        <p className="course-lessons">Lessons: {course.lessons.length}</p>
+        <p className="course-lessons">Lessons: {course.lessonCount}</p>
 
         {course.materialUrl && (
           <div className="course-material">
@@ -2214,7 +2224,6 @@ const CourseDetail = () => {
         {(!Array.isArray(course.lessons) || course.lessons.length === 0) && (
           <p>No lessons available yet.</p>
         )}
-
         {Array.isArray(course.lessons) &&
           course.lessons.map((lesson, idx) => (
             <div key={idx} className="lesson-item">
@@ -2247,11 +2256,12 @@ const CourseDetail = () => {
       <div className="course-footer">
         {isStudent && (
           <>
-            {!isEnrolled ? (
+            {!isEnrolled && (
               <button className="btn-enroll" onClick={handleEnrollClick}>
                 Enroll Now
               </button>
-            ) : (
+            )}
+            {isEnrolled && (
               <button
                 className="btn-start-course"
                 onClick={handleStartCourseClick}
