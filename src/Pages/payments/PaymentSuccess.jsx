@@ -36,7 +36,8 @@ const PaymentSuccess = () => {
         toast.success(response.data.message || "Enrollment confirmed!");
         setStatus("success");
 
-        setTimeout(() => navigate("/login"), 5000); // Auto-redirect after 5 seconds
+        // inside PaymentSuccess.jsx success case
+        setTimeout(() => navigate("/my-courses"), 3000);
       } catch (err) {
         console.error("❌ Enrollment confirmation error:", err);
         toast.error(

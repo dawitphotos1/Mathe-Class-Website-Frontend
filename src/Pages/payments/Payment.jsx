@@ -153,7 +153,7 @@
 
 
 
-
+// Payment.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -163,7 +163,7 @@ import { toast } from "react-toastify";
 import "./Payment.css";
 
 const stripePromise = loadStripe(
-  process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || "" // ensure this is set in your frontend env
+  process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || ""
 );
 
 const Payment = () => {
@@ -175,7 +175,7 @@ const Payment = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
 
     if (!user || !user.id || !user.email) {
       toast.error("User not logged in or incomplete user data.");
@@ -195,19 +195,20 @@ const Payment = () => {
           `${API_BASE_URL}/api/v1/courses/${courseId}`
         );
 
-        if (response.data.success || response.data.title) {
-          // accommodate potential shape differences
+        // Accept both shapes: { success: true, ... } or direct fields
+        const payload = response.data;
+        if (payload.success || payload.title) {
           setCourseInfo({
-            id: response.data.id || courseId,
-            title: response.data.title,
-            price: Number(response.data.price || 0),
+            id: payload.id || courseId,
+            title: payload.title,
+            price: Number(payload.price || 0),
           });
         } else {
-          throw new Error(response.data.error || "Failed to fetch course");
+          throw new Error(payload.error || "Failed to fetch course");
         }
       } catch (err) {
         const errorMessage =
-          err.response?.data?.error || "Invalid course selected";
+          err.response?.data?.error || err.message || "Invalid course selected";
         setError(errorMessage);
         toast.error(errorMessage);
       } finally {
@@ -239,7 +240,6 @@ const Payment = () => {
         return;
       }
 
-      // Request checkout session
       const response = await axios.post(
         `${API_BASE_URL}/api/v1/payments/create-checkout-session`,
         {
@@ -263,20 +263,16 @@ const Payment = () => {
         throw new Error("Stripe failed to load");
       }
 
-      // Redirect to Stripe checkout
       const { error: stripeError } = await stripe.redirectToCheckout({
         sessionId,
       });
       if (stripeError) {
         console.error("Stripe redirect error:", stripeError);
         toast.error(stripeError.message || "Failed to redirect to payment");
-        setError(stripeError.message || "Stripe redirect failed");
       }
     } catch (err) {
       const errorMessage =
-        err.response?.data?.error ||
-        err.message ||
-        "Failed to initiate payment";
+        err.response?.data?.error || err.message || "Failed to initiate payment";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
