@@ -27,6 +27,7 @@ import CourseLessonManager from "./Pages/CourseLessonManager";
 import AdminLessonLogs from "./Pages/AdminLessonLogs";
 import EditLesson from "./Pages/teachers/EditLesson";
 import { ThemeProvider } from "./context/ThemeContext";
+import EnrollmentSuccess from "./Pages/payments/EnrollmentSuccess";   
 
 // ✅ Lazy-loaded pages
 const Home = React.lazy(() => import("./Pages/Home"));
@@ -115,6 +116,10 @@ function App() {
               <Route path="/courses" element={<CourseList />} />
               <Route path="/courses/:id" element={<CourseViewer />} />
               <Route path="/course/:id" element={<CourseDetail />} />
+              <Route
+                path="/enrollment-success"
+                element={<EnrollmentSuccess />}
+              />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/payment-cancel" element={<PaymentCancel />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
