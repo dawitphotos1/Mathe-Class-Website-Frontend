@@ -105,3 +105,13 @@
     margin-top: 1rem;
   }
   
+
+  @media (max-width: 600px) {
+  .payment-success-container {
+    padding: 1rem;
+  }
+
+  .btn-primary, .btn-secondary, .btn-outline {
+    width: 100%;
+  }
+}

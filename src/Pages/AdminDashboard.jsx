@@ -750,7 +750,7 @@ const AdminDashboard = ({ onLogout }) => {
     }
   };
 
-  // CSV helpers (unchanged)
+  // CSV helpers
   const downloadCSV = (csvString, filename) => {
     const uri = "data:text/csv;charset=utf-8," + encodeURIComponent(csvString);
     const link = document.createElement("a");
@@ -845,7 +845,7 @@ const AdminDashboard = ({ onLogout }) => {
           </div>
         </div>
 
-        {/* Summary */}
+        {/* Summary Cards */}
         <div className="summary-cards">
           {user.role === "admin" && (
             <>
@@ -913,7 +913,7 @@ const AdminDashboard = ({ onLogout }) => {
           </button>
         </div>
 
-        {/* Pending Enrollments Tab */}
+        {/* Pending Enrollments */}
         {activeTab === "pendingEnrollments" && (
           <>
             <h3>Pending Enrollments</h3>
@@ -936,6 +936,16 @@ const AdminDashboard = ({ onLogout }) => {
                 ))}
               </select>
             </div>
+
+            <div className="filter-boxes">
+              <input
+                type="text"
+                placeholder="Search by student name..."
+                value={studentFilter}
+                onChange={(e) => setStudentFilter(e.target.value)}
+              />
+            </div>
+
             <table className="user-table">
               <thead>
                 <tr>
@@ -960,13 +970,13 @@ const AdminDashboard = ({ onLogout }) => {
                         className="btn-primary"
                         onClick={() => handleApproveEnrollment(e.id)}
                       >
-                        Approve
+                        ✅ Approve
                       </button>
                       <button
                         className="btn-action btn-reject"
                         onClick={() => handleRejectEnrollment(e.id)}
                       >
-                        Reject
+                        ❌ Reject
                       </button>
                     </td>
                   </tr>
@@ -976,7 +986,7 @@ const AdminDashboard = ({ onLogout }) => {
           </>
         )}
 
-        {/* Approved Enrollments Tab */}
+        {/* Approved Enrollments */}
         {activeTab === "approvedEnrollments" && (
           <>
             <h3>Approved Enrollments</h3>
