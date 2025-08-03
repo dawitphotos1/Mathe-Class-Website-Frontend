@@ -99,10 +99,12 @@
 // export default Courses;
 
 
+
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useAxios } from "../hook"; // Assuming hook.js is in src/
+import { useAxios } from "../hooks"; // ✅ Import from hooks.js
 import { API_BASE_URL } from "../../config";
 import "./Courses.css";
 
@@ -114,6 +116,7 @@ const Courses = ({ user }) => {
     {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
+        "Content-Type": "application/json",
       },
     }
   );
@@ -127,9 +130,12 @@ const Courses = ({ user }) => {
       const response = await fetch(
         `${API_BASE_URL}/api/v1/courses/slug/${slug}`,
         {
+          method: "GET",
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
           },
+          credentials: "include",
         }
       );
       if (!response.ok) {
