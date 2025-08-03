@@ -288,6 +288,8 @@
 // export default Register;
 
 
+
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -344,8 +346,8 @@ const Register = ({ setUser }) => {
     if (password !== confirmPassword) {
       return "Passwords do not match.";
     }
-    if ((role === "student" || role === "teacher") && !subject.trim()) {
-      return "Subject is required for students and teachers.";
+    if (role === "teacher" && !subject.trim()) {
+      return "Subject is required for teachers.";
     }
     return null;
   };
@@ -366,7 +368,7 @@ const Register = ({ setUser }) => {
         email: email.toLowerCase().trim(),
         password,
         role,
-        subject: role === "admin" ? null : subject.trim(),
+        subject: role === "teacher" ? subject.trim() : null,
       };
 
       const response = await axios.post(
@@ -379,7 +381,6 @@ const Register = ({ setUser }) => {
       );
 
       const { token, user } = response.data;
-
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
       setUser(user);
@@ -390,9 +391,7 @@ const Register = ({ setUser }) => {
         );
         navigate("/login");
       } else if (user.role === "student") {
-        toast.info(
-          "Registration successful. Your account is pending teacher/admin approval."
-        );
+        toast.success("Registration successful! You can now log in.");
         navigate("/login");
       } else {
         toast.success("Admin registration successful!");
@@ -417,7 +416,6 @@ const Register = ({ setUser }) => {
             <input
               name="name"
               type="text"
-              placeholder="Full Name"
               value={formData.name}
               onChange={handleChange}
               required
@@ -430,7 +428,6 @@ const Register = ({ setUser }) => {
             <input
               name="email"
               type="email"
-              placeholder="Email Address"
               value={formData.email}
               onChange={handleChange}
               required
@@ -443,7 +440,6 @@ const Register = ({ setUser }) => {
             <input
               name="confirmEmail"
               type="email"
-              placeholder="Confirm Email"
               value={formData.confirmEmail}
               onChange={handleChange}
               required
@@ -457,7 +453,6 @@ const Register = ({ setUser }) => {
               <input
                 name="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Password"
                 value={formData.password}
                 onChange={handleChange}
                 required
@@ -479,7 +474,6 @@ const Register = ({ setUser }) => {
               <input
                 name="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
-                placeholder="Confirm Password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 required
@@ -501,7 +495,6 @@ const Register = ({ setUser }) => {
               name="role"
               value={formData.role}
               onChange={handleChange}
-              required
               disabled={loading}
             >
               <option value="student">Student</option>
@@ -510,37 +503,36 @@ const Register = ({ setUser }) => {
             </select>
           </div>
 
-          {(formData.role === "student" || formData.role === "teacher") && (
+          {formData.role === "teacher" && (
             <div className="form-group">
               <label>Subject</label>
-              {formData.role === "student" ? (
-                <select
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  required
-                  disabled={loading}
-                >
-                  <option value="" disabled>
-                    Select a subject
+              <input
+                name="subject"
+                type="text"
+                placeholder="e.g., Algebra"
+                value={formData.subject}
+                onChange={handleChange}
+                disabled={loading}
+              />
+            </div>
+          )}
+
+          {formData.role === "student" && (
+            <div className="form-group">
+              <label>Choose Subject</label>
+              <select
+                name="subject"
+                value={formData.subject}
+                onChange={handleChange}
+                disabled={loading}
+              >
+                <option value="">Select a subject</option>
+                {studentSubjects.map((subj) => (
+                  <option key={subj} value={subj}>
+                    {subj}
                   </option>
-                  {studentSubjects.map((subj) => (
-                    <option key={subj} value={subj}>
-                      {subj}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  name="subject"
-                  type="text"
-                  placeholder="e.g., Algebra"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  required
-                  disabled={loading}
-                />
-              )}
+                ))}
+              </select>
             </div>
           )}
 
