@@ -101,15 +101,17 @@
 
 
 
-import React from "react";
+
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useAxios } from "../hooks"; // ✅ Import from hooks.js
+import { useAxios } from "../hooks";
 import { API_BASE_URL } from "../../config";
 import "./Courses.css";
 
 const Courses = ({ user }) => {
   const navigate = useNavigate();
+  const [isFetching, setIsFetching] = useState(false);
   const { data, loading, error } = useAxios(
     `${API_BASE_URL}/api/v1/courses/all`,
     "get",
@@ -126,6 +128,8 @@ const Courses = ({ user }) => {
   }
 
   const handleViewCourse = async (slug) => {
+    if (isFetching) return;
+    setIsFetching(true);
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/v1/courses/slug/${slug}`,
@@ -151,6 +155,8 @@ const Courses = ({ user }) => {
         slug,
       });
       toast.error(err.message);
+    } finally {
+      setIsFetching(false);
     }
   };
 
@@ -174,7 +180,7 @@ const Courses = ({ user }) => {
               <button
                 className="btn-primary"
                 onClick={() => handleViewCourse(course.slug)}
-                disabled={loading}
+                disabled={loading || isFetching}
               >
                 View Course
               </button>

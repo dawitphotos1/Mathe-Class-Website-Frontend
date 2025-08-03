@@ -43,14 +43,20 @@
 // };
 
 
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
+import axiosRetry from "axios-retry";
+
+// Disable retries
+axiosRetry(axios, { retries: 0 });
 
 export const useAxios = (url, method = "get", options = {}) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Memoize options to prevent unnecessary re-renders
+  const memoizedOptions = useMemo(() => JSON.stringify(options), [options]);
 
   useEffect(() => {
     let isMounted = true;
@@ -84,7 +90,7 @@ export const useAxios = (url, method = "get", options = {}) => {
     return () => {
       isMounted = false;
     };
-  }, [url, method, JSON.stringify(options)]);
+  }, [url, method, memoizedOptions]);
 
   return { data, loading, error };
 };
