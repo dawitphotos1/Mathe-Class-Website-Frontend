@@ -99,57 +99,32 @@
 // export default Courses;
 
 
-
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
+import { useAxios } from "../hook"; // Assuming hook.js is in src/
 import { API_BASE_URL } from "../../config";
 import "./Courses.css";
 
 const Courses = ({ user }) => {
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { data, loading, error } = useAxios(
+    `${API_BASE_URL}/api/v1/courses/all`,
+    "get",
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    }
+  );
 
-  useEffect(() => {
-    // Handle McAfee extension error
-    window.onerror = (message, source) => {
-      if (source.includes("mcafee")) {
-        toast.warn(
-          "A browser extension (McAfee) may be causing issues. Please disable it and try again."
-        );
-      }
-    };
-
-    // Fetch courses
-    const fetchCourses = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(`${API_BASE_URL}/api/v1/courses/all`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        setCourses(response.data.courses || []);
-      } catch (err) {
-        console.error("Fetch courses error:", {
-          message: err.message,
-          status: err.response?.status,
-          data: err.response?.data,
-        });
-        toast.error(err.response?.data?.error || "Failed to fetch courses");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCourses();
-  }, []);
+  if (error) {
+    toast.error(error);
+  }
 
   const handleViewCourse = async (slug) => {
     try {
-      const response = await axios.get(
+      const response = await fetch(
         `${API_BASE_URL}/api/v1/courses/slug/${slug}`,
         {
           headers: {
@@ -157,15 +132,19 @@ const Courses = ({ user }) => {
           },
         }
       );
-      const { course, isEnrolled } = response.data;
+      if (!response.ok) {
+        throw new Error(
+          (await response.json()).error || "Failed to fetch course"
+        );
+      }
+      const { course, isEnrolled } = await response.json();
       navigate(`/course/${slug}`, { state: { course, isEnrolled } });
     } catch (err) {
       console.error("Fetch course error:", {
         message: err.message,
-        status: err.response?.status,
-        data: err.response?.data,
+        slug,
       });
-      toast.error(err.response?.data?.error || "Failed to fetch course");
+      toast.error(err.message);
     }
   };
 
@@ -174,11 +153,13 @@ const Courses = ({ user }) => {
       <h2>Available Courses</h2>
       {loading ? (
         <p>Loading courses...</p>
-      ) : courses.length === 0 ? (
+      ) : error ? (
+        <p>Error loading courses: {error}</p>
+      ) : !data?.courses || data.courses.length === 0 ? (
         <p>No courses available.</p>
       ) : (
         <div className="courses-list">
-          {courses.map((course) => (
+          {data.courses.map((course) => (
             <div key={course.id} className="course-card">
               <h3>{course.title}</h3>
               <p>{course.description}</p>
@@ -187,6 +168,7 @@ const Courses = ({ user }) => {
               <button
                 className="btn-primary"
                 onClick={() => handleViewCourse(course.slug)}
+                disabled={loading}
               >
                 View Course
               </button>

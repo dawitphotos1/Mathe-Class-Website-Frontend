@@ -1,3 +1,84 @@
+// import React from "react";
+// import { createRoot } from "react-dom/client";
+// import { BrowserRouter } from "react-router-dom";
+// import axios from "axios";
+// import { ToastContainer, toast } from "react-toastify";
+// import "react-toastify/dist/ReactToastify.css";
+// import { API_BASE_URL } from "./config";
+// import App from "./App";
+// import { AuthProvider } from "./context/AuthContext"; // ✅ Added
+// import "./index.css";
+
+// axios.defaults.baseURL = API_BASE_URL;
+// axios.defaults.withCredentials = true;
+
+// // Global error interceptor
+// axios.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     const token = localStorage.getItem("token");
+//     console.log("Interceptor triggered:", {
+//       status: error.response?.status,
+//       url: error.config?.url,
+//       headers: error.config?.headers,
+//       hasToken: !!token,
+//       tokenPrefix: token ? token.substring(0, 20) + "..." : null,
+//       responseData: error.response?.data,
+//     });
+
+//     const isAuthRoute =
+//       error.config?.url?.includes("/login") ||
+//       error.config?.url?.includes("/register") ||
+//       error.config?.url?.includes("/health");
+
+//     if (error.response?.status === 401 && !isAuthRoute) {
+//       console.log("Handling 401 error for URL:", error.config?.url);
+//       setTimeout(() => {
+//         localStorage.removeItem("token");
+//         localStorage.removeItem("user");
+//         toast.error("Session expired. Please log in again.");
+//         window.location.href = "/login";
+//       }, 3000);
+//     } else if (error.code === "ERR_NETWORK") {
+//       console.log("Network error detected");
+//       toast.error("Network Error: Cannot connect to the server.");
+//     }
+
+//     return Promise.reject(error);
+//   }
+// );
+
+// // Unregister service workers
+// if ("serviceWorker" in navigator) {
+//   navigator.serviceWorker
+//     .getRegistrations()
+//     .then((registrations) => {
+//       for (let registration of registrations) {
+//         registration.unregister().then(() => {
+//           console.log("Service worker unregistered:", registration);
+//         });
+//       }
+//     })
+//     .catch((err) => {
+//       console.error("Failed to unregister service workers:", err);
+//     });
+// }
+
+// const root = createRoot(document.getElementById("root"));
+// root.render(
+//   <React.StrictMode>
+//     <AuthProvider>
+//       <BrowserRouter>
+//         <ToastContainer />
+//         <App />
+//       </BrowserRouter>
+//     </AuthProvider>
+//   </React.StrictMode>
+// );
+
+
+
+
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
@@ -6,7 +87,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { API_BASE_URL } from "./config";
 import App from "./App";
-import { AuthProvider } from "./context/AuthContext"; // ✅ Added
+import { AuthProvider } from "./context/AuthContext";
 import "./index.css";
 
 axios.defaults.baseURL = API_BASE_URL;
@@ -33,12 +114,13 @@ axios.interceptors.response.use(
 
     if (error.response?.status === 401 && !isAuthRoute) {
       console.log("Handling 401 error for URL:", error.config?.url);
-      setTimeout(() => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        toast.error("Session expired. Please log in again.");
-        window.location.href = "/login";
-      }, 3000);
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      toast.error("Session expired. Please log in again.");
+      window.location.href = "/login";
+    } else if (error.response?.status === 500) {
+      console.log("Handling 500 error for URL:", error.config?.url);
+      toast.error("Server error: Please try again later or contact support.");
     } else if (error.code === "ERR_NETWORK") {
       console.log("Network error detected");
       toast.error("Network Error: Cannot connect to the server.");
