@@ -288,8 +288,7 @@
 // export default Register;
 
 
-
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -297,15 +296,16 @@ import { API_BASE_URL } from "../../config";
 import "./Register.css";
 
 const Register = ({ setUser }) => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [confirmEmail, setConfirmEmail] = useState("");
-  const [showConfirmEmail, setShowConfirmEmail] = useState(false);
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState("student");
-  const [subject, setSubject] = useState("");
-  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    confirmEmail: "",
+    password: "",
+    confirmPassword: "",
+    role: "student",
+    subject: "",
+  });
+
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -320,117 +320,88 @@ const Register = ({ setUser }) => {
     "Statistics & Probability",
   ];
 
-  // Handle McAfee extension error
-  useEffect(() => {
-    window.onerror = (message, source) => {
-      if (source.includes("mcafee")) {
-        toast.warn(
-          "A browser extension (McAfee) may be causing issues. Please disable it and try again."
-        );
-      }
-    };
-  }, []);
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-  const handleEmailBlur = () => {
-    if (email.trim() && !showConfirmEmail) {
-      setShowConfirmEmail(true);
+  const validateForm = () => {
+    const {
+      name,
+      email,
+      confirmEmail,
+      password,
+      confirmPassword,
+      role,
+      subject,
+    } = formData;
+
+    if (!name || !email || !password || !role) {
+      return "Please fill in all required fields.";
     }
+    if (email !== confirmEmail) {
+      return "Emails do not match.";
+    }
+    if (password !== confirmPassword) {
+      return "Passwords do not match.";
+    }
+    if ((role === "student" || role === "teacher") && !subject.trim()) {
+      return "Subject is required for students and teachers.";
+    }
+    return null;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    const errorMessage = validateForm();
+    if (errorMessage) {
+      toast.error(errorMessage);
+      return;
+    }
+
     setLoading(true);
-
-    if (!name.trim() || !email.trim() || !password || !role) {
-      setError("Please fill in all required fields.");
-      setLoading(false);
-      toast.error("Please fill in all required fields.");
-      return;
-    }
-
-    if (showConfirmEmail && email.trim() !== confirmEmail.trim()) {
-      setError("Emails do not match.");
-      setLoading(false);
-      toast.error("Emails do not match.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      setLoading(false);
-      toast.error("Passwords do not match.");
-      return;
-    }
-
-    if ((role === "student" || role === "teacher") && !subject.trim()) {
-      setError("Subject is required for students and teachers.");
-      setLoading(false);
-      toast.error("Subject is required for students and teachers.");
-      return;
-    }
-
     try {
-      const userData = {
+      const { name, email, password, role, subject } = formData;
+      const payload = {
         name: name.trim(),
         email: email.toLowerCase().trim(),
         password,
         role,
-        subject: role !== "admin" ? subject.trim() : null,
+        subject: role === "admin" ? null : subject.trim(),
       };
-      console.log("Registration request:", {
-        ...userData,
-        password: "****",
-      });
 
       const response = await axios.post(
         `${API_BASE_URL}/api/v1/auth/register`,
-        userData,
+        payload,
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           withCredentials: true,
         }
       );
-      console.log("Registration response:", response.data);
 
       const { token, user } = response.data;
 
-      // Store token and user data
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
       setUser(user);
 
-      toast.success(
-        user.role === "teacher"
-          ? "Registration successful. Your account is pending approval."
-          : "Registration successful!"
-      );
-      navigate(
-        user.role === "teacher" || user.role === "admin"
-          ? "/dashboard"
-          : "/courses"
-      );
+      if (user.role === "teacher") {
+        toast.info(
+          "Registration successful. Your account is pending admin approval."
+        );
+        navigate("/login");
+      } else if (user.role === "student") {
+        toast.info(
+          "Registration successful. Your account is pending teacher/admin approval."
+        );
+        navigate("/login");
+      } else {
+        toast.success("Admin registration successful!");
+        navigate("/dashboard");
+      }
     } catch (err) {
       const serverError =
-        err.response?.data?.error ||
-        err.response?.data?.details ||
-        "Registration failed. Please try again.";
-      const validationErrors = err.response?.data?.details || [];
-      const fullMessage =
-        validationErrors.length > 0
-          ? `${serverError}: ${validationErrors.join(", ")}`
-          : serverError;
-
-      console.error("Registration error:", {
-        message: err.message,
-        status: err.response?.status,
-        data: err.response?.data,
-      });
-
-      setError(fullMessage);
-      toast.error(fullMessage);
+        err.response?.data?.error || "Registration failed. Please try again.";
+      toast.error(serverError);
     } finally {
       setLoading(false);
     }
@@ -439,53 +410,56 @@ const Register = ({ setUser }) => {
   return (
     <div className="auth-container">
       <div className="auth-form">
-        <h2>Register for MathClass 🔒</h2>
-        {error && <p className="error">{error}</p>}
+        <h2>Create Your Account</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Name</label>
             <input
+              name="name"
               type="text"
               placeholder="Full Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={formData.name}
+              onChange={handleChange}
               required
               disabled={loading}
             />
           </div>
+
           <div className="form-group">
             <label>Email</label>
             <input
+              name="email"
               type="email"
               placeholder="Email Address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onBlur={handleEmailBlur}
+              value={formData.email}
+              onChange={handleChange}
               required
               disabled={loading}
             />
           </div>
-          {showConfirmEmail && (
-            <div className="form-group">
-              <label>Confirm Email</label>
-              <input
-                type="email"
-                placeholder="Confirm Email Address"
-                value={confirmEmail}
-                onChange={(e) => setConfirmEmail(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-          )}
+
+          <div className="form-group">
+            <label>Confirm Email</label>
+            <input
+              name="confirmEmail"
+              type="email"
+              placeholder="Confirm Email"
+              value={formData.confirmEmail}
+              onChange={handleChange}
+              required
+              disabled={loading}
+            />
+          </div>
+
           <div className="form-group password-group">
             <label>Password</label>
             <div className="password-input">
               <input
+                name="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={handleChange}
                 required
                 disabled={loading}
               />
@@ -493,20 +467,21 @@ const Register = ({ setUser }) => {
                 type="button"
                 className="toggle-password"
                 onClick={() => setShowPassword(!showPassword)}
-                disabled={loading}
               >
                 {showPassword ? "🙈" : "👁️"}
               </button>
             </div>
           </div>
+
           <div className="form-group password-group">
             <label>Confirm Password</label>
             <div className="password-input">
               <input
+                name="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Confirm Password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                value={formData.confirmPassword}
+                onChange={handleChange}
                 required
                 disabled={loading}
               />
@@ -514,20 +489,18 @@ const Register = ({ setUser }) => {
                 type="button"
                 className="toggle-password"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                disabled={loading}
               >
                 {showConfirmPassword ? "🙈" : "👁️"}
               </button>
             </div>
           </div>
+
           <div className="form-group">
             <label>Role</label>
             <select
-              value={role}
-              onChange={(e) => {
-                setRole(e.target.value);
-                setSubject("");
-              }}
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
               required
               disabled={loading}
             >
@@ -536,13 +509,15 @@ const Register = ({ setUser }) => {
               <option value="admin">Admin</option>
             </select>
           </div>
-          {(role === "student" || role === "teacher") && (
+
+          {(formData.role === "student" || formData.role === "teacher") && (
             <div className="form-group">
               <label>Subject</label>
-              {role === "student" ? (
+              {formData.role === "student" ? (
                 <select
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleChange}
                   required
                   disabled={loading}
                 >
@@ -557,25 +532,23 @@ const Register = ({ setUser }) => {
                 </select>
               ) : (
                 <input
+                  name="subject"
                   type="text"
                   placeholder="e.g., Algebra"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
+                  value={formData.subject}
+                  onChange={handleChange}
                   required
                   disabled={loading}
                 />
               )}
             </div>
           )}
+
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? "Processing..." : "Register"}
+            {loading ? "Registering..." : "Register"}
           </button>
         </form>
-        {role === "teacher" && (
-          <p className="test-card-notice">
-            Note: Your account will be pending approval by an admin.
-          </p>
-        )}
+
         <div className="auth-footer">
           Already have an account? <Link to="/login">Login here</Link>
         </div>

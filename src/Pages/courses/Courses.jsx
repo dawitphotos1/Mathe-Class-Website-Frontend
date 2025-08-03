@@ -99,97 +99,62 @@
 // export default Courses;
 
 
-
-
-
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useMemo } from "react";
+import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAxios } from "../hooks";
 import { API_BASE_URL } from "../../config";
-import "./Courses.css";
 
-const Courses = ({ user }) => {
-  const navigate = useNavigate();
+const Course = () => {
+  const { slug } = useParams();
   const [isFetching, setIsFetching] = useState(false);
-  const { data, loading, error } = useAxios(
-    `${API_BASE_URL}/api/v1/courses/all`,
-    "get",
-    {
+
+  // Memoize options to prevent re-renders
+  const axiosOptions = useMemo(
+    () => ({
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
         "Content-Type": "application/json",
       },
-    }
+    }),
+    [] // Empty dependency array
   );
 
-  if (error) {
+  const { data, loading, error } = useAxios(
+    `${API_BASE_URL}/api/v1/courses/slug/${slug}`,
+    "get",
+    axiosOptions
+  );
+
+  if (error && !isFetching) {
+    setIsFetching(true);
     toast.error(error);
+    setIsFetching(false);
   }
 
-  const handleViewCourse = async (slug) => {
-    if (isFetching) return;
-    setIsFetching(true);
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/v1/courses/slug/${slug}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        }
-      );
-      if (!response.ok) {
-        throw new Error(
-          (await response.json()).error || "Failed to fetch course"
-        );
-      }
-      const { course, isEnrolled } = await response.json();
-      navigate(`/course/${slug}`, { state: { course, isEnrolled } });
-    } catch (err) {
-      console.error("Fetch course error:", {
-        message: err.message,
-        slug,
-      });
-      toast.error(err.message);
-    } finally {
-      setIsFetching(false);
-    }
-  };
-
   return (
-    <div className="courses-container">
-      <h2>Available Courses</h2>
+    <div>
       {loading ? (
-        <p>Loading courses...</p>
+        <p>Loading course...</p>
       ) : error ? (
-        <p>Error loading courses: {error}</p>
-      ) : !data?.courses || data.courses.length === 0 ? (
-        <p>No courses available.</p>
-      ) : (
-        <div className="courses-list">
-          {data.courses.map((course) => (
-            <div key={course.id} className="course-card">
-              <h3>{course.title}</h3>
-              <p>{course.description}</p>
-              <p>Subject: {course.subject}</p>
-              <p>Price: ${course.price}</p>
-              <button
-                className="btn-primary"
-                onClick={() => handleViewCourse(course.slug)}
-                disabled={loading || isFetching}
-              >
-                View Course
-              </button>
-            </div>
-          ))}
+        <p>Error: {error}</p>
+      ) : data?.course ? (
+        <div>
+          <h2>{data.course.title}</h2>
+          <p>{data.course.description}</p>
+          <p>Subject: {data.course.subject}</p>
+          <p>Price: ${data.course.price}</p>
+          {data.isEnrolled ? (
+            <p>You are enrolled in this course!</p>
+          ) : (
+            <p>You are not enrolled in this course.</p>
+          )}
         </div>
+      ) : (
+        <p>Course not found</p>
       )}
     </div>
   );
 };
 
-export default Courses;
+export default Course;
