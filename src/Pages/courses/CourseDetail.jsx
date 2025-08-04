@@ -2254,8 +2254,14 @@ const CourseDetail = () => {
           ))}
       </div>
 
-      <div className="course-footer">
-        {isStudent && (
+      <div className = "course-footer">
+        {user?.role === "teacher" && (
+          <Link to="/courses" className="btn-back">
+            ← Back to Courses
+          </Link>
+        )}
+
+        {user?.role === "student" && (
           <>
             {!isEnrolled && (
               <button className="btn-enroll" onClick={handleEnrollClick}>
@@ -2263,20 +2269,28 @@ const CourseDetail = () => {
               </button>
             )}
             {isEnrolled && (
-              <button
-                className="btn-start-course"
-                onClick={handleStartCourseClick}
-              >
-                Start Course
-              </button>
+              <>
+                <button
+                  className="btn-start-course"
+                  onClick={handleStartCourseClick}
+                >
+                  Start Course
+                </button>
+                <Link to="/courses" className="btn-back">
+                  ← Back to Courses
+                </Link>
+              </>
             )}
           </>
         )}
-        <Link to="/courses" className="btn-back">
-          ← Back to Courses
-        </Link>
+
+        {!user?.role && (
+          <Link to="/courses" className="btn-back">
+            ← Back to Courses
+          </Link>
+        )}
       </div>
-    </div>
+      </div>
   );
 };
 
