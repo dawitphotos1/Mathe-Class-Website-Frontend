@@ -1140,7 +1140,7 @@
 
 
 
-
+// Updated CourseDetail.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -2048,7 +2048,7 @@ const courseData = {
 };
 
 const CourseDetail = () => {
-  const { id } = useParams(); // slug
+  const { id } = useParams();
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isStudent = user?.role === "student";
@@ -2107,15 +2107,19 @@ const CourseDetail = () => {
         });
 
         if (isStudent && backendCourse.id) {
-          const enrollRes = await axios.get(
-            `${API_BASE_URL}/api/v1/enrollments/check/${backendCourse.id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
-          );
-          setIsEnrolled(enrollRes.data?.isEnrolled === true);
+          try {
+            const enrollRes = await axios.get(
+              `${API_BASE_URL}/api/v1/enrollments/check/${backendCourse.id}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+              }
+            );
+            setIsEnrolled(enrollRes.data?.enrolled === true);
+          } catch {
+            setIsEnrolled(false);
+          }
         } else {
           setIsEnrolled(false);
         }
@@ -2124,8 +2128,8 @@ const CourseDetail = () => {
       } catch (err) {
         console.error("Fetch course error:", err);
         const msg = err.response?.data?.error || err.message;
-        setError(`❌ Error: ${msg}`);
-        toast.error(`❌ ${msg}`);
+        setError(`\u274C Error: ${msg}`);
+        toast.error(`\u274C ${msg}`);
       } finally {
         setLoading(false);
       }
@@ -2214,7 +2218,7 @@ const CourseDetail = () => {
               download
               className="material-download"
             >
-              📥 Download Material
+              📅 Download Material
             </a>
           </div>
         )}
@@ -2238,7 +2242,7 @@ const CourseDetail = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  📥 Download
+                  📅 Download
                 </a>
               )}
               {lesson.videoUrl && (
@@ -2254,7 +2258,7 @@ const CourseDetail = () => {
           ))}
       </div>
 
-      <div className = "course-footer">
+      <div className="course-footer">
         {user?.role === "teacher" && (
           <Link to="/courses" className="btn-back">
             ← Back to Courses
@@ -2290,7 +2294,7 @@ const CourseDetail = () => {
           </Link>
         )}
       </div>
-      </div>
+    </div>
   );
 };
 
