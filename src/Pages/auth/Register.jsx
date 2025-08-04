@@ -366,7 +366,7 @@ const Register = ({ setUser }) => {
         );
         navigate("/login");
       } else if (user.role === "student") {
-        toast.success("Registration successful! You can now log in.");
+        toast.success("Registration successful!! Pending for approval.");
         navigate("/login");
       } else {
         toast.success("Admin registration successful!");
