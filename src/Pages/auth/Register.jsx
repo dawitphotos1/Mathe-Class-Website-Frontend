@@ -99,10 +99,8 @@ const Register = ({ setUser }) => {
       setUser(user);
 
       if (user.role === "teacher") {
-        toast.info(
-          "Registration successful. Your account is pending admin approval."
-        );
-        navigate("/login");
+        toast.info("Teacher registration successful!");
+        navigate("/dashboard");
       } else if (user.role === "student") {
         toast.success("Registration successful!! Pending for approval.");
         navigate("/login");
