@@ -62,8 +62,9 @@ const AdminDashboard = ({ onLogout }) => {
           axios.get(`${API_BASE_URL}/api/v1/admin/enrollments/pending`, { headers }),
           axios.get(`${API_BASE_URL}/api/v1/admin/enrollments/approved`, { headers }),
         ]);
-        setPendingEnrollments(pendingEnrollmentsRes.data || []);
-        setApprovedEnrollments(approvedEnrollmentsRes.data || []);
+        setPendingEnrollments(pendingEnrollmentsRes.data.enrollments || []);
+        setApprovedEnrollments(approvedEnrollmentsRes.data.enrollments || []);
+
       }
     } catch (err) {
       handleError(err);
