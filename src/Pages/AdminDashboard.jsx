@@ -320,6 +320,8 @@
 
 
 
+
+
 import React, { useState, useEffect, useCallback, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -350,19 +352,27 @@ const AdminDashboard = () => {
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("No token found in localStorage");
+    }
     return { Authorization: `Bearer ${token}` };
   };
 
   const handleError = useCallback(
     (err) => {
+      console.error("Error details:", err);
       const status = err.response?.status;
+      const message =
+        err.response?.data?.error || err.message || "Something went wrong";
       if (status === 401) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         toast.error("Session expired. Please log in again.");
         navigate("/login");
+      } else if (err.message.includes("CORS")) {
+        toast.error("CORS error: Unable to connect to the server.");
       } else {
-        toast.error(err.response?.data?.error || "Something went wrong");
+        toast.error(message);
       }
     },
     [navigate]
@@ -417,8 +427,8 @@ const AdminDashboard = () => {
       setPendingUsers(pendingRes.data || []);
       setApprovedUsers(approvedRes.data || []);
       setRejectedUsers(rejectedRes.data || []);
-      setPendingEnrollments(pendingEnrollRes.data?.enrollments || []);
-      setApprovedEnrollments(approvedEnrollRes.data?.enrollments || []);
+      setPendingEnrollments(pendingRes.data?.enrollments || []);
+      setApprovedEnrollments(approvedRes.data?.enrollments || []);
     } catch (err) {
       console.error("❌ fetchData error:", err);
       handleError(err);
@@ -426,9 +436,13 @@ const AdminDashboard = () => {
   }, [handleError]);
 
   useEffect(() => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
     fetchDashboardStats();
     fetchData();
-  }, [fetchDashboardStats, fetchData]);
+  }, [user, navigate, fetchDashboardStats, fetchData]);
 
   const handleApproveUser = async (id) => {
     try {
@@ -496,11 +510,12 @@ const AdminDashboard = () => {
           <br />
           {dashboardStats.pendingUsers}
         </div>
+
         <div className="summary-card">
-            ❌ Rejected Users
-             <br />
-           {rejectedUsers.length}
-          </div>
+          ❌ Rejected Users
+          <br />
+          {rejectedUsers.length}
+        </div>
         <div className="summary-card">
           📥 Pending Enrollments
           <br />
