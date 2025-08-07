@@ -5,6 +5,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { AuthContext } from "../../context/AuthContext";
 import { API_BASE_URL } from "../../config";
+import api from "../../api";
 import "./Login.css";
 
 const Login = () => {
@@ -15,6 +16,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const { data } = await api.post("/users/login", { email, password });
 
   const handleSubmit = async (e) => {
     e.preventDefault();

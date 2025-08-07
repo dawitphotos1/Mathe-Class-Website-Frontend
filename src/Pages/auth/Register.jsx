@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { API_BASE_URL } from "../../config";
+import api from "../../api/axios"; // ✅ instead of raw axios
 import "./Register.css";
 
 const Register = ({ setUser }) => {
@@ -22,7 +23,7 @@ const Register = ({ setUser }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
-
+const { data } = await api.post("/users/login", { email, password });
   const studentSubjects = [
     "Algebra 1",
     "Algebra 2",
