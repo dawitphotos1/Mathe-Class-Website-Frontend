@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -76,9 +75,9 @@ const Profile = () => {
               <strong>Subject:</strong> {user.subject}
             </p>
           )}
-          {user.approvalStatus && (
+          {user.approval_status && (
             <p>
-              <strong>Status:</strong> {user.approvalStatus}
+              <strong>Status:</strong> {user.approval_status}
             </p>
           )}
         </div>
@@ -88,5 +87,3 @@ const Profile = () => {
 };
 
 export default Profile;
-
-
