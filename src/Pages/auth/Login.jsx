@@ -23,7 +23,7 @@ const Login = () => {
 
     try {
       const { data } = await axios.post(
-        `${API_BASE_URL}/api/v1/users/login`,
+        `${API_BASE_URL}/api/v1/auth/login`,
         {
           email: email.toLowerCase().trim(),
           password: password.trim(),
@@ -34,6 +34,7 @@ const Login = () => {
           },
         }
       );
+
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
