@@ -1,4 +1,3 @@
-// // context/AuthContext.jsx
 // import React, { createContext, useState, useEffect } from "react";
 // import axios from "axios";
 // import { API_BASE_URL } from "../config";
@@ -23,6 +22,12 @@
 //     setUser(null);
 //   };
 
+//   const loginUser = (token, userObj) => {
+//     localStorage.setItem("token", token);
+//     localStorage.setItem("user", JSON.stringify(userObj));
+//     setUser(userObj);
+//   };
+
 //   useEffect(() => {
 //     const token = localStorage.getItem("token");
 //     if (token && token.startsWith("eyJ")) {
@@ -31,8 +36,12 @@
 //           headers: { Authorization: `Bearer ${token}` },
 //         })
 //         .then((res) => {
-//           setUser(res.data);
-//           localStorage.setItem("user", JSON.stringify(res.data));
+//           if (res.data?.user) {
+//             setUser(res.data.user); // ✅ only user object
+//             localStorage.setItem("user", JSON.stringify(res.data.user));
+//           } else {
+//             logout();
+//           }
 //         })
 //         .catch(() => {
 //           logout();
@@ -41,7 +50,7 @@
 //   }, []);
 
 //   return (
-//     <AuthContext.Provider value={{ user, setUser, logout }}>
+//     <AuthContext.Provider value={{ user, setUser, loginUser, logout }}>
 //       {children}
 //     </AuthContext.Provider>
 //   );
@@ -64,7 +73,7 @@ export const AuthProvider = ({ children }) => {
       if (!userData || userData === "undefined") return null;
       return JSON.parse(userData);
     } catch (err) {
-      console.error("❌ Failed to parse user data from localStorage:", err);
+      console.error("❌ Failed to parse user from localStorage:", err);
       return null;
     }
   });
@@ -77,35 +86,28 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+
     if (token && token.startsWith("eyJ")) {
       axios
         .get(`${API_BASE_URL}/api/v1/users/me`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then((res) => {
-          if (res.data?.user) {
-            // ✅ store only the user object
+          // Make sure we store only the user object, not the whole response
+          if (res.data && res.data.user) {
             setUser(res.data.user);
             localStorage.setItem("user", JSON.stringify(res.data.user));
-          } else {
-            logout();
           }
         })
-        .catch(() => {
+        .catch((err) => {
+          console.error("❌ Error fetching profile:", err);
           logout();
         });
     }
   }, []);
 
-  // helper to handle login success from your Login.jsx
-  const loginUser = (token, userObj) => {
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(userObj));
-    setUser(userObj);
-  };
-
   return (
-    <AuthContext.Provider value={{ user, setUser, loginUser, logout }}>
+    <AuthContext.Provider value={{ user, setUser, logout }}>
       {children}
     </AuthContext.Provider>
   );

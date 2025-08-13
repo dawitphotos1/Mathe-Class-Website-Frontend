@@ -1,16 +1,14 @@
-import React, { useState, useEffect, Suspense } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
-import axios from "axios";
-import { API_BASE_URL } from "./config";
+import React, { Suspense } from "react";
+import { Routes, Route } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import { ThemeProvider } from "./context/ThemeContext";
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Loading from "./components/Loading";
 import Contact from "./components/Contact";
-import Login from "./Pages/auth/Login";
-import EditCourse from "./Pages/teachers/EditCourse"; // adjust path as needed
+import EditCourse from "./Pages/teachers/EditCourse";
 import PaymentSuccess from "./Pages/payments/PaymentSuccess";
 import PaymentCancel from "./Pages/payments/PaymentCancel";
 import Unauthorized from "./Pages/Unauthorized";
@@ -26,92 +24,33 @@ import TeacherCourseProgress from "./Pages/courses/TeacherCourseProgress";
 import CourseLessonManager from "./Pages/CourseLessonManager";
 import AdminLessonLogs from "./Pages/AdminLessonLogs";
 import EditLesson from "./Pages/teachers/EditLesson";
-import { ThemeProvider } from "./context/ThemeContext";
-import EnrollmentSuccess from "./Pages/payments/EnrollmentSuccess";   
+import EnrollmentSuccess from "./Pages/payments/EnrollmentSuccess";
 
-// ✅ Lazy-loaded pages
+// Lazy-loaded pages
 const Home = React.lazy(() => import("./Pages/Home"));
 const Register = React.lazy(() => import("./Pages/auth/Register"));
+const Login = React.lazy(() => import("./Pages/auth/Login"));
 const CourseList = React.lazy(() => import("./Pages/courses/CourseList"));
 const AdminDashboard = React.lazy(() => import("./Pages/AdminDashboard"));
 const CourseViewer = React.lazy(() => import("./Pages/courses/CourseViewer"));
-const CourseCreator = React.lazy(() => import("./Pages/courses/CourseCreator"));
 const CourseDetail = React.lazy(() => import("./Pages/courses/CourseDetail"));
 const Profile = React.lazy(() => import("./Pages/users/Profile"));
 const Payment = React.lazy(() => import("./Pages/payments/Payment"));
 const Cancel = React.lazy(() => import("./Pages/payments/Cancel"));
 const NotFound = React.lazy(() => import("./Pages/NotFound"));
 
-// ✅ Axios token interceptor
-axios.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers["Authorization"] = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
 function App() {
-  const [user, setUser] = useState(null);
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUser(null);
-    toast.success("Logged out successfully");
-    navigate("/login");
-  };
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
-
-    if (storedUser && token && token.startsWith("eyJ")) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        if (parsedUser && parsedUser.id && parsedUser.role) {
-          setUser(parsedUser);
-          axios
-            .get(`${API_BASE_URL}/api/v1/users/me`)
-            .then((response) => {
-              setUser(response.data);
-              localStorage.setItem("user", JSON.stringify(response.data));
-            })
-            .catch((err) => {
-              if (err.response?.status === 401) {
-                localStorage.removeItem("token");
-                localStorage.removeItem("user");
-                setUser(null);
-                toast.error("Session expired. Please log in again.");
-                navigate("/login");
-              }
-            });
-        }
-      } catch {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        setUser(null);
-      }
-    }
-  }, [navigate]);
-
   return (
     <ThemeProvider>
       <div className="app">
         <ErrorBoundary>
-          <Navbar user={user} onLogout={handleLogout} />
+          {/* Navbar now reads user from AuthContext directly */}
+          <Navbar />
           <Suspense fallback={<Loading />}>
             <Routes>
-              {/* ✅ Public Routes */}
+              {/* Public Routes */}
               <Route path="/" element={<Home />} />
-              <Route
-                path="/register"
-                element={<Register setUser={setUser} />}
-              />
+              <Route path="/register" element={<Register />} />
               <Route path="/login" element={<Login />} />
               <Route path="/courses" element={<CourseList />} />
               <Route path="/courses/:id" element={<CourseViewer />} />
@@ -133,7 +72,7 @@ function App() {
               />
               <Route path="/lessons/:lessonId/edit" element={<EditLesson />} />
 
-              {/* ✅ Admin-Only Routes */}
+              {/* Admin-Only Routes */}
               <Route
                 path="/admin/lesson-logs"
                 element={
@@ -151,7 +90,7 @@ function App() {
                 }
               />
 
-              {/* ✅ Teacher-Only Routes */}
+              {/* Teacher-Only Routes */}
               <Route
                 path="/teacher/create-course"
                 element={
@@ -209,7 +148,7 @@ function App() {
                 }
               />
 
-              {/* ✅ Student-Only Routes */}
+              {/* Student-Only Routes */}
               <Route
                 path="/courses/:courseId/view-lessons"
                 element={
@@ -235,7 +174,7 @@ function App() {
                 }
               />
 
-              {/* ✅ Shared Routes */}
+              {/* Shared Routes */}
               <Route
                 path="/profile"
                 element={
@@ -250,12 +189,12 @@ function App() {
                 path="/dashboard"
                 element={
                   <ProtectedRoute allowedRoles={["admin", "teacher"]}>
-                    <AdminDashboard onLogout={handleLogout} />
+                    <AdminDashboard />
                   </ProtectedRoute>
                 }
               />
 
-              {/* ✅ Catch-all 404 */}
+              {/* Catch-all 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

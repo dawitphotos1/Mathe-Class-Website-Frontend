@@ -1,19 +1,3 @@
-
-// // src/api/axios.js
-// import axios from "axios";
-
-// const BASE_URL = "https://mathe-class-website-backend-1.onrender.com/api/v1";
-
-// const api = axios.create({
-//   baseURL: BASE_URL,
-//   withCredentials: true, // optional, only if you use cookies/sessions
-// });
-
-// export default api;
-
-
-
-
 import axios from "axios";
 
 const BASE_URL = "https://mathe-class-website-backend-1.onrender.com/api/v1";

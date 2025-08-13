@@ -1,13 +1,17 @@
-
 // src/components/Navbar.jsx
-import React, { useState ,useEffect} from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { AuthContext } from "../context/AuthContext";
 import "./Navbar.css";
-import logo from "../assets/images/mathlogo.jpeg"; // ✅ your logo path
+import logo from "../assets/images/mathlogo2.jpg";
 
-const Navbar = ({ user, onLogout }) => {
+const Navbar = () => {
+  const { user, logout } = useContext(AuthContext);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("theme") === "dark"
+  );
   const navigate = useNavigate();
 
   const toggleMenu = (e) => {
@@ -20,15 +24,10 @@ const Navbar = ({ user, onLogout }) => {
   };
 
   const handleLogout = () => {
-    if (onLogout) {
-      onLogout();
-      toast.success("Logged out successfully");
-      navigate("/");
-    }
+    logout();
+    toast.success("Logged out successfully");
+    navigate("/");
   };
-  const [darkMode, setDarkMode] = useState(
-    localStorage.getItem("theme") === "dark"
-  );
 
   useEffect(() => {
     if (darkMode) {
@@ -39,6 +38,7 @@ const Navbar = ({ user, onLogout }) => {
       localStorage.setItem("theme", "light");
     }
   }, [darkMode]);
+
   return (
     <nav className="navbar">
       <div className="navbar-brand">
@@ -172,6 +172,3 @@ const Navbar = ({ user, onLogout }) => {
 };
 
 export default Navbar;
-
-
-
