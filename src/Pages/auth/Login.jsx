@@ -5,10 +5,11 @@ import { toast } from "react-toastify";
 import { AuthContext } from "../../context/AuthContext";
 import { API_BASE_URL } from "../../config";
 import axios from "axios";
+import RedirectIfAuthenticated from "../../Pages/auth/RedirectIfAuthenticated"; // ✅ import
 import "./Login.css";
 
 const Login = () => {
-  const { setUser } = useContext(AuthContext);
+  const { loginUser } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -24,21 +25,11 @@ const Login = () => {
     try {
       const { data } = await axios.post(
         `${API_BASE_URL}/api/v1/auth/login`,
-        {
-          email: email.toLowerCase().trim(),
-          password: password.trim(),
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        { email: email.toLowerCase().trim(), password: password.trim() },
+        { headers: { "Content-Type": "application/json" } }
       );
 
-
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setUser(data.user);
+      loginUser(data.token, data.user);
       toast.success("Logged in successfully");
       navigate(data.user.role === "student" ? "/courses" : "/dashboard");
     } catch (err) {
@@ -51,163 +42,55 @@ const Login = () => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-form">
-        <h2>Login to MathClass 📘</h2>
-        {error && <p className="error">{error}</p>}
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              placeholder="Email Address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
-          <div className="form-group password-group">
-            <label>Password</label>
-            <div className="password-input">
+    <RedirectIfAuthenticated>
+      <div className="auth-container">
+        <div className="auth-form">
+          <h2>Login to MathClass 📘</h2>
+          {error && <p className="error">{error}</p>}
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Email</label>
               <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                type="email"
+                placeholder="Email Address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
               />
-              <button
-                type="button"
-                className="toggle-password"
-                onClick={() => setShowPassword(!showPassword)}
-                disabled={loading}
-              >
-                {showPassword ? "🙈" : "👁️"}
-              </button>
             </div>
+            <div className="form-group password-group">
+              <label>Password</label>
+              <div className="password-input">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="toggle-password"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={loading}
+                >
+                  {showPassword ? "🙈" : "👁️"}
+                </button>
+              </div>
+            </div>
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading ? "Logging in..." : "Login"}
+            </button>
+          </form>
+          <div className="auth-footer">
+            Don’t have an account? <Link to="/register">Register here</Link>
           </div>
-          <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
-        <div className="auth-footer">
-          Don’t have an account? <Link to="/register">Register here</Link>
         </div>
       </div>
-    </div>
+    </RedirectIfAuthenticated>
   );
 };
 
 export default Login;
-
-
-
-
-
-// import React, { useState, useContext } from "react";
-// import { Link, useNavigate } from "react-router-dom";
-// import { toast } from "react-toastify";
-// import { AuthContext } from "../../context/AuthContext";
-// import { API_BASE_URL } from "../../config";
-// import axios from "axios";
-// import "./Login.css";
-
-// const Login = () => {
-//   const { loginUser } = useContext(AuthContext); // ✅ use loginUser from context
-//   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
-//   const [error, setError] = useState("");
-//   const [loading, setLoading] = useState(false);
-//   const [showPassword, setShowPassword] = useState(false);
-//   const navigate = useNavigate();
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     setError("");
-//     setLoading(true);
-
-//     try {
-//       const { data } = await axios.post(
-//         `${API_BASE_URL}/api/v1/auth/login`,
-//         {
-//           email: email.toLowerCase().trim(),
-//           password: password.trim(),
-//         },
-//         {
-//           headers: { "Content-Type": "application/json" },
-//         }
-//       );
-
-//       // ✅ Store token & user through context helper
-//       loginUser(data.token, data.user);
-
-//       toast.success("Logged in successfully");
-
-//       // Redirect based on role
-//       if (data.user.role === "student") {
-//         navigate("/courses");
-//       } else {
-//         navigate("/dashboard");
-//       }
-//     } catch (err) {
-//       const msg = err.response?.data?.error || "Login failed";
-//       setError(msg);
-//       toast.error(msg);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div className="auth-container">
-//       <div className="auth-form">
-//         <h2>Login to MathClass 📘</h2>
-//         {error && <p className="error">{error}</p>}
-//         <form onSubmit={handleSubmit}>
-//           <div className="form-group">
-//             <label>Email</label>
-//             <input
-//               type="email"
-//               placeholder="Email Address"
-//               value={email}
-//               onChange={(e) => setEmail(e.target.value)}
-//               required
-//               disabled={loading}
-//             />
-//           </div>
-//           <div className="form-group password-group">
-//             <label>Password</label>
-//             <div className="password-input">
-//               <input
-//                 type={showPassword ? "text" : "password"}
-//                 placeholder="Password"
-//                 value={password}
-//                 onChange={(e) => setPassword(e.target.value)}
-//                 required
-//                 disabled={loading}
-//               />
-//               <button
-//                 type="button"
-//                 className="toggle-password"
-//                 onClick={() => setShowPassword(!showPassword)}
-//                 disabled={loading}
-//               >
-//                 {showPassword ? "🙈" : "👁️"}
-//               </button>
-//             </div>
-//           </div>
-//           <button type="submit" className="btn-primary" disabled={loading}>
-//             {loading ? "Logging in..." : "Login"}
-//           </button>
-//         </form>
-//         <div className="auth-footer">
-//           Don’t have an account? <Link to="/register">Register here</Link>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Login;

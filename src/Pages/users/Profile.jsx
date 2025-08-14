@@ -3,9 +3,11 @@ import axios from "axios";
 import { API_BASE_URL } from "../../config";
 import { AuthContext } from "../../context/AuthContext";
 import "./Profile.css";
-import adminAvatar from "../../assets/images/admin.avif"; // your admin image
-import teacherAvatar from "../../assets/images/teacher.jpeg"; // your teacher image
 
+// Default images
+import adminAvatar from "../../assets/images/admin.avif";
+import teacherAvatar from "../../assets/images/teacher.jpeg";
+import defaultAvatar from "../../assets/images/student.jpeg"; // fallback for all
 
 const Profile = () => {
   const { user } = useContext(AuthContext);
@@ -55,10 +57,19 @@ const Profile = () => {
   if (loading) return <p className="loading">Loading profile...</p>;
   if (error) return <p className="error">{error}</p>;
 
-  const avatarSrc =
-    profile?.role === "admin"
-      ? adminAvatar
-      : profile?.avatar || getInitialsAvatar(profile?.name || "User");
+  // Decide avatar based on role
+  let avatarSrc;
+  if (profile?.role === "admin") {
+    avatarSrc = adminAvatar;
+  } else if (profile?.role === "teacher") {
+    avatarSrc = teacherAvatar;
+  } else if (profile?.role === "student") {
+    avatarSrc = defaultAvatar; // same for all students
+  }
+
+  // If a user uploaded their own avatar, override role-based default
+  avatarSrc =
+    profile?.avatar || avatarSrc || getInitialsAvatar(profile?.name || "User");
 
   return (
     <div className="profile-container">
@@ -88,4 +99,3 @@ const Profile = () => {
 };
 
 export default Profile;
-
