@@ -1164,7 +1164,6 @@
 
 
 
-// Updated CourseDetail.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -2075,7 +2074,7 @@ const courseData = {
 };
 
 const CourseDetail = () => {
-  const { slug } = useParams(); // Changed from 'id' to 'slug' for consistency
+  const { slug } = useParams();
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isStudent = user?.role === "student";
@@ -2099,6 +2098,13 @@ const CourseDetail = () => {
 
   useEffect(() => {
     const fetchCourse = async () => {
+      if (!slug || slug === "undefined") {
+        setError("❌ Invalid course URL");
+        setLoading(false);
+        toast.error("Invalid course URL. Please select a valid course.");
+        return;
+      }
+
       try {
         setLoading(true);
 
@@ -2111,7 +2117,7 @@ const CourseDetail = () => {
         const backendCourse = res.data?.course ?? res.data;
 
         if (!backendCourse || typeof backendCourse !== "object") {
-          throw new Error("Invalid course data received.");
+          throw new Error("Invalid course data received");
         }
 
         const lessonsArray = Array.isArray(backendCourse.lessons)
@@ -2120,10 +2126,10 @@ const CourseDetail = () => {
 
         setCourse({
           id: backendCourse.id,
-          title: backendCourse.title,
+          title: backendCourse.title || "Untitled Course",
           slug: backendCourse.slug,
-          price: backendCourse.price,
-          description: backendCourse.description,
+          price: parseFloat(backendCourse.price) || 0,
+          description: backendCourse.description || "No description available",
           lessons: lessonsArray,
           teacher: backendCourse.teacher || { name: "Unknown" },
           materialUrl: backendCourse.materialUrl || null,
@@ -2140,9 +2146,9 @@ const CourseDetail = () => {
                 },
               }
             );
-            setIsEnrolled(enrollRes.data?.isEnrolled === true); // Match backend response
+            setIsEnrolled(enrollRes.data?.isEnrolled === true);
           } catch (err) {
-            console.error("Check enrollment error:", err);
+            console.error("Check enrollment error:", err.message);
             setIsEnrolled(false);
           }
         } else {
@@ -2151,8 +2157,9 @@ const CourseDetail = () => {
 
         setError(null);
       } catch (err) {
-        console.error("Fetch course error:", err);
-        const msg = err.response?.data?.error || err.message;
+        console.error("Fetch course error:", err.message, err.stack);
+        const msg =
+          err.response?.data?.error || err.message || "Failed to load course";
         setError(`❌ Error: ${msg}`);
         toast.error(`❌ ${msg}`);
       } finally {
@@ -2169,30 +2176,43 @@ const CourseDetail = () => {
       return navigate("/login");
     }
 
-    if (!course?.id || !course.title) {
-      toast.error("Missing course details.");
+    if (!course?.id || !course.title || !course.price) {
+      toast.error("Missing course details. Please try again.");
       return;
     }
 
     const token = localStorage.getItem("token");
     if (!token) {
-      toast.error("Please log in to enroll");
+      toast.error("Please log in to enroll.");
       return navigate("/login");
     }
 
     try {
-      const payload = {
-        courseId: String(course.id),
-        courseName: course.title,
-        coursePrice: parseFloat(course.price),
-      };
+      const enrollRes = await axios.get(
+        `${API_BASE_URL}/enrollments/check/${course.id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (enrollRes.data.isEnrolled) {
+        toast.info("You are already enrolled in this course.");
+        setIsEnrolled(true);
+        return;
+      }
 
       const stripe = await stripePromise;
-      if (!stripe) throw new Error("Stripe not loaded. Check API key.");
+      if (!stripe) {
+        throw new Error("Stripe not loaded. Check API key.");
+      }
 
       const response = await axios.post(
         `${API_BASE_URL}/payments/create-checkout-session`,
-        payload,
+        {
+          courseId: String(course.id),
+          courseName: course.title,
+          coursePrice: parseFloat(course.price),
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -2203,7 +2223,7 @@ const CourseDetail = () => {
         throw new Error(result.error.message);
       }
     } catch (err) {
-      console.error("Enroll error:", err.response?.data || err);
+      console.error("Enroll error:", err.response?.data || err.message);
       toast.error(err.response?.data?.error || "Failed to start enrollment");
     }
   };
@@ -2213,11 +2233,15 @@ const CourseDetail = () => {
       toast.error("You must enroll in the course first.");
       return;
     }
+    if (!slug) {
+      toast.error("Invalid course URL.");
+      return;
+    }
     navigate(`/class/${slug}`);
   };
 
   const getFileExtension = (url) => {
-    if (typeof url !== "string") return "Unknown";
+    if (typeof url !== "string" || !url.includes(".")) return "Unknown";
     return url.split(".").pop().toUpperCase();
   };
 
@@ -2235,6 +2259,7 @@ const CourseDetail = () => {
         <p className="course-description">{course.description}</p>
         <p className="course-teacher">Teacher: {course.teacher.name}</p>
         <p className="course-lessons">Lessons: {course.lessonCount}</p>
+        <p className="course-price">Price: ${course.price.toFixed(2)}</p>
 
         {course.materialUrl && (
           <div className="course-material">
@@ -2263,7 +2288,7 @@ const CourseDetail = () => {
             <div key={idx} className="lesson-item">
               <h4>
                 {lesson.videoUrl ? "🎥" : lesson.contentUrl ? "📄" : "📘"}{" "}
-                {lesson.title}
+                {lesson.title || `Lesson ${idx + 1}`}
               </h4>
               {lesson.contentUrl && (
                 <a
@@ -2318,9 +2343,14 @@ const CourseDetail = () => {
         )}
 
         {!user?.role && (
-          <Link to="/courses" className="btn-back">
-            ← Back to Courses
-          </Link>
+          <>
+            <button className="btn-enroll" onClick={() => navigate("/login")}>
+              Log In to Enroll
+            </button>
+            <Link to="/courses" className="btn-back">
+              ← Back to Courses
+            </Link>
+          </>
         )}
       </div>
     </div>
