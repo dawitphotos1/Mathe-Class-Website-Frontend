@@ -17,46 +17,35 @@ const CourseViewer = () => {
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    const fetchCourseWithEnrollmentCheck = async () => {
+    const fetchEnrolledCourse = async () => {
       try {
         if (!token) {
           toast.error("You must be logged in to view this course.");
           return navigate("/login");
         }
 
-        // Step 1: Fetch course by slug
-        const res = await axios.get(`${BACKEND_BASE}/api/v1/courses/slug/${slug}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // ✅ Fetch enrolled course directly
+        const res = await axios.get(
+          `${BACKEND_BASE}/api/v1/courses/slug/${slug}/enrolled`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         const fetchedCourse = res.data?.course || res.data;
         if (!fetchedCourse || !fetchedCourse.id) {
           throw new Error("Invalid course data received.");
         }
 
-        // Step 2: Check enrollment for this course
-        const checkRes = await axios.get(
-          `${BACKEND_BASE}/api/v1/enrollments/check/${fetchedCourse.id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        if (!checkRes.data?.enrolled) {
-          toast.error("❌ You are not enrolled in this course.");
-          return navigate("/my-courses");
-        }
-
-        // Step 3: Success
         setCourse(fetchedCourse);
       } catch (err) {
-        console.error("❌ Course fetch or enrollment check failed:", err);
+        console.error("❌ Failed to fetch enrolled course:", err);
         const status = err.response?.status;
 
         if (status === 404) {
           toast.error("❌ Course not found.");
         } else if (status === 403 || status === 401) {
-          toast.error("❌ You're not authorized to access this course.");
+          toast.error("❌ You're not authorized or not enrolled in this course.");
         } else {
           toast.error("❌ Failed to load the course.");
         }
@@ -67,7 +56,7 @@ const CourseViewer = () => {
       }
     };
 
-    fetchCourseWithEnrollmentCheck();
+    fetchEnrolledCourse();
   }, [slug, navigate, token]);
 
   if (loading) return <p>Loading course lessons...</p>;
