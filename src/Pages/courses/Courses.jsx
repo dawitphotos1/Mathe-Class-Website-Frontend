@@ -1,59 +1,150 @@
-import React, { useState, useMemo } from "react";
-import { useParams } from "react-router-dom";
+// import React, { useState, useMemo } from "react";
+// import { useParams } from "react-router-dom";
+// import { toast } from "react-toastify";
+// import { useAxios } from "../hooks";
+// import { API_BASE_URL } from "../../config";
+
+// const Course = () => {
+//   const { slug } = useParams();
+//   const [isFetching, setIsFetching] = useState(false);
+
+//   // Memoize options to prevent re-renders
+//   const axiosOptions = useMemo(
+//     () => ({
+//       headers: {
+//         Authorization: `Bearer ${localStorage.getItem("token")}`,
+//         "Content-Type": "application/json",
+//       },
+//     }),
+//     [] // Empty dependency array
+//   );
+
+//   const { data, loading, error } = useAxios(
+//     `${API_BASE_URL}/api/v1/courses/slug/${slug}`,
+//     "get",
+//     axiosOptions
+//   );
+
+//   if (error && !isFetching) {
+//     setIsFetching(true);
+//     toast.error(error);
+//     setIsFetching(false);
+//   }
+
+//   return (
+//     <div>
+//       {loading ? (
+//         <p>Loading course...</p>
+//       ) : error ? (
+//         <p>Error: {error}</p>
+//       ) : data?.course ? (
+//         <div>
+//           <h2>{data.course.title}</h2>
+//           <p>{data.course.description}</p>
+//           <p>Subject: {data.course.subject}</p>
+//           <p>Price: ${data.course.price}</p>
+//           {data.isEnrolled ? (
+//             <p>You are enrolled in this course!</p>
+//           ) : (
+//             <p>You are not enrolled in this course.</p>
+//           )}
+//         </div>
+//       ) : (
+//         <p>Course not found</p>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default Course;
+
+
+
+
+
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import axios from "axios";
 import { toast } from "react-toastify";
-import { useAxios } from "../hooks";
 import { API_BASE_URL } from "../../config";
+import "./Courses.css";
 
-const Course = () => {
-  const { slug } = useParams();
-  const [isFetching, setIsFetching] = useState(false);
+const Courses = () => {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Memoize options to prevent re-renders
-  const axiosOptions = useMemo(
-    () => ({
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-        "Content-Type": "application/json",
-      },
-    }),
-    [] // Empty dependency array
-  );
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-  const { data, loading, error } = useAxios(
-    `${API_BASE_URL}/api/v1/courses/slug/${slug}`,
-    "get",
-    axiosOptions
-  );
+        const res = await axios.get(`${API_BASE_URL}/courses`, { headers });
+        const fetchedCourses = res.data.courses || res.data;
 
-  if (error && !isFetching) {
-    setIsFetching(true);
-    toast.error(error);
-    setIsFetching(false);
-  }
+        if (!Array.isArray(fetchedCourses)) {
+          throw new Error("Invalid courses data received");
+        }
+
+        // Validate that each course has a slug
+        const validCourses = fetchedCourses.filter(
+          (course) => course.slug && course.slug !== "undefined"
+        );
+
+        if (validCourses.length === 0) {
+          setError("No valid courses found");
+          toast.error("No valid courses available");
+        } else {
+          setCourses(validCourses);
+          setError(null);
+        }
+      } catch (err) {
+        console.error("Fetch courses error:", err.message, err.stack);
+        const msg =
+          err.response?.data?.error || err.message || "Failed to load courses";
+        setError(`❌ Error: ${msg}`);
+        toast.error(`❌ ${msg}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  if (loading) return <div className="loading">Loading...</div>;
+  if (error) return <div className="error">{error}</div>;
+  if (courses.length === 0)
+    return <div className="error">No courses available</div>;
 
   return (
-    <div>
-      {loading ? (
-        <p>Loading course...</p>
-      ) : error ? (
-        <p>Error: {error}</p>
-      ) : data?.course ? (
-        <div>
-          <h2>{data.course.title}</h2>
-          <p>{data.course.description}</p>
-          <p>Subject: {data.course.subject}</p>
-          <p>Price: ${data.course.price}</p>
-          {data.isEnrolled ? (
-            <p>You are enrolled in this course!</p>
-          ) : (
-            <p>You are not enrolled in this course.</p>
-          )}
-        </div>
-      ) : (
-        <p>Course not found</p>
-      )}
+    <div className="courses">
+      <h1>Available Courses</h1>
+      <div className="course-list">
+        {courses.map((course) => (
+          <div key={course.id} className="course-item">
+            <h2>{course.title || "Untitled Course"}</h2>
+            <p>{course.description || "No description available"}</p>
+            <p>Price: ${parseFloat(course.price || 0).toFixed(2)}</p>
+            <Link
+              to={`/course/${course.slug}`} // Use /course/ to match URL in console
+              className="btn-view-course"
+              onClick={() => {
+                if (!course.slug) {
+                  console.error("Invalid slug for course:", course);
+                  toast.error("Cannot view course: Invalid course URL");
+                }
+              }}
+            >
+              View Course
+            </Link>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
 
-export default Course;
+export default Courses;

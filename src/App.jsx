@@ -1,11 +1,227 @@
+// import React, { Suspense } from "react";
+// import { Routes, Route } from "react-router-dom";
+// import { ToastContainer } from "react-toastify";
+// import { ThemeProvider } from "./context/ThemeContext";
+
+// import Navbar from "./components/Navbar";
+// import ProtectedRoute from "./components/ProtectedRoute";
+// import ErrorBoundary from "./components/ErrorBoundary";
+// import Loading from "./components/Loading";
+// import Contact from "./components/Contact";
+// import EditCourse from "./Pages/teachers/EditCourse";
+// import PaymentSuccess from "./Pages/payments/PaymentSuccess";
+// import PaymentCancel from "./Pages/payments/PaymentCancel";
+// import Unauthorized from "./Pages/Unauthorized";
+// import StartCoursePage from "./Pages/StartCoursePage";
+// import FileManager from "./Pages/FileManager";
+// import ManageLessons from "./Pages/ManageLessons";
+// import MyTeachingCourses from "./Pages/teachers/MyTeachingCourses";
+// import CreateCourse from "./Pages/CreateCourse";
+// import CourseLessons from "./Pages/CourseLessons";
+// import LessonCreationForm from "./components/LessonCreationForm";
+// import MyCoursesPage from "./Pages/courses/MyCourses";
+// import TeacherCourseProgress from "./Pages/courses/TeacherCourseProgress";
+// import CourseLessonManager from "./Pages/CourseLessonManager";
+// import AdminLessonLogs from "./Pages/AdminLessonLogs";
+// import EditLesson from "./Pages/teachers/EditLesson";
+// import EnrollmentSuccess from "./Pages/payments/EnrollmentSuccess";
+
+// // Lazy-loaded pages
+// const Home = React.lazy(() => import("./Pages/Home"));
+// const Register = React.lazy(() => import("./Pages/auth/Register"));
+// const Login = React.lazy(() => import("./Pages/auth/Login"));
+// const CourseList = React.lazy(() => import("./Pages/courses/CourseList"));
+// const AdminDashboard = React.lazy(() => import("./Pages/AdminDashboard"));
+// const CourseViewer = React.lazy(() => import("./Pages/courses/CourseViewer"));
+// const CourseDetail = React.lazy(() => import("./Pages/courses/CourseDetail"));
+// const Profile = React.lazy(() => import("./Pages/users/Profile"));
+// const Payment = React.lazy(() => import("./Pages/payments/Payment"));
+// const Cancel = React.lazy(() => import("./Pages/payments/Cancel"));
+// const NotFound = React.lazy(() => import("./Pages/NotFound"));
+
+// function App() {
+//   return (
+//     <ThemeProvider>
+//       <div className="app">
+//         <ErrorBoundary>
+//           {/* Navbar now reads user from AuthContext directly */}
+//           <Navbar />
+//           <Suspense fallback={<Loading />}>
+//             <Routes>
+//               {/* Public Routes */}
+//               <Route path="/" element={<Home />} />
+//               <Route path="/register" element={<Register />} />
+//               <Route path="/login" element={<Login />} />
+//               <Route path="/courses" element={<CourseList />} />
+//               <Route path="/courses/:id" element={<CourseViewer />} />
+//               <Route path="/course/:id" element={<CourseDetail />} />
+//               <Route
+//                 path="/enrollment-success"
+//                 element={<EnrollmentSuccess />}
+//               />
+//               <Route path="/payment-success" element={<PaymentSuccess />} />
+//               <Route path="/payment-cancel" element={<PaymentCancel />} />
+//               <Route path="/unauthorized" element={<Unauthorized />} />
+//               <Route path="/contact" element={<Contact />} />
+//               <Route path="/cancel" element={<Cancel />} />
+//               <Route path="/courses/:slug/edit" element={<EditCourse />} />
+//               <Route path="/class/:slug" element={<StartCoursePage />} />
+//               <Route
+//                 path="/courses/:courseId/manage-lessons"
+//                 element={<CourseLessonManager />}
+//               />
+//               <Route path="/lessons/:lessonId/edit" element={<EditLesson />} />
+
+//               {/* Admin-Only Routes */}
+//               <Route
+//                 path="/admin/lesson-logs"
+//                 element={
+//                   <ProtectedRoute allowedRoles={["admin"]}>
+//                     <AdminLessonLogs />
+//                   </ProtectedRoute>
+//                 }
+//               />
+//               <Route
+//                 path="/admin/files"
+//                 element={
+//                   <ProtectedRoute allowedRoles={["admin"]}>
+//                     <FileManager />
+//                   </ProtectedRoute>
+//                 }
+//               />
+
+//               {/* Teacher-Only Routes */}
+//               <Route
+//                 path="/teacher/create-course"
+//                 element={
+//                   <ProtectedRoute allowedRoles={["teacher"]}>
+//                     <CreateCourse />
+//                   </ProtectedRoute>
+//                 }
+//               />
+//               <Route
+//                 path="/teacher/course/:courseId/progress"
+//                 element={
+//                   <ProtectedRoute allowedRoles={["teacher"]}>
+//                     <TeacherCourseProgress />
+//                   </ProtectedRoute>
+//                 }
+//               />
+//               <Route
+//                 path="/courses/:courseId/manage-lessons"
+//                 element={
+//                   <ProtectedRoute allowedRoles={["teacher"]}>
+//                     <ManageLessons />
+//                   </ProtectedRoute>
+//                 }
+//               />
+//               <Route
+//                 path="/courses/:courseId/lessons/new"
+//                 element={
+//                   <ProtectedRoute allowedRoles={["teacher"]}>
+//                     <LessonCreationForm />
+//                   </ProtectedRoute>
+//                 }
+//               />
+//               <Route
+//                 path="/courses/:courseId/lessons/:lessonId/edit"
+//                 element={
+//                   <ProtectedRoute allowedRoles={["teacher"]}>
+//                     <EditLesson />
+//                   </ProtectedRoute>
+//                 }
+//               />
+//               <Route
+//                 path="/my-teaching-courses"
+//                 element={
+//                   <ProtectedRoute allowedRoles={["teacher"]}>
+//                     <MyTeachingCourses />
+//                   </ProtectedRoute>
+//                 }
+//               />
+//               <Route
+//                 path="/create-course"
+//                 element={
+//                   <ProtectedRoute allowedRoles={["teacher"]}>
+//                     <CreateCourse />
+//                   </ProtectedRoute>
+//                 }
+//               />
+
+//               {/* Student-Only Routes */}
+//               <Route
+//                 path="/courses/:courseId/view-lessons"
+//                 element={
+//                   <ProtectedRoute allowedRoles={["student"]}>
+//                     <CourseLessons />
+//                   </ProtectedRoute>
+//                 }
+//               />
+//               <Route
+//                 path="/my-courses"
+//                 element={
+//                   <ProtectedRoute allowedRoles={["student"]}>
+//                     <MyCoursesPage />
+//                   </ProtectedRoute>
+//                 }
+//               />
+//               <Route
+//                 path="/payment/:courseId"
+//                 element={
+//                   <ProtectedRoute allowedRoles={["student"]}>
+//                     <Payment />
+//                   </ProtectedRoute>
+//                 }
+//               />
+
+//               {/* Shared Routes */}
+//               <Route
+//                 path="/profile"
+//                 element={
+//                   <ProtectedRoute
+//                     allowedRoles={["admin", "teacher", "student"]}
+//                   >
+//                     <Profile />
+//                   </ProtectedRoute>
+//                 }
+//               />
+//               <Route
+//                 path="/dashboard"
+//                 element={
+//                   <ProtectedRoute allowedRoles={["admin", "teacher"]}>
+//                     <AdminDashboard />
+//                   </ProtectedRoute>
+//                 }
+//               />
+
+//               {/* Catch-all 404 */}
+//               <Route path="*" element={<NotFound />} />
+//             </Routes>
+//           </Suspense>
+//           <ToastContainer />
+//         </ErrorBoundary>
+//       </div>
+//     </ThemeProvider>
+//   );
+// }
+
+// export default App;
+
+
+
+
+
+
+
+
 import React, { Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { ThemeProvider } from "./context/ThemeContext";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
-import ErrorBoundary from "./components/ErrorBoundary";
 import Loading from "./components/Loading";
 import Contact from "./components/Contact";
 import EditCourse from "./Pages/teachers/EditCourse";
@@ -44,7 +260,6 @@ function App() {
     <ThemeProvider>
       <div className="app">
         <ErrorBoundary>
-          {/* Navbar now reads user from AuthContext directly */}
           <Navbar />
           <Suspense fallback={<Loading />}>
             <Routes>
@@ -53,8 +268,30 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/login" element={<Login />} />
               <Route path="/courses" element={<CourseList />} />
-              <Route path="/courses/:id" element={<CourseViewer />} />
-              <Route path="/course/:id" element={<CourseDetail />} />
+              <Route
+                path="/courses/:id"
+                element={
+                  <ErrorBoundary>
+                    <CourseViewer />
+                  </ErrorBoundary>
+                }
+              />
+              <Route
+                path="/course/:slug"
+                element={
+                  <ErrorBoundary>
+                    <CourseDetail />
+                  </ErrorBoundary>
+                }
+              />
+              <Route
+                path="/courses/:slug"
+                element={
+                  <ErrorBoundary>
+                    <CourseDetail />
+                  </ErrorBoundary>
+                }
+              />
               <Route
                 path="/enrollment-success"
                 element={<EnrollmentSuccess />}
@@ -64,20 +301,47 @@ function App() {
               <Route path="/unauthorized" element={<Unauthorized />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/cancel" element={<Cancel />} />
-              <Route path="/courses/:slug/edit" element={<EditCourse />} />
-              <Route path="/class/:slug" element={<StartCoursePage />} />
+              <Route
+                path="/courses/:slug/edit"
+                element={
+                  <ErrorBoundary>
+                    <EditCourse />
+                  </ErrorBoundary>
+                }
+              />
+              <Route
+                path="/class/:slug"
+                element={
+                  <ErrorBoundary>
+                    <StartCoursePage />
+                  </ErrorBoundary>
+                }
+              />
               <Route
                 path="/courses/:courseId/manage-lessons"
-                element={<CourseLessonManager />}
+                element={
+                  <ErrorBoundary>
+                    <CourseLessonManager />
+                  </ErrorBoundary>
+                }
               />
-              <Route path="/lessons/:lessonId/edit" element={<EditLesson />} />
+              <Route
+                path="/lessons/:lessonId/edit"
+                element={
+                  <ErrorBoundary>
+                    <EditLesson />
+                  </ErrorBoundary>
+                }
+              />
 
               {/* Admin-Only Routes */}
               <Route
                 path="/admin/lesson-logs"
                 element={
                   <ProtectedRoute allowedRoles={["admin"]}>
-                    <AdminLessonLogs />
+                    <ErrorBoundary>
+                      <AdminLessonLogs />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -85,7 +349,9 @@ function App() {
                 path="/admin/files"
                 element={
                   <ProtectedRoute allowedRoles={["admin"]}>
-                    <FileManager />
+                    <ErrorBoundary>
+                      <FileManager />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -95,7 +361,9 @@ function App() {
                 path="/teacher/create-course"
                 element={
                   <ProtectedRoute allowedRoles={["teacher"]}>
-                    <CreateCourse />
+                    <ErrorBoundary>
+                      <CreateCourse />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -103,7 +371,9 @@ function App() {
                 path="/teacher/course/:courseId/progress"
                 element={
                   <ProtectedRoute allowedRoles={["teacher"]}>
-                    <TeacherCourseProgress />
+                    <ErrorBoundary>
+                      <TeacherCourseProgress />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -111,7 +381,9 @@ function App() {
                 path="/courses/:courseId/manage-lessons"
                 element={
                   <ProtectedRoute allowedRoles={["teacher"]}>
-                    <ManageLessons />
+                    <ErrorBoundary>
+                      <ManageLessons />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -119,7 +391,9 @@ function App() {
                 path="/courses/:courseId/lessons/new"
                 element={
                   <ProtectedRoute allowedRoles={["teacher"]}>
-                    <LessonCreationForm />
+                    <ErrorBoundary>
+                      <LessonCreationForm />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -127,7 +401,9 @@ function App() {
                 path="/courses/:courseId/lessons/:lessonId/edit"
                 element={
                   <ProtectedRoute allowedRoles={["teacher"]}>
-                    <EditLesson />
+                    <ErrorBoundary>
+                      <EditLesson />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -135,7 +411,9 @@ function App() {
                 path="/my-teaching-courses"
                 element={
                   <ProtectedRoute allowedRoles={["teacher"]}>
-                    <MyTeachingCourses />
+                    <ErrorBoundary>
+                      <MyTeachingCourses />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -143,7 +421,9 @@ function App() {
                 path="/create-course"
                 element={
                   <ProtectedRoute allowedRoles={["teacher"]}>
-                    <CreateCourse />
+                    <ErrorBoundary>
+                      <CreateCourse />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -153,7 +433,9 @@ function App() {
                 path="/courses/:courseId/view-lessons"
                 element={
                   <ProtectedRoute allowedRoles={["student"]}>
-                    <CourseLessons />
+                    <ErrorBoundary>
+                      <CourseLessons />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -161,7 +443,9 @@ function App() {
                 path="/my-courses"
                 element={
                   <ProtectedRoute allowedRoles={["student"]}>
-                    <MyCoursesPage />
+                    <ErrorBoundary>
+                      <MyCoursesPage />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -169,7 +453,9 @@ function App() {
                 path="/payment/:courseId"
                 element={
                   <ProtectedRoute allowedRoles={["student"]}>
-                    <Payment />
+                    <ErrorBoundary>
+                      <Payment />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -181,7 +467,9 @@ function App() {
                   <ProtectedRoute
                     allowedRoles={["admin", "teacher", "student"]}
                   >
-                    <Profile />
+                    <ErrorBoundary>
+                      <Profile />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -189,13 +477,22 @@ function App() {
                 path="/dashboard"
                 element={
                   <ProtectedRoute allowedRoles={["admin", "teacher"]}>
-                    <AdminDashboard />
+                    <ErrorBoundary>
+                      <AdminDashboard />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
 
               {/* Catch-all 404 */}
-              <Route path="*" element={<NotFound />} />
+              <Route
+                path="*"
+                element={
+                  <ErrorBoundary>
+                    <NotFound />
+                  </ErrorBoundary>
+                }
+              />
             </Routes>
           </Suspense>
           <ToastContainer />
