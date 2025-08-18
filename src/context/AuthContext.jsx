@@ -1,7 +1,72 @@
+// // context/AuthContext.jsx
+// import React, { createContext, useState, useEffect } from "react";
+// import axios from "axios";
+// import { API_BASE_URL } from "../config";
+
+// export const AuthContext = createContext();
+
+// export const AuthProvider = ({ children }) => {
+//   const [user, setUser] = useState(() => {
+//     try {
+//       const userData = localStorage.getItem("user");
+//       if (!userData || userData === "undefined") return null;
+//       return JSON.parse(userData);
+//     } catch (err) {
+//       console.error("❌ Failed to parse user from localStorage:", err);
+//       return null;
+//     }
+//   });
+
+//   // ✅ Login helper
+//   const loginUser = (token, userData) => {
+//     localStorage.setItem("token", token);
+//     localStorage.setItem("user", JSON.stringify(userData));
+//     setUser(userData);
+//   };
+
+//   // ✅ Logout helper (redirect to login)
+//   const logout = () => {
+//     localStorage.removeItem("token");
+//     localStorage.removeItem("user");
+//     setUser(null);
+//     window.location.href = "/login"; // 🔄 redirect after logout
+//   };
+
+//   // ✅ Auto-fetch profile if token is present
+//   useEffect(() => {
+//     const token = localStorage.getItem("token");
+
+//     if (token && token.startsWith("eyJ")) {
+//       axios
+//         .get(`${API_BASE_URL}/api/v1/users/me`, {
+//           headers: { Authorization: `Bearer ${token}` },
+//         })
+//         .then((res) => {
+//           if (res.data && res.data.user) {
+//             setUser(res.data.user);
+//             localStorage.setItem("user", JSON.stringify(res.data.user));
+//           }
+//         })
+//         .catch((err) => {
+//           console.error("❌ Error fetching profile:", err);
+//           logout();
+//         });
+//     }
+//   }, []);
+
+//   return (
+//     <AuthContext.Provider value={{ user, setUser, loginUser, logout }}>
+//       {children}
+//     </AuthContext.Provider>
+//   );
+// };
+
+
+
 // context/AuthContext.jsx
 import React, { createContext, useState, useEffect } from "react";
-import axios from "axios";
-import { API_BASE_URL } from "../config";
+import axiosInstance from "../utils/axiosInstance"; // ✅ unified axios
+import { IS_DEV } from "../config"; // optional debug flag
 
 export const AuthContext = createContext();
 
@@ -24,7 +89,7 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
   };
 
-  // ✅ Logout helper (redirect to login)
+  // ✅ Logout helper
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -32,15 +97,12 @@ export const AuthProvider = ({ children }) => {
     window.location.href = "/login"; // 🔄 redirect after logout
   };
 
-  // ✅ Auto-fetch profile if token is present
+  // ✅ Auto-fetch profile if token exists
   useEffect(() => {
     const token = localStorage.getItem("token");
-
     if (token && token.startsWith("eyJ")) {
-      axios
-        .get(`${API_BASE_URL}/api/v1/users/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+      axiosInstance
+        .get("/users/me") // 👈 axiosInstance auto adds baseURL + token
         .then((res) => {
           if (res.data && res.data.user) {
             setUser(res.data.user);
@@ -48,11 +110,11 @@ export const AuthProvider = ({ children }) => {
           }
         })
         .catch((err) => {
-          console.error("❌ Error fetching profile:", err);
-          logout();
+          if (IS_DEV) console.error("❌ Error fetching profile:", err);
+          logout(); // force logout on invalid token
         });
     }
-  }, []);
+  }, []); // run once
 
   return (
     <AuthContext.Provider value={{ user, setUser, loginUser, logout }}>

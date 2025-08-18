@@ -3,9 +3,8 @@
 // import { Link, useNavigate } from "react-router-dom";
 // import { toast } from "react-toastify";
 // import { AuthContext } from "../../context/AuthContext";
-// import { API_BASE_URL } from "../../config";
-// import axios from "axios";
-// import RedirectIfAuthenticated from "../../Pages/auth/RedirectIfAuthenticated"; // ✅ import
+// import axiosInstance from "../../utils/axiosInstance"; // ✅ use axiosInstance
+// import RedirectIfAuthenticated from "../../Pages/auth/RedirectIfAuthenticated";
 // import "./Login.css";
 
 // const Login = () => {
@@ -23,11 +22,10 @@
 //     setLoading(true);
 
 //     try {
-//       const { data } = await axios.post(
-//         `${API_BASE_URL}/api/v1/auth/login`,
-//         { email: email.toLowerCase().trim(), password: password.trim() },
-//         { headers: { "Content-Type": "application/json" } }
-//       );
+//       const { data } = await axiosInstance.post("/auth/login", {
+//         email: email.toLowerCase().trim(),
+//         password: password.trim(),
+//       });
 
 //       loginUser(data.token, data.user);
 //       toast.success("Logged in successfully");
@@ -99,11 +97,12 @@
 
 
 
+
 import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AuthContext } from "../../context/AuthContext";
-import axiosInstance from "../../utils/axiosInstance"; // ✅ use axiosInstance
+import axiosInstance from "../../utils/axiosInstance"; // ✅ centralized axios
 import RedirectIfAuthenticated from "../../Pages/auth/RedirectIfAuthenticated";
 import "./Login.css";
 
@@ -128,10 +127,11 @@ const Login = () => {
       });
 
       loginUser(data.token, data.user);
-      toast.success("Logged in successfully");
+      toast.success("✅ Logged in successfully");
+
       navigate(data.user.role === "student" ? "/courses" : "/dashboard");
     } catch (err) {
-      const msg = err.response?.data?.error || "Login failed";
+      const msg = err.response?.data?.error || "❌ Login failed";
       setError(msg);
       toast.error(msg);
     } finally {

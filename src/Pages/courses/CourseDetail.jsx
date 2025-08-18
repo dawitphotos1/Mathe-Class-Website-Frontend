@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import axiosInstance from "../../utils/axiosInstance"; // ✅ use centralized axios
 import { loadStripe } from "@stripe/stripe-js";
-
-import { API_BASE_URL, STRIPE_PUBLIC_KEY } from "../../config";
-import axiosInstance from "../../utils/axiosInstance";
-import "./CourseDetail.css";
+import { STRIPE_PUBLIC_KEY } from "../../config";
 
 const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
+
 // ✅ Map slugs to IDs (for quick reference or fallback)
 const slugToIdMap = {
   "algebra-1": 1,
@@ -911,310 +909,81 @@ const courseData = {
 
 const CourseDetail = () => {
   const { slug } = useParams();
-  const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const isStudent = user?.role === "student";
-
   const [course, setCourse] = useState(null);
-  const [error, setError] = useState(null);
-  const [isEnrolled, setIsEnrolled] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [theme, setTheme] = useState(
-    () => localStorage.getItem("theme") || "light"
-  );
+  const [enrolling, setEnrolling] = useState(false);
 
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  // ✅ Fetch course by slug
+  const fetchCourse = async () => {
+    try {
+      const { data } = await axiosInstance.get(`/courses/public/slug/${slug}`);
+      setCourse(data.course || data); // handle both `{course: {...}}` or plain `{...}`
+    } catch (err) {
+      console.error("Fetch course error:", err);
+      toast.error("Course not found");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => {
-    const fetchCourse = async () => {
-      if (!slug || slug === "undefined") {
-        setError("❌ Invalid course URL");
-        setLoading(false);
-        toast.error("Invalid course URL. Please select a valid course.");
-        return;
-      }
-
-      try {
-        setLoading(true);
-
-        const headers = {};
-        const token = localStorage.getItem("token");
-        if (token) {
-          headers.Authorization = `Bearer ${token}`;
-        }
-        
-        console.log("API_BASE_URL being used:", API_BASE_URL);
-
-
-        const res = await axios.get(
-          `${API_BASE_URL}/courses/public/slug/${slug}`,
-          { headers }
-        );
-
-        const backendCourse = res.data?.course ?? res.data;
-
-        if (!backendCourse || typeof backendCourse !== "object") {
-          throw new Error("Invalid course data received");
-        }
-
-        const lessonsArray = Array.isArray(backendCourse.lessons)
-          ? backendCourse.lessons
-          : [];
-
-        setCourse({
-          id: backendCourse.id,
-          title: backendCourse.title || "Untitled Course",
-          slug: backendCourse.slug,
-          price: parseFloat(backendCourse.price) || 0,
-          description: backendCourse.description || "No description available",
-          lessons: lessonsArray,
-          teacher: backendCourse.teacher || { name: "Unknown" },
-          materialUrl: backendCourse.materialUrl || null,
-          lessonCount: lessonsArray.length,
-        });
-
-        if (isStudent && backendCourse.id) {
-          try {
-            const enrollRes = await axios.get(
-              `${API_BASE_URL}/enrollments/check/${backendCourse.id}`,
-              {
-                headers: { Authorization: `Bearer ${token}` },
-              }
-            );
-            setIsEnrolled(enrollRes.data?.isEnrolled === true);
-          } catch (err) {
-            console.error("Check enrollment error:", err.message);
-            setIsEnrolled(false);
-          }
-        } else {
-          setIsEnrolled(false);
-        }
-
-        setError(null);
-      } catch (err) {
-        console.error("Fetch course error:", err.message, err.stack);
-        const msg =
-          err.response?.data?.error || err.message || "Failed to load course";
-        setError(`❌ Error: ${msg}`);
-        toast.error(`❌ ${msg}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCourse();
-  }, [slug, isStudent]);
-
-  const handleEnrollClick = async () => {
-    if (!user || !isStudent) {
-      toast.error("Only students can enroll. Please log in as a student.");
-      return navigate("/login");
-    }
-
-    if (!course?.id || !course.title || !course.price) {
-      toast.error("Missing course details. Please try again.");
-      return;
-    }
-
-    const token = localStorage.getItem("token");
-    if (!token) {
-      toast.error("Please log in to enroll.");
-      return navigate("/login");
-    }
-
+  // ✅ Handle enrollment
+  const handleEnroll = async () => {
+    setEnrolling(true);
     try {
-      const enrollRes = await axios.get(
-        `${API_BASE_URL}/enrollments/check/${course.id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (enrollRes.data.isEnrolled) {
-        toast.info("You are already enrolled in this course.");
-        setIsEnrolled(true);
-        return;
-      }
-
-      const stripe = await stripePromise;
-      if (!stripe) {
-        throw new Error("Stripe not loaded. Check API key.");
-      }
-
-      const response = await axios.post(
-        `${API_BASE_URL}/payments/create-checkout-session`,
-        {
-          courseId: String(course.id),
-          courseName: course.title,
-          coursePrice: parseFloat(course.price),
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      const result = await stripe.redirectToCheckout({
-        sessionId: response.data.sessionId,
+      const { data } = await axiosInstance.post(`/enrollments`, {
+        courseId: course.id,
       });
-      if (result.error) {
-        throw new Error(result.error.message);
+
+      if (data?.checkoutSessionId) {
+        // Stripe payment flow
+        const stripe = await stripePromise;
+        const { error } = await stripe.redirectToCheckout({
+          sessionId: data.checkoutSessionId,
+        });
+        if (error) throw error;
+      } else {
+        toast.success("Enrollment successful!");
       }
     } catch (err) {
-      console.error("Enroll error:", err.response?.data || err.message);
-      toast.error(err.response?.data?.error || "Failed to start enrollment");
+      console.error("Enrollment error:", err);
+      toast.error("Failed to enroll in course");
+    } finally {
+      setEnrolling(false);
     }
   };
 
-  const handleStartCourseClick = () => {
-    if (!isEnrolled) {
-      toast.error("You must enroll in the course first.");
-      return;
-    }
-    if (!slug) {
-      toast.error("Invalid course URL.");
-      return;
-    }
-    navigate(`/class/${slug}`);
-  };
+  useEffect(() => {
+    fetchCourse();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
 
-  const getFileExtension = (url) => {
-    if (typeof url !== "string" || !url.includes(".")) return "Unknown";
-    return url.split(".").pop().toUpperCase();
-  };
-
-  if (loading) return <div className="loading">Loading...</div>;
-  if (error) return <div className="error">{error}</div>;
-  if (!course) return <div className="error">❌ No course data available</div>;
-
-  // ✅ Use slugToIdMap + courseData
-  const extraInfo = courseData[slug] || {};
-  const mappedId = slugToIdMap[slug] || course.id;
+  if (loading) return <p>Loading course...</p>;
+  if (!course) return <p>Course not found</p>;
 
   return (
-    <div className="course-detail">
-      <div className="course-header">
-        <button className="theme-toggle" onClick={toggleTheme}>
-          {theme === "light" ? "🌙 Dark Mode" : "☀ Light Mode"}
+    <div className="course-detail-container">
+      <h1>{course.title}</h1>
+      <p>{course.description}</p>
+
+      {course.thumbnail && (
+        <img
+          src={course.thumbnail}
+          alt={course.title}
+          style={{ maxWidth: "400px", borderRadius: "8px" }}
+        />
+      )}
+
+      <div style={{ marginTop: "20px" }}>
+        <button
+          onClick={handleEnroll}
+          disabled={enrolling}
+          className="btn-primary"
+        >
+          {enrolling ? "Enrolling..." : "Enroll Now"}
         </button>
-        <h1>{course.title}</h1>
-        <p className="course-description">{course.description}</p>
-        <p className="course-teacher">Teacher: {course.teacher.name}</p>
-        <p className="course-lessons">Lessons: {course.lessonCount}</p>
-        <p className="course-price">Price: ${course.price.toFixed(2)}</p>
-
-        {/* ✅ Display mapped ID + metadata */}
-        <p className="course-id">Course ID: {mappedId}</p>
-        {extraInfo.difficulty && (
-          <p className="course-difficulty">
-            Difficulty: {extraInfo.difficulty}
-          </p>
-        )}
-        {extraInfo.duration && (
-          <p className="course-duration">Duration: {extraInfo.duration}</p>
-        )}
-
-        {course.materialUrl && (
-          <div className="course-material">
-            <h4>📎 Course Material</h4>
-            <p>File Type: {getFileExtension(course.materialUrl)}</p>
-            <a
-              href={`${API_BASE_URL}${course.materialUrl}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              download
-              className="material-download"
-            >
-              📅 Download Material
-            </a>
-          </div>
-        )}
-      </div>
-
-      <div className="course-content">
-        <h2>Lessons</h2>
-        {(!Array.isArray(course.lessons) || course.lessons.length === 0) && (
-          <p>No lessons available yet.</p>
-        )}
-        {Array.isArray(course.lessons) &&
-          course.lessons.map((lesson, idx) => (
-            <div key={idx} className="lesson-item">
-              <h4>
-                {lesson.videoUrl ? "🎥" : lesson.contentUrl ? "📄" : "📘"}{" "}
-                {lesson.title || `Lesson ${idx + 1}`}
-              </h4>
-              {lesson.contentUrl && (
-                <a
-                  href={lesson.contentUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  📅 Download
-                </a>
-              )}
-              {lesson.videoUrl && (
-                <a
-                  href={lesson.videoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  ▶ Watch Video
-                </a>
-              )}
-            </div>
-          ))}
-      </div>
-
-      <div className="course-footer">
-        {user?.role === "teacher" && (
-          <Link to="/courses" className="btn-back">
-            ← Back to Courses
-          </Link>
-        )}
-
-        {user?.role === "student" && (
-          <>
-            {!isEnrolled && (
-              <button className="btn-enroll" onClick={handleEnrollClick}>
-                Enroll Now
-              </button>
-            )}
-            {isEnrolled && (
-              <>
-                <button
-                  className="btn-start-course"
-                  onClick={handleStartCourseClick}
-                >
-                  Start Course
-                </button>
-                <Link to="/courses" className="btn-back">
-                  ← Back to Courses
-                </Link>
-              </>
-            )}
-          </>
-        )}
-
-        {!user?.role && (
-          <>
-            <button className="btn-enroll" onClick={() => navigate("/login")}>
-              Log In to Enroll
-            </button>
-            <Link to="/courses" className="btn-back">
-              ← Back to Courses
-            </Link>
-          </>
-        )}
       </div>
     </div>
   );
 };
 
 export default CourseDetail;
-
-
-
