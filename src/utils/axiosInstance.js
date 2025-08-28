@@ -1,50 +1,88 @@
 
-// utils/axiosInstance.js
-import axios from "axios";
-import { API_BASE_URL } from "../config";
+// // utils/axiosInstance.js
+// import axios from "axios";
+// import { API_BASE_URL } from "../config";
 
-// ✅ Create axios instance with base URL
+// // ✅ Create axios instance with base URL
+// const axiosInstance = axios.create({
+//   baseURL: `${API_BASE_URL}/api/v1`, // 👈 prefix handled here
+//   withCredentials: true,             // allow cookies if needed
+//   headers: {
+//     "Content-Type": "application/json",
+//   },
+// });
+
+// // ✅ Attach token automatically (request interceptor)
+// axiosInstance.interceptors.request.use(
+//   (config) => {
+//     const token = localStorage.getItem("token");
+//     if (token) {
+//       config.headers.Authorization = `Bearer ${token}`;
+//     }
+//     // Debug
+//     console.log("Interceptor triggered:", {
+//       url: config.url,
+//       hasToken: !!token,
+//       tokenPrefix: token ? token.substring(0, 20) + "..." : null,
+//     });
+//     return config;
+//   },
+//   (error) => Promise.reject(error)
+// );
+
+// // ✅ Global error handler (response interceptor)
+// axiosInstance.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     if (error.response) {
+//       console.error("❌ API error:", error.response.status, error.response.data);
+//       // 🔒 Auto-logout on 401 Unauthorized
+//       if (error.response.status === 401) {
+//         localStorage.removeItem("token");
+//         localStorage.removeItem("user");
+//         window.location.href = "/login";
+//       }
+//     } else {
+//       console.error("❌ Network/Server error:", error.message);
+//     }
+//     return Promise.reject(error);
+//   }
+// );
+
+// export default axiosInstance;
+
+
+
+
+// src/utils/axiosInstance.js
+import axios from "axios";
+
+// ✅ Create instance with base URL and credentials
 const axiosInstance = axios.create({
-  baseURL: `${API_BASE_URL}/api/v1`, // 👈 prefix handled here
-  withCredentials: true,             // allow cookies if needed
-  headers: {
-    "Content-Type": "application/json",
-  },
+  baseURL: process.env.REACT_APP_API_URL || "https://mathe-class-website-backend-1.onrender.com/api/v1",
+  withCredentials: true, // needed for cookies/sessions if you use them
 });
 
-// ✅ Attach token automatically (request interceptor)
+// ✅ Request Interceptor: attach token if available
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token"); // or sessionStorage
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    // Debug
-    console.log("Interceptor triggered:", {
-      url: config.url,
-      hasToken: !!token,
-      tokenPrefix: token ? token.substring(0, 20) + "..." : null,
-    });
+    console.log("Interceptor triggered:", config);
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
-// ✅ Global error handler (response interceptor)
+// ✅ Response Interceptor: log or handle global errors
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response) {
-      console.error("❌ API error:", error.response.status, error.response.data);
-      // 🔒 Auto-logout on 401 Unauthorized
-      if (error.response.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        window.location.href = "/login";
-      }
-    } else {
-      console.error("❌ Network/Server error:", error.message);
-    }
+    console.error("Network error detected:", error);
     return Promise.reject(error);
   }
 );
