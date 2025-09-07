@@ -1,0 +1,91 @@
+
+.course-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.course-thumbnail {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.course-content {
+  padding: 1.5rem;
+}
+
+.course-title {
+  font-size: 1.2rem;
+  margin: 0 0 0.5rem;
+}
+
+.course-description {
+  color: #555;
+  margin: 0 0 1rem;
+}
+
+.course-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.difficulty-badge {
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.difficulty-badge.beginner {
+  background: #28a745;
+  color: white;
+}
+
+.difficulty-badge.intermediate {
+  background: #ffc107;
+  color: black;
+}
+
+.difficulty-badge.advanced {
+  background: #dc3545;
+  color: white;
+}
+
+.price {
+  font-weight: bold;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background: #f72585;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #d91a6a;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #f72585;
+  color: #f72585;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-outline:hover {
+  background: #f72585;
+  color: white;
+}

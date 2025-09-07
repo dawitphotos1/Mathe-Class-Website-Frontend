@@ -1,0 +1,128 @@
+
+.auth-container {
+  min-height: 100vh;
+  background: linear-gradient(to right, #43cea2, #185a9d);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+.auth-form {
+  background: white;
+  padding: 1.5rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.auth-form h2 {
+  margin-bottom: 1rem;
+  color: #333;
+  font-size: 1.6rem;
+}
+
+.form-group {
+  margin-bottom: 0.75rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.3rem;
+  color: #444;
+  font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.form-group input:disabled,
+.form-group select:disabled {
+  background-color: #f2f2f2;
+  cursor: not-allowed;
+}
+
+.password-group .password-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-group .password-input input {
+  flex: 1;
+  padding-right: 2.5rem;
+}
+
+.password-group .toggle-password {
+  position: absolute;
+  right: 0.4rem;
+  background: none;
+  border: none;
+  color: #185a9d;
+  cursor: pointer;
+  padding: 0.4rem;
+  line-height: 1;
+}
+
+.password-group .toggle-password:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 0.6rem;
+  background-color: #185a9d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #10457a;
+}
+
+.error {
+  color: red;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.auth-footer {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.auth-footer a {
+  color: #185a9d;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.auth-footer a:hover {
+  text-decoration: underline;
+}
+
+.test-card-notice {
+  margin-top: 0.75rem;
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 0.6rem;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 0.85rem;
+  border: 1px solid #ffeeba;
+}
