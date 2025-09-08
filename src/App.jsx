@@ -1,186 +1,289 @@
+import React, { Suspense } from "react";
+import { Routes, Route } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import { ThemeProvider } from "./context/ThemeContext";
+import ErrorBoundary from "./components/ErrorBoundary";
 
-import React, { useState, useEffect, Suspense } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import axios from "axios";
-import { API_BASE_URL } from "./config";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
-import ErrorBoundary from "./components/ErrorBoundary";
 import Loading from "./components/Loading";
-import Contact from "./components/Contact"; // ✅ Correct import
-import "./App.css";
+import Contact from "./components/Contact";
+import EditCourse from "./Pages/teachers/EditCourse";
+import PaymentSuccess from "./Pages/payments/PaymentSuccess";
+import PaymentCancel from "./Pages/payments/PaymentCancel";
+import Unauthorized from "./Pages/Unauthorized";
+import StartCoursePage from "./Pages/StartCoursePage";
+import FileManager from "./Pages/FileManager";
+import ManageLessons from "./Pages/ManageLessons";
+import MyTeachingCourses from "./Pages/teachers/MyTeachingCourses";
+import CreateCourse from "./Pages/CreateCourse";
+import CourseLessons from "./Pages/CourseLessons";
+import LessonCreationForm from "./components/LessonCreationForm";
+import MyCoursesPage from "./Pages/courses/MyCourses";
+import TeacherCourseProgress from "./Pages/courses/TeacherCourseProgress";
+import CourseLessonManager from "./Pages/CourseLessonManager";
+import AdminLessonLogs from "./Pages/AdminLessonLogs";
+import EditLesson from "./Pages/teachers/EditLesson";
+import EnrollmentSuccess from "./Pages/payments/EnrollmentSuccess";
 
-// Retry wrapper for lazy loading
-const retryLazy = (factory, retries = 3, interval = 1000) => {
-  return new Promise((resolve, reject) => {
-    factory()
-      .then(resolve)
-      .catch((error) => {
-        console.warn(`Lazy load failed, retries left: ${retries}`, error);
-        if (retries === 0) return reject(error);
-        setTimeout(
-          () =>
-            retryLazy(factory, retries - 1, interval)
-              .then(resolve)
-              .catch(reject),
-          interval
-        );
-      });
-  });
-};
-
-// Lazy imports
-const Home = React.lazy(() => retryLazy(() => import("./Pages/Home")));
-const Register = React.lazy(() =>
-  retryLazy(() => import("./Pages/auth/Register"))
-);
-const Login = React.lazy(() => retryLazy(() => import("./Pages/auth/Login")));
-const CourseList = React.lazy(() =>
-  retryLazy(() => import("./Pages/courses/CourseList"))
-);
-const CourseViewer = React.lazy(() =>
-  retryLazy(() => import("./Pages/courses/CourseViewer"))
-);
-const CourseCreator = React.lazy(() =>
-  retryLazy(() => import("./Pages/courses/CourseCreator"))
-);
-const CourseDetail = React.lazy(() =>
-  retryLazy(() => import("./Pages/courses/CourseDetail"))
-);
-const Profile = React.lazy(() =>
-  retryLazy(() => import("./Pages/users/Profile"))
-);
-const AdminDashboard = React.lazy(() =>
-  retryLazy(() => import("./Pages/AdminDashboard"))
-);
-const Payment = React.lazy(() =>
-  retryLazy(() => import("./Pages/payments/Payment"))
-);
-const Success = React.lazy(() =>
-  retryLazy(() => import("./Pages/payments/Success"))
-);
-const Cancel = React.lazy(() =>
-  retryLazy(() => import("./Pages/payments/Cancel"))
-);
-const NotFound = React.lazy(() => retryLazy(() => import("./Pages/NotFound")));
+// Lazy-loaded pages
+const Home = React.lazy(() => import("./Pages/Home"));
+const Register = React.lazy(() => import("./Pages/auth/Register"));
+const Login = React.lazy(() => import("./Pages/auth/Login"));
+const CourseList = React.lazy(() => import("./Pages/courses/CourseList"));
+const AdminDashboard = React.lazy(() => import("./Pages/AdminDashboard"));
+const CourseViewer = React.lazy(() => import("./Pages/courses/CourseViewer"));
+const CourseDetail = React.lazy(() => import("./Pages/courses/CourseDetail"));
+const Profile = React.lazy(() => import("./Pages/users/Profile"));
+const Payment = React.lazy(() => import("./Pages/payments/Payment"));
+const Cancel = React.lazy(() => import("./Pages/payments/Cancel"));
+const NotFound = React.lazy(() => import("./Pages/NotFound"));
 
 function App() {
-  const [user, setUser] = useState(null);
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUser(null);
-    toast.success("Logged out successfully");
-    navigate("/login");
-  };
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
-
-    if (storedUser && token && token.startsWith("eyJ")) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        if (parsedUser && parsedUser.id && parsedUser.role) {
-          setUser(parsedUser);
-          axios
-            .get(`${API_BASE_URL}/api/v1/users/me`, {
-              headers: { Authorization: `Bearer ${token}` },
-              withCredentials: true,
-            })
-            .then((response) => {
-              setUser(response.data);
-              localStorage.setItem("user", JSON.stringify(response.data));
-            })
-            .catch((err) => {
-              if (err.response?.status === 401) {
-                localStorage.removeItem("token");
-                localStorage.removeItem("user");
-                setUser(null);
-                toast.error("Session expired. Please log in again.");
-                navigate("/login");
-              }
-            });
-        }
-      } catch {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        setUser(null);
-      }
-    }
-  }, [navigate]);
-
   return (
-    <div className="app">
-      <ErrorBoundary
-        fallback={
-          <div className="error-boundary">
-            <h2>Something went wrong</h2>
-            <p>Please try refreshing the page or contact support.</p>
-            <button onClick={() => window.location.reload()}>Refresh</button>
-          </div>
-        }
-      >
-        <Navbar user={user} onLogout={handleLogout} />
-        <Suspense fallback={<Loading />}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/register" element={<Register setUser={setUser} />} />
-            <Route path="/login" element={<Login setUser={setUser} />} />
-            <Route path="/courses" element={<CourseList />} />
-            <Route path="/courses/:id" element={<CourseViewer />} />
-            <Route path="/course/:id" element={<CourseDetail />} />
-            <Route
-              path="/create-course"
-              element={
-                <ProtectedRoute user={user} allowedRoles={["teacher"]}>
-                  <CourseCreator />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/contact" element={<Contact />} />{" "}
-            {/* ✅ Correctly placed */}
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute
-                  user={user}
-                  allowedRoles={["teacher", "student", "admin"]}
-                >
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute user={user} allowedRoles={["teacher", "admin"]}>
-                  <AdminDashboard user={user} onLogout={handleLogout} />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/payment/:courseId"
-              element={
-                <ProtectedRoute user={user}>
-                  <Payment />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/success" element={<Success />} />
-            <Route path="/cancel" element={<Cancel />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-        <ToastContainer />
-      </ErrorBoundary>
-    </div>
+    <ThemeProvider>
+      <div className="app">
+        <ErrorBoundary>
+          <Navbar />
+          <Suspense fallback={<Loading />}>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Home />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/courses" element={<CourseList />} />
+              <Route
+                path="/courses/:id"
+                element={
+                  <ErrorBoundary>
+                    <CourseViewer />
+                  </ErrorBoundary>
+                }
+              />
+              <Route
+                path="/course/:slug"
+                element={
+                  <ErrorBoundary>
+                    <CourseDetail />
+                  </ErrorBoundary>
+                }
+              />
+              <Route
+                path="/courses/:slug"
+                element={
+                  <ErrorBoundary>
+                    <CourseDetail />
+                  </ErrorBoundary>
+                }
+              />
+              <Route
+                path="/enrollment-success"
+                element={<EnrollmentSuccess />}
+              />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/payment-cancel" element={<PaymentCancel />} />
+              <Route path="/unauthorized" element={<Unauthorized />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/cancel" element={<Cancel />} />
+              <Route
+                path="/courses/:slug/edit"
+                element={
+                  <ErrorBoundary>
+                    <EditCourse />
+                  </ErrorBoundary>
+                }
+              />
+              <Route
+                path="/class/:slug"
+                element={
+                  <ErrorBoundary>
+                    <StartCoursePage />
+                  </ErrorBoundary>
+                }
+              />
+              <Route
+                path="/courses/:courseId/manage-lessons"
+                element={
+                  <ErrorBoundary>
+                    <CourseLessonManager />
+                  </ErrorBoundary>
+                }
+              />
+              <Route
+                path="/lessons/:lessonId/edit"
+                element={
+                  <ErrorBoundary>
+                    <EditLesson />
+                  </ErrorBoundary>
+                }
+              />
+
+              {/* Admin-Only Routes */}
+              <Route
+                path="/admin/lesson-logs"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <ErrorBoundary>
+                      <AdminLessonLogs />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/files"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <ErrorBoundary>
+                      <FileManager />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Teacher-Only Routes */}
+              <Route
+                path="/teacher/create-course"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher"]}>
+                    <ErrorBoundary>
+                      <CreateCourse />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/teacher/course/:courseId/progress"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher"]}>
+                    <ErrorBoundary>
+                      <TeacherCourseProgress />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/courses/:courseId/manage-lessons"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher"]}>
+                    <ErrorBoundary>
+                      <ManageLessons />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/courses/:courseId/lessons/new"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher"]}>
+                    <ErrorBoundary>
+                      <LessonCreationForm />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/courses/:courseId/lessons/:lessonId/edit"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher"]}>
+                    <ErrorBoundary>
+                      <EditLesson />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/my-teaching-courses"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher"]}>
+                    <ErrorBoundary>
+                      <MyTeachingCourses />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/create-course"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher"]}>
+                    <ErrorBoundary>
+                      <CreateCourse />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Student-Only Routes */}
+              <Route
+                path="/courses/:courseId/view-lessons"
+                element={
+                  <ProtectedRoute allowedRoles={["student"]}>
+                    <ErrorBoundary>
+                      <CourseLessons />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/my-courses"
+                element={
+                  <ProtectedRoute allowedRoles={["student"]}>
+                    <ErrorBoundary>
+                      <MyCoursesPage />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/payment/:courseId"
+                element={
+                  <ProtectedRoute allowedRoles={["student"]}>
+                    <ErrorBoundary>
+                      <Payment />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Shared Routes */}
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["admin", "teacher", "student"]}
+                  >
+                    <ErrorBoundary>
+                      <Profile />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={["admin", "teacher"]}>
+                    <ErrorBoundary>
+                      <AdminDashboard />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Catch-all 404 */}
+              <Route
+                path="*"
+                element={
+                  <ErrorBoundary>
+                    <NotFound />
+                  </ErrorBoundary>
+                }
+              />
+            </Routes>
+          </Suspense>
+          <ToastContainer />
+        </ErrorBoundary>
+      </div>
+    </ThemeProvider>
   );
 }
 
 export default App;
-

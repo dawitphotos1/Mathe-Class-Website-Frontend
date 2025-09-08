@@ -1,151 +1,110 @@
-
-import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+// src/pages/CourseViewer.jsx
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { API_BASE_URL } from "../../config";
 import "./CourseViewer.css";
 
+const BACKEND_BASE =
+  process.env.REACT_APP_API_BASE_URL || "https://mathe-class-website-backend-1.onrender.com";
+
 const CourseViewer = () => {
-  const { id } = useParams();
+  const { slug } = useParams();
+  const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
-    const fetchCourse = async () => {
+    const fetchEnrolledCourse = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        if (!token) {
+          toast.error("You must be logged in to view this course.");
+          return navigate("/login");
+        }
 
-        const response = await axios.get(
-          `${API_BASE_URL}/api/v1/courses/${id}`,
+        // ✅ Fetch enrolled course directly
+        const res = await axios.get(
+          `${BACKEND_BASE}/api/v1/courses/slug/${slug}/enrolled`,
           {
-            headers,
-            withCredentials: true,
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
 
-        const { success, course } = response.data;
-
-        if (!success || !course) {
-          throw new Error("Invalid course response format");
+        const fetchedCourse = res.data?.course || res.data;
+        if (!fetchedCourse || !fetchedCourse.id) {
+          throw new Error("Invalid course data received.");
         }
 
-        setCourse(course);
-        setLoading(false);
+        setCourse(fetchedCourse);
       } catch (err) {
-        console.error("Error fetching course:", err.response?.data || err);
-        setError(
-          err.response?.data?.error || err.message || "Failed to load course"
-        );
+        console.error("❌ Failed to fetch enrolled course:", err);
+        const status = err.response?.status;
+
+        if (status === 404) {
+          toast.error("❌ Course not found.");
+        } else if (status === 403 || status === 401) {
+          toast.error("❌ You're not authorized or not enrolled in this course.");
+        } else {
+          toast.error("❌ Failed to load the course.");
+        }
+
+        navigate("/my-courses");
+      } finally {
         setLoading(false);
-        toast.error("Failed to load course details");
       }
     };
 
-    fetchCourse();
-  }, [id]);
+    fetchEnrolledCourse();
+  }, [slug, navigate, token]);
 
-  if (loading) {
-    return (
-      <div className="loading">
-        <div className="spinner"></div>
-        Loading course...
-      </div>
-    );
-  }
-
-  if (error || !course) {
-    return (
-      <div className="error">
-        {error || "Course not found"}
-        <Link to="/courses" className="btn btn-primary">
-          Back to Courses
-        </Link>
-      </div>
-    );
-  }
-
-  const {
-    title,
-    description,
-    price,
-    lessons,
-    teacher,
-    unitCount,
-    lessonCount,
-  } = course;
+  if (loading) return <p>Loading course lessons...</p>;
+  if (!course) return null;
 
   return (
     <div className="course-viewer">
-      <div className="container">
-        <Link to="/courses" className="btn btn-outline back-btn">
-          Back to Courses
-        </Link>
-        <header className="course-header">
-          <h1>{title}</h1>
-          <p className="course-description">{description}</p>
-          <div className="course-meta">
-            <span className="course-price">${price.toFixed(2)}</span>
-            {teacher && (
-              <span className="course-teacher">Taught by: {teacher.name}</span>
-            )}
-            <span className="course-stats">
-              {unitCount || 0} Units, {lessonCount || 0} Lessons
-            </span>
-          </div>
-        </header>
+      <h2>{course.title}</h2>
 
-        <section className="lessons-section">
-          <h2>Course Content</h2>
-          {lessons && lessons.length > 0 ? (
-            <ul className="lessons-list">
-              {lessons
-                .sort((a, b) => a.orderIndex - b.orderIndex)
-                .map((lesson) => (
-                  <li
-                    key={lesson.id}
-                    className={`lesson-item ${
-                      lesson.isUnitHeader ? "unit-header" : ""
-                    }`}
-                  >
-                    <div className="lesson-title">
-                      {lesson.isUnitHeader ? (
-                        <h3>{lesson.title}</h3>
-                      ) : (
-                        <span>{lesson.title}</span>
-                      )}
-                    </div>
-                    {lesson.isPreview && (
-                      <span className="preview-badge">Preview</span>
-                    )}
-                    {lesson.contentType === "video" && lesson.contentUrl && (
-                      <a
-                        href={lesson.contentUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="lesson-link"
-                      >
-                        Watch Video
-                      </a>
-                    )}
-                  </li>
-                ))}
-            </ul>
-          ) : (
-            <p>No lessons available for this course.</p>
-          )}
-        </section>
+      <ul className="lesson-list">
+        {Array.isArray(course.lessons) && course.lessons.length > 0 ? (
+          course.lessons.map((lesson) => (
+            <li key={lesson.id} className="lesson">
+              <h4>{lesson.title}</h4>
 
-        <div className="course-actions">
-          <Link to="/payment" className="btn btn-primary enroll-btn">
-            Enroll Now
-          </Link>
-        </div>
-      </div>
+              {lesson.contentType === "text" && lesson.content && (
+                <div
+                  className="lesson-content"
+                  dangerouslySetInnerHTML={{ __html: lesson.content }}
+                />
+              )}
+
+              {lesson.contentType === "file" && lesson.contentUrl && (
+                <a
+                  href={lesson.contentUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="download-link"
+                >
+                  📄 Download File
+                </a>
+              )}
+
+              {lesson.contentType === "video" && lesson.videoUrl && (
+                <video controls width="100%" className="lesson-video">
+                  <source src={lesson.videoUrl} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              )}
+            </li>
+          ))
+        ) : (
+          <li>No lessons available for this course.</li>
+        )}
+      </ul>
     </div>
   );
 };
 
 export default CourseViewer;
+

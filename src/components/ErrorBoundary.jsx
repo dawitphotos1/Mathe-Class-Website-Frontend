@@ -30,3 +30,7 @@ class ErrorBoundary extends React.Component {
 }
 
 export default ErrorBoundary;
+<<<<<<< HEAD
+=======
+
+>>>>>>> d98d34d23f6ba3a84602ceb42b98289ef86dc11a

@@ -2,70 +2,150 @@ import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "../../config";
+import { motion } from "framer-motion";
+import { API_BASE_URL } from "../config";
 import "./CreateCourse.css";
 
 const CreateCourse = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
+  const [category, setCategory] = useState("");
+  const [thumbnail, setThumbnail] = useState(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState(null);
+  const [introVideo, setIntroVideo] = useState(null);
+  const [attachments, setAttachments] = useState([]);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const formData = new FormData();
+
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("category", category);
+    if (thumbnail) formData.append("thumbnail", thumbnail);
+    if (introVideo) formData.append("introVideo", introVideo);
+    attachments.forEach((file) => formData.append("attachments", file));
+
     try {
       const token = localStorage.getItem("token");
-      await axios.post(
-        `${API_BASE_URL}/api/v1/courses`,
-        { title, description, price },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      toast.success("Course created successfully!");
+      await axios.post(`${API_BASE_URL}/api/v1/courses/create`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+        withCredentials: true, // ✅ Added
+      });
+
+      toast.success("✅ Course created successfully!");
       navigate("/dashboard");
     } catch (err) {
-      const message = err.response?.data?.error || "Failed to create course.";
+      console.error("Course creation error:", err);
+      let message = "❌ Failed to create course.";
+      if (err.response?.data?.details?.includes("slug")) {
+        message =
+          "❌ A course with a similar title already exists. Please use a different name.";
+      } else if (err.response?.data?.error) {
+        message = err.response.data.error;
+      }
       toast.error(message);
     }
   };
 
   return (
     <div className="create-course-container">
-      <div className="create-course-card">
-        <h2>Create a New Course 📘</h2>
+      <motion.div
+        className="create-course-card"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <h2>Create New Course</h2>
         <form onSubmit={handleSubmit}>
+          <label>Title</label>
           <input
             type="text"
-            placeholder="Course Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
           />
 
+          <label>Description</label>
           <textarea
-            placeholder="Course Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
           />
 
-          <input
-            type="number"
-            placeholder="Price (e.g. 49.99)"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            step="0.01"
+          <label>Category</label>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
             required
+          >
+            <option value="">-- Select Category --</option>
+            <option value="Algebra 1">Algebra 1</option>
+            <option value="Algebra 2">Algebra 2</option>
+            <option value="Pre-Calculus">Pre-Calculus</option>
+            <option value="Calculus">Calculus</option>
+            <option value="Geometry & Trigonometry">
+              Geometry & Trigonometry
+            </option>
+            <option value="Statistics & Probability">
+              Statistics & Probability
+            </option>
+          </select>
+
+          <label>Thumbnail Image</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              setThumbnail(e.target.files[0]);
+              setThumbnailPreview(URL.createObjectURL(e.target.files[0]));
+            }}
           />
+          {thumbnailPreview && (
+            <div className="file-preview">
+              <strong>Preview:</strong>
+              <br />
+              <img src={thumbnailPreview} alt="Preview" width="200" />
+            </div>
+          )}
+
+          <label>Intro Video (Optional)</label>
+          <input
+            type="file"
+            accept="video/*"
+            onChange={(e) => setIntroVideo(e.target.files[0])}
+          />
+
+          <label>Attachments (PDF, Docs, etc.)</label>
+          <input
+            type="file"
+            multiple
+            onChange={(e) => setAttachments(Array.from(e.target.files))}
+          />
+          {attachments.length > 0 && (
+            <div className="file-preview">
+              <strong>Files:</strong>
+              <ul>
+                {attachments.map((file, index) => (
+                  <li key={index}>{file.name}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <button type="submit" className="btn-submit">
             Create Course
           </button>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 };
 
 export default CreateCourse;
+
+

@@ -1,3 +1,4 @@
+
 // src/components/auth/RedirectIfAuthenticated.jsx
 import React, { useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -21,3 +22,5 @@ const RedirectIfAuthenticated = ({ children }) => {
 };
 
 export default RedirectIfAuthenticated;
+
+

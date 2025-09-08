@@ -51,4 +51,10 @@ coverage/
 /test-results/
 
 # Firebase configuration (if sensitive)
+<<<<<<< HEAD
 src/firebase.js
+=======
+src/firebase.js
+# Local Netlify folder
+.netlify
+>>>>>>> d98d34d23f6ba3a84602ceb42b98289ef86dc11a

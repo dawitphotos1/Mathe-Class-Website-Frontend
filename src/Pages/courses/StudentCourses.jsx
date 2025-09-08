@@ -1,3 +1,4 @@
+
 // src/pages/courses/StudentCourses.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
@@ -19,14 +20,11 @@ const StudentCourses = () => {
           return navigate("/login");
         }
 
-        const res = await axios.get(
-          `${API_BASE_URL}/api/v1/enrollments/my-courses`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const res = await axios.get(`${API_BASE_URL}/api/v1/enrollments/my-courses`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         setCourses(res.data.courses || []);
       } catch (err) {
@@ -40,8 +38,7 @@ const StudentCourses = () => {
     fetchMyCourses();
   }, [navigate]);
 
-  if (loading)
-    return <div className="loading">Loading your enrolled courses...</div>;
+  if (loading) return <div className="loading">Loading your enrolled courses...</div>;
 
   return (
     <div className="student-courses">
@@ -55,10 +52,7 @@ const StudentCourses = () => {
               <h3>{course.title}</h3>
               <p>{course.description}</p>
               <p>💰 ${course.price}</p>
-              <p>
-                ✅ Enrolled on:{" "}
-                {new Date(course.enrolledAt).toLocaleDateString()}
-              </p>
+              <p>✅ Enrolled on: {new Date(course.enrolledAt).toLocaleDateString()}</p>
             </li>
           ))}
         </ul>

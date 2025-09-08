@@ -2,14 +2,17 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import axios from "axios";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { API_BASE_URL } from "./config";
 import App from "./App";
+import { AuthProvider } from "./context/AuthContext"; // ✅ Added
 import "./index.css";
 
-axios.defaults.baseURL = process.env.REACT_APP_API_URL;
+axios.defaults.baseURL = API_BASE_URL;
 axios.defaults.withCredentials = true;
 
+// Global error interceptor
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -26,32 +29,50 @@ axios.interceptors.response.use(
     const isAuthRoute =
       error.config?.url?.includes("/login") ||
       error.config?.url?.includes("/register") ||
-      error.config?.url?.includes("/health") ||
-      error.config?.url?.includes("/users/me");
-    const hasValidToken = token && token.startsWith("eyJ");
+      error.config?.url?.includes("/health");
 
-    if (error.response?.status === 401 && !isAuthRoute && hasValidToken) {
-      console.log("Handling 401 error...");
+    if (error.response?.status === 401 && !isAuthRoute) {
+      console.log("Handling 401 error for URL:", error.config?.url);
       setTimeout(() => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        window.alert("Session expired. Please log in again.");
+        toast.error("Session expired. Please log in again.");
         window.location.href = "/login";
-      }, 5000);
+      }, 3000);
     } else if (error.code === "ERR_NETWORK") {
       console.log("Network error detected");
-      window.alert("Network Error: Cannot connect to the server.");
+      toast.error("Network Error: Cannot connect to the server.");
     }
 
     return Promise.reject(error);
   }
 );
 
+// Unregister service workers
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker
+    .getRegistrations()
+    .then((registrations) => {
+      for (let registration of registrations) {
+        registration.unregister().then(() => {
+          console.log("Service worker unregistered:", registration);
+        });
+      }
+    })
+    .catch((err) => {
+      console.error("Failed to unregister service workers:", err);
+    });
+}
+
 const root = createRoot(document.getElementById("root"));
 root.render(
-  <BrowserRouter>
-    <ToastContainer />
-    <App />
-  </BrowserRouter>
+  <React.StrictMode>
+    <AuthProvider>
+      <BrowserRouter>
+        <ToastContainer />
+        <App />
+      </BrowserRouter>
+    </AuthProvider>
+  </React.StrictMode>
 );
 

@@ -112,9 +112,7 @@ const MyCourses = () => {
                   ? course.category
                   : getCategoryFromTitle(title),
               categorySlug: getCategorySlug(title),
-              difficulty: ["Beginner", "Intermediate", "Advanced"][
-                course.id % 3
-              ],
+              difficulty: ["Beginner", "Intermediate", "Advanced"][course.id % 3],
               progress: progressSeed < 20 ? progressSeed + 20 : progressSeed,
               thumbnail: getThumbnail(title),
             };

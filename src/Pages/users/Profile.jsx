@@ -1,75 +1,98 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../../config";
-import { toast } from "react-toastify";
+import { AuthContext } from "../../context/AuthContext";
 import "./Profile.css";
 
+// Default images
+import adminAvatar from "../../assets/images/admin.avif";
+import teacherAvatar from "../../assets/images/teacher.jpeg";
+import defaultAvatar from "../../assets/images/student.jpeg"; // fallback for all
+
 const Profile = () => {
-  const [user, setUser] = useState(null);
+  const { user } = useContext(AuthContext);
+  const [profile, setProfile] = useState(user || null);
+  const [loading, setLoading] = useState(!user);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        toast.error("Please log in to view your profile.");
-        navigate("/login");
-        return;
-      }
-
-      try {
-        const res = await axios.get(`${API_BASE_URL}/api/v1/users/me`, {
+    const token = localStorage.getItem("token");
+    if (!user && token) {
+      setLoading(true);
+      axios
+        .get(`${API_BASE_URL}/api/v1/users/me`, {
           headers: { Authorization: `Bearer ${token}` },
-        });
-        setUser(res.data);
-      } catch (error) {
-        const errorMessage =
-          error.response?.data?.error || "Failed to fetch user data.";
-        setError(errorMessage);
-        toast.error(errorMessage);
-        if (error.response?.status === 401) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          navigate("/login");
-        }
-      }
-    };
+        })
+        .then((res) => setProfile(res.data.user))
+        .catch(() => setError("Failed to fetch user data"))
+        .finally(() => setLoading(false));
+    }
+  }, [user]);
 
-    fetchUserProfile();
-  }, [navigate]);
+  const getInitialsAvatar = (name = "User") => {
+    const initials = name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
 
-  if (error) return <div className="profile-error">{error}</div>;
-  if (!user) return <div className="profile-loading">Loading...</div>;
+    const svg = `
+      <svg width="110" height="110" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        <circle cx="55" cy="55" r="55" fill="url(#grad)" />
+        <text x="50%" y="50%" dy=".35em" text-anchor="middle" fill="#fff" font-family="Outfit, sans-serif" font-weight="600" font-size="48">
+          ${initials}
+        </text>
+      </svg>`;
+
+    return `data:image/svg+xml;base64,${btoa(svg)}`;
+  };
+
+  if (loading) return <p className="loading">Loading profile...</p>;
+  if (error) return <p className="error">{error}</p>;
+
+  // Decide avatar based on role
+  let avatarSrc;
+  if (profile?.role === "admin") {
+    avatarSrc = adminAvatar;
+  } else if (profile?.role === "teacher") {
+    avatarSrc = teacherAvatar;
+  } else if (profile?.role === "student") {
+    avatarSrc = defaultAvatar; // same for all students
+  }
+
+  // If a user uploaded their own avatar, override role-based default
+  avatarSrc =
+    profile?.avatar || avatarSrc || getInitialsAvatar(profile?.name || "User");
 
   return (
     <div className="profile-container">
-      <div className="profile-card">
-        <div className="profile-image-wrapper">
-          <img
-            className="profile-image"
-            src={
-              user.profilePicture ||
-              "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
-            }
-            alt="Profile"
-          />
+      <div className="profile-header">
+        <div className="avatar-wrapper">
+          <img src={avatarSrc} alt="User Avatar" className="profile-avatar" />
         </div>
-        <div className="profile-info">
-          <h2>{user.name}</h2>
-          <p>
-            <strong>Email:</strong> {user.email}
-          </p>
-          <p>
-            <strong>Role:</strong> {user.role}
-          </p>
-          {user.subject && (
-            <p>
-              <strong>Subject:</strong> {user.subject}
-            </p>
-          )}
-        </div>
+        <h1>{profile?.name || "User"}</h1>
+      </div>
+
+      <div className="profile-details">
+        <p>
+          <strong>Name:</strong> {profile?.name || "-"}
+        </p>
+        <p>
+          <strong>Email:</strong> {profile?.email || "-"}
+        </p>
+        <p>
+          <strong>Role:</strong> {profile?.role || "-"}
+        </p>
+        <p>
+          <strong>Approval Status:</strong> {profile?.approval_status || "-"}
+        </p>
       </div>
     </div>
   );
