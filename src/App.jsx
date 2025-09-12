@@ -3,7 +3,6 @@ import { Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { ThemeProvider } from "./context/ThemeContext";
 import ErrorBoundary from "./components/ErrorBoundary";
-
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Loading from "./components/Loading";
@@ -25,6 +24,8 @@ import CourseLessonManager from "./Pages/CourseLessonManager";
 import AdminLessonLogs from "./Pages/AdminLessonLogs";
 import EditLesson from "./Pages/teachers/EditLesson";
 import EnrollmentSuccess from "./Pages/payments/EnrollmentSuccess";
+import AdminLayout from "./Pages/components/AdminLayout";
+import PendingStudents from "./Pages/components/PendingStudents";
 
 // Lazy-loaded pages
 const Home = React.lazy(() => import("./Pages/Home"));
@@ -81,6 +82,10 @@ function App() {
                 element={<EnrollmentSuccess />}
               />
               <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route path="pending-students" element={<PendingStudents />} />
+                {/* add other admin pages inside here */}
+              </Route>
               <Route path="/payment-cancel" element={<PaymentCancel />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
               <Route path="/contact" element={<Contact />} />

@@ -41,7 +41,8 @@ const Register = () => {
   };
 
   const validateForm = () => {
-    const { name, email, confirmEmail, password, confirmPassword, role, subject } = formData;
+    const { name, email, confirmEmail, password, confirmPassword, role, subject } =
+      formData;
 
     if (!name || !email || !password || !role) {
       return "Please fill in all required fields.";
@@ -75,15 +76,16 @@ const Register = () => {
         email: email.toLowerCase().trim(),
         password,
         role: role.toLowerCase(),
-        subject: role === "teacher" || role === "student" ? subject.trim() : null,
+        subject:
+          role === "teacher" || role === "student" ? subject.trim() : null,
       };
 
       // ✅ Register user
       const { data } = await axiosInstance.post("/auth/register", payload);
 
       if (data?.user) {
-        if (data.token) {
-          // Teacher/Admin → backend returned token
+        if (data.user.approval_status === "approved" && data.token) {
+          // Admin / Teacher → auto login
           loginUser(data.token, data.user);
           toast.success("Registration successful! You are now logged in.");
           navigate("/dashboard");

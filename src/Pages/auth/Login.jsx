@@ -1,4 +1,3 @@
-
 import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -41,8 +40,15 @@ const Login = () => {
       }
     } catch (err) {
       const msg = err.response?.data?.error || "Login failed";
-      setError(msg);
-      toast.error(msg);
+
+      // ✅ Special handling for unapproved students
+      if (msg.toLowerCase().includes("pending approval")) {
+        setError("Your account is still pending approval by an admin.");
+        toast.info("Your account is still pending approval by an admin.");
+      } else {
+        setError(msg);
+        toast.error(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -66,6 +72,7 @@ const Login = () => {
                 disabled={loading}
               />
             </div>
+
             <div className="form-group password-group">
               <label>Password</label>
               <div className="password-input">
@@ -87,10 +94,12 @@ const Login = () => {
                 </button>
               </div>
             </div>
+
             <button type="submit" className="btn-primary" disabled={loading}>
               {loading ? "Logging in..." : "Login"}
             </button>
           </form>
+
           <div className="auth-footer">
             Don’t have an account? <Link to="/register">Register here</Link>
           </div>
