@@ -109,12 +109,11 @@
 
 
 
-
 import React, { useEffect, useState, useContext } from "react";
 import { toast } from "react-toastify";
-import axiosInstance from "../../utils/axiosInstance";
-import { AuthContext } from "../../context/AuthContext";
-import { PendingContext } from "../../context/PendingContext";
+import axiosInstance from "../utils/axiosInstance"; // ✅ fixed
+import { AuthContext } from "../context/AuthContext"; // ✅ fixed
+import { PendingContext } from "../context/PendingContext"; // ✅ fixed
 
 const PendingStudents = () => {
   const { user, token } = useContext(AuthContext);

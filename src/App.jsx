@@ -308,7 +308,6 @@
 
 
 
-
 import React, { Suspense, useContext } from "react";
 import { Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
@@ -335,6 +334,8 @@ import CourseLessonManager from "./Pages/CourseLessonManager";
 import AdminLessonLogs from "./Pages/AdminLessonLogs";
 import EditLesson from "./Pages/teachers/EditLesson";
 import EnrollmentSuccess from "./Pages/payments/EnrollmentSuccess";
+
+// ✅ FIXED: these belong to src/components now
 import AdminLayout from "./components/AdminLayout";
 import PendingStudents from "./components/PendingStudents";
 

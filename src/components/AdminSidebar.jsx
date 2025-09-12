@@ -44,10 +44,11 @@
 // export default AdminSidebar;
 
 
+
 import React, { useContext, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { AuthContext } from "../../context/AuthContext";
-import { PendingContext } from "../../context/PendingContext";
+import { AuthContext } from "../context/AuthContext"; // ✅ fixed
+import { PendingContext } from "../context/PendingContext"; // ✅ fixed
 
 const AdminSidebar = () => {
   const { user } = useContext(AuthContext);
