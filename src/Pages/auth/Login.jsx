@@ -155,7 +155,6 @@
 
 
 
-
 import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -204,6 +203,7 @@ const Login = () => {
       };
 
       const { data } = await axiosInstance.post("/auth/login", payload);
+      console.log("Login response:", data); // Debug response
 
       if (data?.user && data?.token) {
         if (
@@ -237,6 +237,7 @@ const Login = () => {
         err.response?.data?.error ||
         err.response?.data?.details ||
         "Login failed. Please try again.";
+      console.error("Login error:", err.response?.data); // Debug error
       toast.error(serverError);
     } finally {
       setLoading(false);
