@@ -154,12 +154,11 @@
 
 
 
-
 import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { AuthContext } from "../context/AuthContext";
-import axiosInstance from "../utils/axiosInstance";
+import { AuthContext } from "../../context/AuthContext";
+import axiosInstance from "../../utils/axiosInstance"; // Corrected path
 import RedirectIfAuthenticated from "./RedirectIfAuthenticated";
 import "./Login.css";
 
