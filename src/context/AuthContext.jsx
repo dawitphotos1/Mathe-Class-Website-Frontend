@@ -1,4 +1,4 @@
-
+// src/context/AuthContext.js
 import React, { createContext, useState, useEffect } from "react";
 import axiosInstance from "../utils/axiosInstance";
 
@@ -9,82 +9,51 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ===============================
-  // 🔹 Load user & token from localStorage
-  // ===============================
+  // ✅ Load user/token from localStorage on mount
   useEffect(() => {
-    const savedToken = localStorage.getItem("token");
-    const savedUser = localStorage.getItem("user");
+    const savedToken = localStorage.getItem("authToken");
+    const savedUser = localStorage.getItem("authUser");
 
-    if (savedToken) {
+    if (savedToken && savedUser) {
       setToken(savedToken);
+      setUser(JSON.parse(savedUser));
       axiosInstance.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${savedToken}`;
-
-      // Always re-fetch user to confirm token is still valid
-      axiosInstance
-        .get("/auth/me")
-        .then((res) => {
-          setUser(res.data.user);
-          localStorage.setItem("user", JSON.stringify(res.data.user));
-        })
-        .catch((err) => {
-          console.error(
-            "❌ AuthContext: /auth/me failed",
-            err.response?.data || err.message
-          );
-          logoutUser(); // clear if token invalid
-        });
-    } else if (savedUser) {
-      setUser(JSON.parse(savedUser));
     }
 
     setLoading(false);
   }, []);
 
-  // ===============================
-  // 🔹 Login
-  // ===============================
+  // ✅ Login user and save to localStorage
   const loginUser = (jwtToken, userData) => {
     setToken(jwtToken);
     setUser(userData);
 
-    localStorage.setItem("token", jwtToken);
-    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("authToken", jwtToken);
+    localStorage.setItem("authUser", JSON.stringify(userData));
 
     axiosInstance.defaults.headers.common[
       "Authorization"
     ] = `Bearer ${jwtToken}`;
   };
 
-  // ===============================
-  // 🔹 Logout
-  // ===============================
+  // ✅ Logout user
   const logoutUser = () => {
     setToken(null);
     setUser(null);
 
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("authUser");
 
     delete axiosInstance.defaults.headers.common["Authorization"];
   };
 
-  // ===============================
-  // 🔹 Update User
-  // ===============================
+  // ✅ Update user profile in context/localStorage
   const updateUser = (updatedUser) => {
     setUser(updatedUser);
-    localStorage.setItem("user", JSON.stringify(updatedUser));
+    localStorage.setItem("authUser", JSON.stringify(updatedUser));
   };
-
-  // ===============================
-  // 🔹 Role Helpers
-  // ===============================
-  const isAdmin = user?.role === "admin";
-  const isTeacher = user?.role === "teacher";
-  const isStudent = user?.role === "student";
 
   return (
     <AuthContext.Provider
@@ -96,9 +65,6 @@ export const AuthProvider = ({ children }) => {
         logoutUser,
         updateUser,
         isAuthenticated: !!user,
-        isAdmin,
-        isTeacher,
-        isStudent,
       }}
     >
       {children}

@@ -1,31 +1,18 @@
-
-import React, { useContext, useEffect } from "react";
+import React, { useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext"; // ✅ fixed
-import { PendingContext } from "../context/PendingContext"; // ✅ fixed
+import { AuthContext } from "../../context/AuthContext";
 
 const AdminSidebar = () => {
   const { user } = useContext(AuthContext);
-  const { pendingCount, fetchPendingCount } = useContext(PendingContext);
   const location = useLocation();
 
-  useEffect(() => {
-    if (user?.role === "admin") {
-      fetchPendingCount();
-    }
-  }, [user, fetchPendingCount]);
-
   if (!user || user.role !== "admin") {
-    return null;
+    return null; // hide sidebar if not admin
   }
 
   const navItems = [
     { path: "/admindashboard", label: "Dashboard" },
-    {
-      path: "/admin/pending-students",
-      label: "Pending Approvals",
-      badge: pendingCount,
-    },
+    { path: "/admin/pending-students", label: "Pending Approvals" }, // ✅ new link
     { path: "/admin/manage-courses", label: "Manage Courses" },
     { path: "/admin/manage-users", label: "Manage Users" },
   ];
@@ -38,18 +25,13 @@ const AdminSidebar = () => {
           <li key={item.path}>
             <Link
               to={item.path}
-              className={`flex justify-between items-center px-3 py-2 rounded ${
+              className={`block px-3 py-2 rounded ${
                 location.pathname === item.path
                   ? "bg-gray-700 font-semibold"
                   : "hover:bg-gray-800"
               }`}
             >
-              <span>{item.label}</span>
-              {item.badge > 0 && (
-                <span className="ml-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                  {item.badge}
-                </span>
-              )}
+              {item.label}
             </Link>
           </li>
         ))}

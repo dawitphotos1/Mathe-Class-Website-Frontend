@@ -1,17 +1,13 @@
-
 import React, { useEffect, useState, useContext } from "react";
 import { toast } from "react-toastify";
-import axiosInstance from "../utils/axiosInstance";
-import { AuthContext } from "../context/AuthContext";
-import { PendingContext } from "../context/PendingContext";
+import axiosInstance from "../../utils/axiosInstance";
+import { AuthContext } from "../../context/AuthContext";
 
 const PendingStudents = () => {
   const { user, token } = useContext(AuthContext);
-  const { fetchPendingCount } = useContext(PendingContext);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch all pending students
   const fetchPendingStudents = async () => {
     setLoading(true);
     try {
@@ -29,19 +25,13 @@ const PendingStudents = () => {
     }
   };
 
-  // Approve or reject student
   const handleAction = async (id, action) => {
     try {
-      await axiosInstance.patch(
-        `/api/v1/admin/approve-student/${id}`,
-        { action }, // pass action in request body
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      toast.success(`Student ${action}d successfully`);
+      await axiosInstance.patch(`/api/v1/admin/${action}/${id}`, null, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success(`Student ${action}ed successfully`);
       fetchPendingStudents();
-      fetchPendingCount();
     } catch {
       toast.error(`Failed to ${action} student`);
     }
@@ -55,9 +45,9 @@ const PendingStudents = () => {
 
   if (user?.role !== "admin") {
     return (
-      <p className="p-6 text-center text-red-600 font-semibold">
+      <div className="p-6 text-center text-red-600 font-semibold">
         ❌ Access denied: Admins only.
-      </p>
+      </div>
     );
   }
 

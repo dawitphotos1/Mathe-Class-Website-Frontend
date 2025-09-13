@@ -1,4 +1,3 @@
-
 import React, { useContext } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
@@ -22,4 +21,3 @@ const ProtectedRoute = ({ allowedRoles = [], children }) => {
 };
 
 export default ProtectedRoute;
-

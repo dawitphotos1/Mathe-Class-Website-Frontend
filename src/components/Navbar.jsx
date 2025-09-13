@@ -34,7 +34,11 @@ const Navbar = ({ user, onLogout }) => {
         </Link>
       </div>
 
-      <button className="hamburger" onClick={toggleMenu} aria-label="Toggle menu">
+      <button
+        className="hamburger"
+        onClick={toggleMenu}
+        aria-label="Toggle menu"
+      >
         <span className="hamburger-bar"></span>
         <span className="hamburger-bar"></span>
         <span className="hamburger-bar"></span>
@@ -45,10 +49,16 @@ const Navbar = ({ user, onLogout }) => {
         <Link to="/courses">Courses</Link>
         {user ? (
           <>
-            {user.role === "teacher" && <Link to="/create-course">Create Course</Link>}
-            {(user.role === "teacher" || user.role === "admin") && <Link to="/dashboard">Admin Dashboard</Link>}
+            {user.role === "teacher" && (
+              <Link to="/create-course">Create Course</Link>
+            )}
+            {(user.role === "teacher" || user.role === "admin") && (
+              <Link to="/dashboard">Admin Dashboard</Link>
+            )}
             <Link to="/profile">Profile</Link>
-            <button className="logout-btn" onClick={handleLogout}>Logout</button>
+            <button className="logout-btn" onClick={handleLogout}>
+              Logout
+            </button>
           </>
         ) : (
           <>
@@ -62,4 +72,3 @@ const Navbar = ({ user, onLogout }) => {
 };
 
 export default Navbar;
-
