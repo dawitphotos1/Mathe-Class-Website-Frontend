@@ -109,6 +109,8 @@
 
 
 
+
+
 import React, { createContext, useState, useEffect } from "react";
 import axiosInstance from "../utils/axiosInstance";
 
@@ -133,30 +135,18 @@ export const AuthProvider = ({ children }) => {
         axiosInstance.defaults.headers.common[
           "Authorization"
         ] = `Bearer ${savedToken}`;
+        console.log("✅ AuthContext: Loaded user and token from localStorage");
       } catch (error) {
-        console.error("❌ Failed to parse user from localStorage:", error);
+        console.error(
+          "❌ AuthContext: Failed to parse user from localStorage:",
+          error
+        );
         localStorage.removeItem("token");
         localStorage.removeItem("user");
       }
     }
 
     setLoading(false);
-
-    // Optional: Validate token with /auth/me
-    if (savedToken) {
-      axiosInstance
-        .get("/auth/me")
-        .then((res) => {
-          setUser(res.data.user);
-          localStorage.setItem("user", JSON.stringify(res.data.user));
-        })
-        .catch((err) => {
-          console.warn(
-            "⚠️ /auth/me failed, keeping local state:",
-            err.response?.data || err.message
-          );
-        });
-    }
   }, []);
 
   // ===============================
@@ -170,6 +160,7 @@ export const AuthProvider = ({ children }) => {
     axiosInstance.defaults.headers.common[
       "Authorization"
     ] = `Bearer ${jwtToken}`;
+    console.log("✅ AuthContext: User logged in", userData.role);
   };
 
   // ===============================
@@ -181,6 +172,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     delete axiosInstance.defaults.headers.common["Authorization"];
+    console.log("✅ AuthContext: User logged out");
   };
 
   // ===============================
@@ -189,6 +181,7 @@ export const AuthProvider = ({ children }) => {
   const updateUser = (updatedUser) => {
     setUser(updatedUser);
     localStorage.setItem("user", JSON.stringify(updatedUser));
+    console.log("✅ AuthContext: User updated");
   };
 
   // ===============================

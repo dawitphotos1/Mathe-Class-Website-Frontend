@@ -78,6 +78,8 @@
 
 
 
+
+
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
@@ -86,7 +88,7 @@ import "react-toastify/dist/ReactToastify.css";
 import App from "./App";
 import { AuthProvider } from "./context/AuthContext";
 import "./index.css";
-import axiosInstance from "./utils/axiosInstance"; // Correct import
+import axiosInstance from "./utils/axiosInstance";
 
 // Global error interceptor
 axiosInstance.interceptors.response.use(

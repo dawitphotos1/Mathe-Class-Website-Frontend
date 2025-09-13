@@ -57,6 +57,8 @@
 
 
 
+
+
 import axios from "axios";
 
 // 🌍 Detect backend URL
@@ -89,12 +91,18 @@ axiosInstance.interceptors.request.use(
       config.url.includes("/auth/login") ||
       config.url.includes("/auth/register")
     ) {
+      console.log(
+        `📤 Request to ${config.url}: No token attached (public route)`
+      );
       return config;
     }
 
     // Protected routes → attach token
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log(`📤 Request to ${config.url}: Token attached`);
+    } else {
+      console.log(`📤 Request to ${config.url}: No token found`);
     }
 
     return config;

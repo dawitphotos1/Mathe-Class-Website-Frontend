@@ -25,22 +25,23 @@
 
 
 
+
 import React, { useContext } from "react";
 import { Navigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user, isAuthenticated, loading } = useContext(AuthContext);
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  const { user, isAuthenticated } = useContext(AuthContext);
 
   if (!isAuthenticated || !user) {
-    return <Navigate to="/unauthorized" replace />;
+    console.log("🚫 ProtectedRoute: Redirecting to /login (unauthenticated)");
+    return <Navigate to="/login" replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
+    console.log(
+      `🚫 ProtectedRoute: Redirecting to /unauthorized (role ${user.role} not allowed)`
+    );
     return <Navigate to="/unauthorized" replace />;
   }
 
