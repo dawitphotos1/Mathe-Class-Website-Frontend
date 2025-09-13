@@ -1,4 +1,3 @@
-
 // src/context/AuthContext.js
 import React, { createContext, useState, useEffect } from "react";
 import axios from "axios";
@@ -16,7 +15,7 @@ export const AuthProvider = ({ children }) => {
 
     if (storedToken) {
       axios
-        .get("/api/v1/auth/me", {
+        .get("/auth/me", {
           headers: { Authorization: `Bearer ${storedToken}` },
         })
         .then((res) => {
