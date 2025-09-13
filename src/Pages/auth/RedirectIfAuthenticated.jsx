@@ -25,20 +25,19 @@
 
 
 
-
-// src/Pages/auth/RedirectIfAuthenticated.jsx
 import React, { useContext } from "react";
 import { Navigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 
 const RedirectIfAuthenticated = ({ children }) => {
-  const { user, isAuthenticated } = useContext(AuthContext);
+  const { isAuthenticated, loading } = useContext(AuthContext);
 
-  if (isAuthenticated && user) {
-    // ✅ Role-based redirects
-    if (user.role === "admin") return <Navigate to="/admindashboard" replace />;
-    if (user.role === "teacher") return <Navigate to="/dashboard" replace />;
-    return <Navigate to="/courses" replace />;
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/unauthorized" replace />;
   }
 
   return children;

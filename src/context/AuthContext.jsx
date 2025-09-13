@@ -109,7 +109,6 @@
 
 
 
-
 import React, { createContext, useState, useEffect } from "react";
 import axiosInstance from "../utils/axiosInstance";
 
@@ -143,7 +142,7 @@ export const AuthProvider = ({ children }) => {
 
     setLoading(false);
 
-    // Optional: Validate token with /auth/me (only if needed)
+    // Optional: Validate token with /auth/me
     if (savedToken) {
       axiosInstance
         .get("/auth/me")
@@ -156,7 +155,6 @@ export const AuthProvider = ({ children }) => {
             "⚠️ /auth/me failed, keeping local state:",
             err.response?.data || err.message
           );
-          // Don’t logout automatically—let user try to navigate
         });
     }
   }, []);
