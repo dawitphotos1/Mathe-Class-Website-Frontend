@@ -1,19 +1,43 @@
 
+// import React, { useContext } from "react";
+// import { Navigate } from "react-router-dom";
+// import { AuthContext } from "../../context/AuthContext";
+
+// const RedirectIfAuthenticated = ({ children }) => {
+//   const { user } = useContext(AuthContext);
+
+//   if (user) {
+//     // ✅ Role-based redirects
+//     if (user.role === "admin") {
+//       return <Navigate to="/admindashboard" replace />;
+//     }
+//     if (user.role === "teacher") {
+//       return <Navigate to="/dashboard" replace />;
+//     }
+//     return <Navigate to="/courses" replace />;
+//   }
+
+//   return children;
+// };
+
+// export default RedirectIfAuthenticated;
+
+
+
+
+
+// src/Pages/auth/RedirectIfAuthenticated.jsx
 import React, { useContext } from "react";
 import { Navigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 
 const RedirectIfAuthenticated = ({ children }) => {
-  const { user } = useContext(AuthContext);
+  const { user, isAuthenticated } = useContext(AuthContext);
 
-  if (user) {
+  if (isAuthenticated && user) {
     // ✅ Role-based redirects
-    if (user.role === "admin") {
-      return <Navigate to="/admindashboard" replace />;
-    }
-    if (user.role === "teacher") {
-      return <Navigate to="/dashboard" replace />;
-    }
+    if (user.role === "admin") return <Navigate to="/admindashboard" replace />;
+    if (user.role === "teacher") return <Navigate to="/dashboard" replace />;
     return <Navigate to="/courses" replace />;
   }
 
