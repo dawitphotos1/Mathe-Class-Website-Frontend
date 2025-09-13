@@ -25,8 +25,8 @@ import CourseLessonManager from "./Pages/CourseLessonManager";
 import AdminLessonLogs from "./Pages/AdminLessonLogs";
 import EditLesson from "./Pages/teachers/EditLesson";
 import EnrollmentSuccess from "./Pages/payments/EnrollmentSuccess";
-import AdminLayout from "./Pages/components/AdminLayout";
-import PendingStudents from "./Pages/components/PendingStudents";
+import AdminLayout from "./components/AdminLayout";
+import PendingStudents from "./components/PendingStudents";
 
 // Lazy-loaded pages
 const Home = React.lazy(() => import("./Pages/Home"));
