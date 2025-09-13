@@ -1,6 +1,6 @@
-// // src/context/AuthContext.js
+
 // import React, { createContext, useState, useEffect } from "react";
-// import axios from "axios";
+// import axiosInstance from "../utils/axiosInstance";
 
 // export const AuthContext = createContext();
 
@@ -9,53 +9,82 @@
 //   const [token, setToken] = useState(null);
 //   const [loading, setLoading] = useState(true);
 
-//   // Load & validate token on mount
+//   // ===============================
+//   // 🔹 Load user & token from localStorage
+//   // ===============================
 //   useEffect(() => {
-//     const storedToken = localStorage.getItem("token");
+//     const savedToken = localStorage.getItem("token");
+//     const savedUser = localStorage.getItem("user");
 
-//     if (storedToken) {
-//       axios
-//         .get("/auth/me", {
-//           headers: { Authorization: `Bearer ${storedToken}` },
-//         })
+//     if (savedToken) {
+//       setToken(savedToken);
+//       axiosInstance.defaults.headers.common[
+//         "Authorization"
+//       ] = `Bearer ${savedToken}`;
+
+//       // Always re-fetch user to confirm token is still valid
+//       axiosInstance
+//         .get("/auth/me")
 //         .then((res) => {
 //           setUser(res.data.user);
-//           setToken(storedToken);
-//           axios.defaults.headers.common[
-//             "Authorization"
-//           ] = `Bearer ${storedToken}`;
+//           localStorage.setItem("user", JSON.stringify(res.data.user));
 //         })
-//         .catch(() => {
-//           // ❌ Token invalid → clear it
-//           localStorage.removeItem("token");
-//           localStorage.removeItem("user");
-//           delete axios.defaults.headers.common["Authorization"];
-//           setUser(null);
-//           setToken(null);
-//         })
-//         .finally(() => setLoading(false));
-//     } else {
-//       setLoading(false);
+//         .catch((err) => {
+//           console.error(
+//             "❌ AuthContext: /auth/me failed",
+//             err.response?.data || err.message
+//           );
+//           logoutUser(); // clear if token invalid
+//         });
+//     } else if (savedUser) {
+//       setUser(JSON.parse(savedUser));
 //     }
+
+//     setLoading(false);
 //   }, []);
 
-//   // ✅ Login
-//   const loginUser = (newToken, newUser) => {
-//     setToken(newToken);
-//     setUser(newUser);
-//     localStorage.setItem("token", newToken);
-//     localStorage.setItem("user", JSON.stringify(newUser));
-//     axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
+//   // ===============================
+//   // 🔹 Login
+//   // ===============================
+//   const loginUser = (jwtToken, userData) => {
+//     setToken(jwtToken);
+//     setUser(userData);
+
+//     localStorage.setItem("token", jwtToken);
+//     localStorage.setItem("user", JSON.stringify(userData));
+
+//     axiosInstance.defaults.headers.common[
+//       "Authorization"
+//     ] = `Bearer ${jwtToken}`;
 //   };
 
-//   // ✅ Logout
+//   // ===============================
+//   // 🔹 Logout
+//   // ===============================
 //   const logoutUser = () => {
 //     setToken(null);
 //     setUser(null);
+
 //     localStorage.removeItem("token");
 //     localStorage.removeItem("user");
-//     delete axios.defaults.headers.common["Authorization"];
+
+//     delete axiosInstance.defaults.headers.common["Authorization"];
 //   };
+
+//   // ===============================
+//   // 🔹 Update User
+//   // ===============================
+//   const updateUser = (updatedUser) => {
+//     setUser(updatedUser);
+//     localStorage.setItem("user", JSON.stringify(updatedUser));
+//   };
+
+//   // ===============================
+//   // 🔹 Role Helpers
+//   // ===============================
+//   const isAdmin = user?.role === "admin";
+//   const isTeacher = user?.role === "teacher";
+//   const isStudent = user?.role === "student";
 
 //   return (
 //     <AuthContext.Provider
@@ -65,13 +94,18 @@
 //         loading,
 //         loginUser,
 //         logoutUser,
-//         isAuthenticated: !!user && !!token,
+//         updateUser,
+//         isAuthenticated: !!user,
+//         isAdmin,
+//         isTeacher,
+//         isStudent,
 //       }}
 //     >
 //       {children}
 //     </AuthContext.Provider>
 //   );
 // };
+
 
 
 
@@ -93,13 +127,24 @@ export const AuthProvider = ({ children }) => {
     const savedToken = localStorage.getItem("token");
     const savedUser = localStorage.getItem("user");
 
-    if (savedToken) {
-      setToken(savedToken);
-      axiosInstance.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${savedToken}`;
+    if (savedToken && savedUser) {
+      try {
+        setToken(savedToken);
+        setUser(JSON.parse(savedUser));
+        axiosInstance.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${savedToken}`;
+      } catch (error) {
+        console.error("❌ Failed to parse user from localStorage:", error);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
+    }
 
-      // Always re-fetch user to confirm token is still valid
+    setLoading(false);
+
+    // Optional: Validate token with /auth/me (only if needed)
+    if (savedToken) {
       axiosInstance
         .get("/auth/me")
         .then((res) => {
@@ -107,17 +152,13 @@ export const AuthProvider = ({ children }) => {
           localStorage.setItem("user", JSON.stringify(res.data.user));
         })
         .catch((err) => {
-          console.error(
-            "❌ AuthContext: /auth/me failed",
+          console.warn(
+            "⚠️ /auth/me failed, keeping local state:",
             err.response?.data || err.message
           );
-          logoutUser(); // clear if token invalid
+          // Don’t logout automatically—let user try to navigate
         });
-    } else if (savedUser) {
-      setUser(JSON.parse(savedUser));
     }
-
-    setLoading(false);
   }, []);
 
   // ===============================
@@ -126,10 +167,8 @@ export const AuthProvider = ({ children }) => {
   const loginUser = (jwtToken, userData) => {
     setToken(jwtToken);
     setUser(userData);
-
     localStorage.setItem("token", jwtToken);
     localStorage.setItem("user", JSON.stringify(userData));
-
     axiosInstance.defaults.headers.common[
       "Authorization"
     ] = `Bearer ${jwtToken}`;
@@ -141,10 +180,8 @@ export const AuthProvider = ({ children }) => {
   const logoutUser = () => {
     setToken(null);
     setUser(null);
-
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-
     delete axiosInstance.defaults.headers.common["Authorization"];
   };
 
@@ -172,7 +209,7 @@ export const AuthProvider = ({ children }) => {
         loginUser,
         logoutUser,
         updateUser,
-        isAuthenticated: !!user,
+        isAuthenticated: !!user && !!token,
         isAdmin,
         isTeacher,
         isStudent,
