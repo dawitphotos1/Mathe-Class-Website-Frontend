@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import { toast } from "react-toastify";
-import axiosInstance from "../../utils/axiosInstance";
+import axiosInstance from "../utils/axiosInstance";
 import { AuthContext } from "../context/AuthContext";
 
 const PendingStudents = () => {
