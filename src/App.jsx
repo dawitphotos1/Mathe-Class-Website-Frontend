@@ -31,6 +31,8 @@ import PendingStudents from "./components/PendingStudents";
 // ✅ Contexts
 import { PendingProvider } from "./context/PendingContext";
 import { AuthContext } from "./context/AuthContext";
+import PendingApproval from "./Pages/PendingApproval";
+
 
 // Lazy-loaded pages
 const Home = React.lazy(() => import("./Pages/Home"));
@@ -86,6 +88,8 @@ function App() {
                     </ErrorBoundary>
                   }
                 />
+                <Route path="/pending-approval" element={<PendingApproval />} />
+
                 <Route
                   path="/enrollment-success"
                   element={<EnrollmentSuccess />}

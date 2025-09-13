@@ -1,0 +1,38 @@
+.unauthorized-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+  text-align: center;
+  color: #fff;
+  background: linear-gradient(135deg, #1e1e2f, #2d2d44);
+  border-radius: 12px;
+  margin: 2rem;
+  padding: 2rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.unauthorized-container h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #ff4c4c;
+}
+
+.unauthorized-container p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.btn-home {
+  background: #4a90e2;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+
+.btn-home:hover {
+  background: #357ab7;
+}
