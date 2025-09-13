@@ -81,9 +81,12 @@ const axiosInstance = axios.create({
 // ✅ Attach token only if it exists
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Do NOT attach token for public auth endpoints
+    if (!config.url.includes("/auth/")) {
+      const token = localStorage.getItem("token");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
