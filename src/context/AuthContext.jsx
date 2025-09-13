@@ -1,78 +1,58 @@
 
+// // src/context/AuthContext.js
 // import React, { createContext, useState, useEffect } from "react";
-// import axiosInstance from "../utils/axiosInstance";
 
+// // Create context
 // export const AuthContext = createContext();
 
+// // Provider component
 // export const AuthProvider = ({ children }) => {
 //   const [user, setUser] = useState(null);
 //   const [token, setToken] = useState(null);
-//   const [loading, setLoading] = useState(true);
 
 //   // ✅ Load from localStorage on mount
 //   useEffect(() => {
-//     const savedToken = localStorage.getItem("token");
-//     const savedUser = localStorage.getItem("user");
+//     const storedToken = localStorage.getItem("token");
+//     const storedUser = localStorage.getItem("user");
 
-//     if (savedToken && savedUser) {
-//       setToken(savedToken);
-//       setUser(JSON.parse(savedUser));
-//       axiosInstance.defaults.headers.common[
-//         "Authorization"
-//       ] = `Bearer ${savedToken}`;
+//     if (storedToken && storedUser) {
+//       try {
+//         setToken(storedToken);
+//         setUser(JSON.parse(storedUser));
+//       } catch (err) {
+//         console.error("❌ Failed to parse stored user:", err);
+//         localStorage.removeItem("token");
+//         localStorage.removeItem("user");
+//       }
 //     }
-
-//     setLoading(false);
 //   }, []);
 
-//   // ✅ Login
-//   const loginUser = (jwtToken, userData) => {
-//     setToken(jwtToken);
-//     setUser(userData);
+//   // ✅ Login function
+//   const loginUser = (newToken, newUser) => {
+//     setToken(newToken);
+//     setUser(newUser);
 
-//     localStorage.setItem("token", jwtToken);
-//     localStorage.setItem("user", JSON.stringify(userData));
-
-//     axiosInstance.defaults.headers.common[
-//       "Authorization"
-//     ] = `Bearer ${jwtToken}`;
+//     localStorage.setItem("token", newToken);
+//     localStorage.setItem("user", JSON.stringify(newUser));
 //   };
 
-//   // ✅ Logout
+//   // ✅ Logout function
 //   const logoutUser = () => {
 //     setToken(null);
 //     setUser(null);
 
 //     localStorage.removeItem("token");
 //     localStorage.removeItem("user");
-
-//     delete axiosInstance.defaults.headers.common["Authorization"];
 //   };
-
-//   // ✅ Update user profile
-//   const updateUser = (updatedUser) => {
-//     setUser(updatedUser);
-//     localStorage.setItem("user", JSON.stringify(updatedUser));
-//   };
-
-//   // ✅ Role helpers
-//   const isAdmin = user?.role === "admin";
-//   const isTeacher = user?.role === "teacher";
-//   const isStudent = user?.role === "student";
 
 //   return (
 //     <AuthContext.Provider
 //       value={{
 //         user,
 //         token,
-//         loading,
 //         loginUser,
 //         logoutUser,
-//         updateUser,
-//         isAuthenticated: !!user,
-//         isAdmin,
-//         isTeacher,
-//         isStudent,
+//         isAuthenticated: !!user && !!token,
 //       }}
 //     >
 //       {children}
@@ -83,50 +63,53 @@
 
 
 
-// src/context/AuthContext.js
 import React, { createContext, useState, useEffect } from "react";
+import axios from "axios";
 
-// Create context
 export const AuthContext = createContext();
 
-// Provider component
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // ✅ Load from localStorage on mount
+  // Load from localStorage on mount
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
 
     if (storedToken && storedUser) {
       try {
+        const parsedUser = JSON.parse(storedUser);
         setToken(storedToken);
-        setUser(JSON.parse(storedUser));
+        setUser(parsedUser);
+        axios.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${storedToken}`;
       } catch (err) {
-        console.error("❌ Failed to parse stored user:", err);
+        console.error("Failed to parse stored user:", err);
         localStorage.removeItem("token");
         localStorage.removeItem("user");
+        delete axios.defaults.headers.common["Authorization"];
       }
     }
+    setLoading(false);
   }, []);
 
-  // ✅ Login function
   const loginUser = (newToken, newUser) => {
     setToken(newToken);
     setUser(newUser);
-
     localStorage.setItem("token", newToken);
     localStorage.setItem("user", JSON.stringify(newUser));
+    axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
   };
 
-  // ✅ Logout function
   const logoutUser = () => {
     setToken(null);
     setUser(null);
-
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    delete axios.defaults.headers.common["Authorization"];
   };
 
   return (
@@ -134,6 +117,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         token,
+        loading,
         loginUser,
         logoutUser,
         isAuthenticated: !!user && !!token,
