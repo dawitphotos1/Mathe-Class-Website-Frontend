@@ -86,7 +86,6 @@
 // };
 
 
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
@@ -109,14 +108,14 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Normalize role and approvalStatus to lowercase
+  // Normalize role and approval_status to lowercase
   const normalizeUser = (userData) => {
     if (!userData) return null;
     return {
       ...userData,
       role: userData.role ? userData.role.toLowerCase() : null,
-      approvalStatus: userData.approvalStatus
-        ? userData.approvalStatus.toLowerCase()
+      approval_status: userData.approval_status
+        ? userData.approval_status.toLowerCase()
         : null,
     };
   };
@@ -172,6 +171,7 @@ export const AuthProvider = ({ children }) => {
             console.error("AuthContext: Token verification failed", {
               status: err.response?.status,
               error: err.response?.data?.error || err.message,
+              details: err.response?.data?.details || null,
               url: err.config?.url,
               attempt: i + 1,
             });
@@ -230,9 +230,11 @@ export const AuthProvider = ({ children }) => {
       );
     } catch (err) {
       const errorMsg = err.response?.data?.error || "Login failed";
+      const errorDetails = err.response?.data?.details || null;
       console.error("AuthContext: Login failed", {
         status: err.response?.status,
         error: errorMsg,
+        details: errorDetails,
       });
       if (errorMsg.toLowerCase().includes("pending approval")) {
         toast.error("Your account is pending admin approval.");
@@ -256,7 +258,7 @@ export const AuthProvider = ({ children }) => {
         role,
         subject,
       });
-      if (res.data.success && res.data.user.approvalStatus === "approved") {
+      if (res.data.success && res.data.user.approval_status === "approved") {
         const normalizedUser = normalizeUser(res.data.user);
         setToken(res.data.token);
         setUser(normalizedUser);
@@ -287,9 +289,11 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (err) {
       const errorMsg = err.response?.data?.error || "Registration failed";
+      const errorDetails = err.response?.data?.details || null;
       console.error("AuthContext: Registration failed", {
         status: err.response?.status,
         error: errorMsg,
+        details: errorDetails,
       });
       toast.error(errorMsg);
       throw err;
