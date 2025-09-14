@@ -78,7 +78,6 @@
 
 
 
-
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
@@ -106,22 +105,18 @@ axios.interceptors.response.use(
     console.log("Interceptor triggered:", {
       status: error.response?.status,
       url: error.config?.url,
-      headers: error.config?.headers,
       hasToken: !!token,
-      tokenPrefix: token ? token.substring(0, 20) + "..." : null,
       responseData: error.response?.data,
     });
 
     if (error.response?.status === 401 && !isAuthRoute) {
       console.log("Handling 401 error for URL:", error.config?.url);
-      setTimeout(() => {
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("authUser");
-        toast.error("Session expired. Please log in again.");
-        window.location.href = "/login";
-      }, 3000);
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("authUser");
+      toast.error("Session expired. Please log in again.");
+      window.location.href = "/login";
     } else if (error.code === "ERR_NETWORK") {
-      console.log("Network error detected");
+      console.error("Network error detected");
       toast.error("Network Error: Cannot connect to the server.");
     }
 
@@ -129,30 +124,14 @@ axios.interceptors.response.use(
   }
 );
 
-// Unregister service workers
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker
-    .getRegistrations()
-    .then((registrations) => {
-      for (let registration of registrations) {
-        registration.unregister().then(() => {
-          console.log("Service worker unregistered:", registration);
-        });
-      }
-    })
-    .catch((err) => {
-      console.error("Failed to unregister service workers:", err);
-    });
-}
-
 const root = createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <AuthProvider>
-      <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
         <App />
         <ToastContainer />
-      </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
+    </BrowserRouter>
   </React.StrictMode>
 );

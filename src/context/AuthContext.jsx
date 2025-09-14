@@ -87,6 +87,8 @@
 
 
 
+
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
@@ -131,6 +133,9 @@ export const AuthProvider = ({ children }) => {
       "/unauthorized",
     ];
     if (publicRoutes.includes(location.pathname)) {
+      console.log("AuthContext: Skipping auth check for public route", {
+        path: location.pathname,
+      });
       setLoading(false);
       return;
     }
@@ -155,9 +160,15 @@ export const AuthProvider = ({ children }) => {
             "authUser",
             JSON.stringify(normalizeUser(res.data))
           );
+          console.log("AuthContext: Token verified, user set", {
+            user: res.data,
+          });
         })
         .catch((err) => {
-          console.error("Auth verification failed:", err);
+          console.error("AuthContext: Token verification failed", {
+            status: err.response?.status,
+            error: err.response?.data?.error,
+          });
           logoutUser();
           if (!publicRoutes.includes(location.pathname)) {
             navigate("/unauthorized");
@@ -165,6 +176,9 @@ export const AuthProvider = ({ children }) => {
         })
         .finally(() => setLoading(false));
     } else {
+      console.log("AuthContext: No token/user found, setting unauthenticated", {
+        path: location.pathname,
+      });
       setLoading(false);
       if (!publicRoutes.includes(location.pathname)) {
         navigate("/unauthorized");
@@ -175,6 +189,7 @@ export const AuthProvider = ({ children }) => {
   // Login user
   const loginUser = async (email, password) => {
     try {
+      console.log("AuthContext: Attempting login", { email });
       const res = await axiosInstance.post("/auth/login", { email, password });
       const { token: jwtToken, user: userData } = res.data;
       const normalizedUser = normalizeUser(userData);
@@ -186,9 +201,25 @@ export const AuthProvider = ({ children }) => {
         "Authorization"
       ] = `Bearer ${jwtToken}`;
       toast.success("Logged in successfully");
-      navigate(userData.role === "admin" ? "/admindashboard" : "/dashboard");
+      console.log("AuthContext: Login successful", { role: userData.role });
+      navigate(
+        userData.role === "admin"
+          ? "/admindashboard"
+          : userData.role === "teacher"
+          ? "/dashboard"
+          : "/courses"
+      );
     } catch (err) {
-      toast.error(err.response?.data?.error || "Login failed");
+      const errorMsg = err.response?.data?.error || "Login failed";
+      console.error("AuthContext: Login failed", {
+        status: err.response?.status,
+        error: errorMsg,
+      });
+      if (errorMsg.toLowerCase().includes("pending approval")) {
+        toast.error("Your account is pending admin approval.");
+      } else {
+        toast.error(errorMsg);
+      }
       throw err;
     }
   };
@@ -196,6 +227,7 @@ export const AuthProvider = ({ children }) => {
   // Register user
   const register = async (name, email, password, role, subject) => {
     try {
+      console.log("AuthContext: Attempting registration", { email, role });
       const res = await axiosInstance.post("/auth/register", {
         name,
         email,
@@ -203,7 +235,7 @@ export const AuthProvider = ({ children }) => {
         role,
         subject,
       });
-      if (res.data.token) {
+      if (res.data.token && res.data.user.approval_status === "approved") {
         const normalizedUser = normalizeUser(res.data.user);
         setToken(res.data.token);
         setUser(normalizedUser);
@@ -212,25 +244,41 @@ export const AuthProvider = ({ children }) => {
         axiosInstance.defaults.headers.common[
           "Authorization"
         ] = `Bearer ${res.data.token}`;
-        toast.success("Registered successfully");
-        navigate("/dashboard");
+        toast.success("Registered and logged in successfully");
+        console.log("AuthContext: Registration successful, auto-logged in", {
+          role,
+        });
+        navigate(role === "admin" ? "/admindashboard" : "/dashboard");
       } else {
+        // Clear local storage for pending users to prevent auth conflicts
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("authUser");
+        setToken(null);
+        setUser(null);
         toast.info(res.data.message || "Registration pending approval");
+        console.log("AuthContext: Registration pending approval", { email });
         navigate("/login");
       }
     } catch (err) {
-      toast.error(err.response?.data?.error || "Registration failed");
+      const errorMsg = err.response?.data?.error || "Registration failed";
+      console.error("AuthContext: Registration failed", {
+        status: err.response?.status,
+        error: errorMsg,
+      });
+      toast.error(errorMsg);
       throw err;
     }
   };
 
   // Logout user
   const logoutUser = () => {
+    console.log("AuthContext: Logging out");
     setToken(null);
     setUser(null);
     localStorage.removeItem("authToken");
     localStorage.removeItem("authUser");
     delete axiosInstance.defaults.headers.common["Authorization"];
+    navigate("/login");
   };
 
   // Update user profile
@@ -238,6 +286,7 @@ export const AuthProvider = ({ children }) => {
     const normalizedUser = normalizeUser(updatedUser);
     setUser(normalizedUser);
     localStorage.setItem("authUser", JSON.stringify(normalizedUser));
+    console.log("AuthContext: User updated", { user: normalizedUser });
   };
 
   return (

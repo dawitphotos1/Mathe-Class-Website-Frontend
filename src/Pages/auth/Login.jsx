@@ -113,7 +113,6 @@
 
 
 
-
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -139,20 +138,27 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent bubbling
+    e.stopPropagation();
     if (!formData.email || !formData.password) {
       toast.error("Please fill in all fields.");
+      console.log("Login: Form validation failed", { email: formData.email });
       return;
     }
 
     setLoading(true);
     try {
+      console.log("Login: Submitting login form", { email: formData.email });
       await loginUser(
         formData.email.toLowerCase().trim(),
         formData.password.trim()
       );
     } catch (err) {
-      // Error is handled in AuthContext.loginUser
+      const errorMsg = err.response?.data?.error || "Login failed";
+      console.error("Login: Login attempt failed", {
+        status: err.response?.status,
+        error: errorMsg,
+      });
+      // Error is handled in AuthContext.loginUser, but log here for clarity
     } finally {
       setLoading(false);
     }

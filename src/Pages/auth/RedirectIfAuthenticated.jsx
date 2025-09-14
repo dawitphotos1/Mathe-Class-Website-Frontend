@@ -21,7 +21,6 @@
 
 
 
-
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -31,6 +30,9 @@ const RedirectIfAuthenticated = ({ children }) => {
   const location = useLocation();
 
   if (loading) {
+    console.log("RedirectIfAuthenticated: Loading auth state", {
+      path: location.pathname,
+    });
     return <div>Loading...</div>;
   }
 
@@ -49,7 +51,7 @@ const RedirectIfAuthenticated = ({ children }) => {
     return <Navigate to={redirectTo} replace />;
   }
 
-  console.log("RedirectIfAuthenticated: Rendering children", {
+  console.log("RedirectIfAuthenticated: Rendering children (unauthenticated)", {
     path: location.pathname,
   });
   return children;
