@@ -1,3 +1,4 @@
+
 // // src/Pages/auth/Register.jsx
 // import React, { useState, useContext } from "react";
 // import { Link, useNavigate } from "react-router-dom";
@@ -62,6 +63,9 @@
 //     }
 //     if (role === "teacher" && !subject.trim()) {
 //       return "Subject is required for teachers.";
+//     }
+//     if (role === "student" && !subject.trim()) {
+//       return "Subject is required for students.";
 //     }
 //     return null;
 //   };
@@ -270,17 +274,15 @@
 
 
 
-// src/Pages/auth/Register.jsx
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { AuthContext } from "../../context/AuthContext";
-import axiosInstance from "../../utils/axiosInstance";
-import RedirectIfAuthenticated from "../../Pages/auth/RedirectIfAuthenticated";
+import { useAuth } from "../../context/AuthContext";
+import RedirectIfAuthenticated from "./RedirectIfAuthenticated";
 import "./Register.css";
 
 const Register = () => {
-  const { loginUser } = useContext(AuthContext);
+  const { register } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -290,7 +292,6 @@ const Register = () => {
     role: "student",
     subject: "",
   });
-
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -343,6 +344,7 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent bubbling
     const errorMessage = validateForm();
     if (errorMessage) {
       toast.error(errorMessage);
@@ -352,39 +354,15 @@ const Register = () => {
     setLoading(true);
     try {
       const { name, email, password, role, subject } = formData;
-
-      const payload = {
-        name: name.trim(),
-        email: email.toLowerCase().trim(),
+      await register(
+        name.trim(),
+        email.toLowerCase().trim(),
         password,
-        role: role.toLowerCase(),
-        subject:
-          role === "teacher" || role === "student" ? subject.trim() : null,
-      };
-
-      // ✅ Register user
-      const { data } = await axiosInstance.post("/auth/register", payload);
-
-      if (data?.user) {
-        if (data.user.approval_status === "approved" && data.token) {
-          // Admin / Teacher → auto login
-          loginUser(data.token, data.user);
-          toast.success("Registration successful! You are now logged in.");
-          navigate("/dashboard");
-        } else {
-          // Student → pending approval
-          toast.success("Registration successful! Pending admin approval.");
-          navigate("/login");
-        }
-      } else {
-        toast.error("Unexpected response from server.");
-      }
+        role.toLowerCase(),
+        subject.trim()
+      );
     } catch (err) {
-      const serverError =
-        err.response?.data?.error ||
-        err.response?.data?.details ||
-        "Registration failed. Please try again.";
-      toast.error(serverError);
+      // Error is handled in AuthContext.register
     } finally {
       setLoading(false);
     }
@@ -396,7 +374,6 @@ const Register = () => {
         <div className="auth-form">
           <h2>Create Your Account</h2>
           <form onSubmit={handleSubmit}>
-            {/* Name */}
             <div className="form-group">
               <label>Name</label>
               <input
@@ -409,7 +386,6 @@ const Register = () => {
               />
             </div>
 
-            {/* Email */}
             <div className="form-group">
               <label>Email</label>
               <input
@@ -422,7 +398,6 @@ const Register = () => {
               />
             </div>
 
-            {/* Confirm Email */}
             <div className="form-group">
               <label>Confirm Email</label>
               <input
@@ -435,7 +410,6 @@ const Register = () => {
               />
             </div>
 
-            {/* Password */}
             <div className="form-group password-group">
               <label>Password</label>
               <div className="password-input">
@@ -451,13 +425,13 @@ const Register = () => {
                   type="button"
                   className="toggle-password"
                   onClick={() => setShowPassword((v) => !v)}
+                  disabled={loading}
                 >
                   {showPassword ? "🙈" : "👁️"}
                 </button>
               </div>
             </div>
 
-            {/* Confirm Password */}
             <div className="form-group password-group">
               <label>Confirm Password</label>
               <div className="password-input">
@@ -473,13 +447,13 @@ const Register = () => {
                   type="button"
                   className="toggle-password"
                   onClick={() => setShowConfirmPassword((v) => !v)}
+                  disabled={loading}
                 >
                   {showConfirmPassword ? "🙈" : "👁️"}
                 </button>
               </div>
             </div>
 
-            {/* Role */}
             <div className="form-group">
               <label>Role</label>
               <select
@@ -494,7 +468,6 @@ const Register = () => {
               </select>
             </div>
 
-            {/* Subject */}
             {(formData.role === "teacher" || formData.role === "student") && (
               <div className="form-group">
                 <label>Subject</label>
