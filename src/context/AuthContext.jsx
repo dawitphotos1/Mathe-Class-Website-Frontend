@@ -87,8 +87,6 @@
 
 
 
-
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
@@ -111,14 +109,14 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Normalize role and approval_status to lowercase
+  // Normalize role and approvalStatus to lowercase
   const normalizeUser = (userData) => {
     if (!userData) return null;
     return {
       ...userData,
       role: userData.role ? userData.role.toLowerCase() : null,
-      approvalStatus: userData.approval_status
-        ? userData.approval_status.toLowerCase()
+      approvalStatus: userData.approvalStatus
+        ? userData.approvalStatus.toLowerCase()
         : null,
     };
   };
@@ -151,30 +149,45 @@ export const AuthProvider = ({ children }) => {
         "Authorization"
       ] = `Bearer ${savedToken}`;
 
-      // Verify token with backend
-      axiosInstance
-        .get("/auth/me")
-        .then((res) => {
-          setUser(normalizeUser(res.data));
-          localStorage.setItem(
-            "authUser",
-            JSON.stringify(normalizeUser(res.data))
-          );
-          console.log("AuthContext: Token verified, user set", {
-            user: res.data,
-          });
-        })
-        .catch((err) => {
-          console.error("AuthContext: Token verification failed", {
-            status: err.response?.status,
-            error: err.response?.data?.error,
-          });
-          logoutUser();
-          if (!publicRoutes.includes(location.pathname)) {
-            navigate("/unauthorized");
+      // Retry logic for /auth/me
+      const verifyToken = async (retries = 3, delay = 1000) => {
+        for (let i = 0; i < retries; i++) {
+          try {
+            console.log("AuthContext: Verifying token, attempt", {
+              attempt: i + 1,
+            });
+            const res = await axiosInstance.get("/auth/me");
+            if (res.data.success) {
+              setUser(normalizeUser(res.data.user));
+              localStorage.setItem(
+                "authUser",
+                JSON.stringify(normalizeUser(res.data.user))
+              );
+              console.log("AuthContext: Token verified, user set", {
+                user: res.data.user,
+              });
+              return;
+            }
+          } catch (err) {
+            console.error("AuthContext: Token verification failed", {
+              status: err.response?.status,
+              error: err.response?.data?.error || err.message,
+              url: err.config?.url,
+              attempt: i + 1,
+            });
+            if (i < retries - 1) {
+              await new Promise((resolve) => setTimeout(resolve, delay));
+              continue;
+            }
+            if (!publicRoutes.includes(location.pathname)) {
+              logoutUser();
+              navigate("/unauthorized");
+            }
           }
-        })
-        .finally(() => setLoading(false));
+        }
+      };
+
+      verifyToken().finally(() => setLoading(false));
     } else {
       console.log("AuthContext: No token/user found, setting unauthenticated", {
         path: location.pathname,
@@ -190,7 +203,13 @@ export const AuthProvider = ({ children }) => {
   const loginUser = async (email, password) => {
     try {
       console.log("AuthContext: Attempting login", { email });
-      const res = await axiosInstance.post("/auth/login", { email, password });
+      const res = await axiosInstance.post("/auth/login", {
+        email: email.toLowerCase(),
+        password,
+      });
+      if (!res.data.success) {
+        throw new Error(res.data.error || "Login failed");
+      }
       const { token: jwtToken, user: userData } = res.data;
       const normalizedUser = normalizeUser(userData);
       setToken(jwtToken);
@@ -217,6 +236,8 @@ export const AuthProvider = ({ children }) => {
       });
       if (errorMsg.toLowerCase().includes("pending approval")) {
         toast.error("Your account is pending admin approval.");
+      } else if (errorMsg.toLowerCase().includes("rejected")) {
+        toast.error("Your account has been rejected.");
       } else {
         toast.error(errorMsg);
       }
@@ -230,12 +251,12 @@ export const AuthProvider = ({ children }) => {
       console.log("AuthContext: Attempting registration", { email, role });
       const res = await axiosInstance.post("/auth/register", {
         name,
-        email,
+        email: email.toLowerCase(),
         password,
         role,
         subject,
       });
-      if (res.data.token && res.data.user.approval_status === "approved") {
+      if (res.data.success && res.data.user.approvalStatus === "approved") {
         const normalizedUser = normalizeUser(res.data.user);
         setToken(res.data.token);
         setUser(normalizedUser);
@@ -248,9 +269,14 @@ export const AuthProvider = ({ children }) => {
         console.log("AuthContext: Registration successful, auto-logged in", {
           role,
         });
-        navigate(role === "admin" ? "/admindashboard" : "/dashboard");
+        navigate(
+          role === "admin"
+            ? "/admindashboard"
+            : role === "teacher"
+            ? "/dashboard"
+            : "/courses"
+        );
       } else {
-        // Clear local storage for pending users to prevent auth conflicts
         localStorage.removeItem("authToken");
         localStorage.removeItem("authUser");
         setToken(null);
