@@ -253,6 +253,8 @@
 
 
 
+
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
@@ -386,7 +388,9 @@ export const AuthProvider = ({ children }) => {
       axiosInstance.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${jwtToken}`;
-      toast.success("Logged in successfully");
+      toast.success("Logged in successfully", {
+        toastId: `login-success-${email}`,
+      });
       console.log("AuthContext: Login successful", {
         role: userData.role,
         email: userData.email,
@@ -408,13 +412,21 @@ export const AuthProvider = ({ children }) => {
         response: err.response?.data,
       });
       if (errorMsg.toLowerCase().includes("pending approval")) {
-        toast.error("Your account is pending admin approval.");
+        toast.error("Your account is pending admin approval.", {
+          toastId: `login-error-${email}`,
+        });
       } else if (errorMsg.toLowerCase().includes("rejected")) {
-        toast.error("Your account has been rejected.");
+        toast.error("Your account has been rejected.", {
+          toastId: `login-error-${email}`,
+        });
       } else if (errorMsg.toLowerCase().includes("invalid email or password")) {
-        toast.error("Invalid email or password. Please try again.");
+        toast.error("Invalid email or password. Please try again.", {
+          toastId: `login-error-${email}`,
+        });
       } else {
-        toast.error(`Login failed: ${errorMsg}`);
+        toast.error(`Login failed: ${errorMsg}`, {
+          toastId: `login-error-${email}`,
+        });
       }
       throw err;
     }
@@ -440,7 +452,9 @@ export const AuthProvider = ({ children }) => {
         axiosInstance.defaults.headers.common[
           "Authorization"
         ] = `Bearer ${res.data.token}`;
-        toast.success("Registered and logged in successfully");
+        toast.success("Registered and logged in successfully", {
+          toastId: `register-success-${email}`,
+        });
         console.log("AuthContext: Registration successful, auto-logged in", {
           role,
         });
@@ -456,7 +470,9 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem("authUser");
         setToken(null);
         setUser(null);
-        toast.info(res.data.message || "Registration pending approval");
+        toast.info(res.data.message || "Registration pending approval", {
+          toastId: `register-info-${email}`,
+        });
         console.log("AuthContext: Registration pending approval", { email });
         navigate("/login");
       }
@@ -468,7 +484,9 @@ export const AuthProvider = ({ children }) => {
         error: errorMsg,
         details: errorDetails,
       });
-      toast.error(`Registration failed: ${errorMsg}`);
+      toast.error(`Registration failed: ${errorMsg}`, {
+        toastId: `register-error-${email}`,
+      });
       throw err;
     }
   };
