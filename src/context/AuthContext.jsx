@@ -1,6 +1,5 @@
 
 // src/context/AuthContext.js
-
 import React, {
   createContext,
   useContext,
@@ -84,14 +83,17 @@ export const AuthProvider = ({ children }) => {
               attempt: i + 1,
             });
             const res = await axiosInstance.get("/auth/me");
-            if (res.data.success) {
-              setUser(normalizeUser(res.data.user));
+
+            // ✅ Backend sends user object directly, not wrapped in { success }
+            if (res.data && (res.data.user || res.data.id)) {
+              const userData = res.data.user || res.data;
+              setUser(normalizeUser(userData));
               localStorage.setItem(
                 "authUser",
-                JSON.stringify(normalizeUser(res.data.user))
+                JSON.stringify(normalizeUser(userData))
               );
               console.log("AuthContext: Token verified, user set", {
-                user: res.data.user,
+                user: userData,
               });
               return;
             }
@@ -134,10 +136,13 @@ export const AuthProvider = ({ children }) => {
         email: email.toLowerCase(),
         password,
       });
-      if (!res.data.success) {
-        throw new Error(res.data.error || "Login failed");
-      }
+
+      // ❌ Removed res.data.success check
       const { token: jwtToken, user: userData } = res.data;
+      if (!jwtToken || !userData) {
+        throw new Error("Invalid login response");
+      }
+
       const normalizedUser = normalizeUser(userData);
       setToken(jwtToken);
       setUser(normalizedUser);
@@ -177,7 +182,7 @@ export const AuthProvider = ({ children }) => {
         toast.error("Your account has been rejected.", {
           toastId: `login-error-${email}`,
         });
-      } else if (errorMsg.toLowerCase().includes("invalid email or password")) {
+      } else if (errorMsg.toLowerCase().includes("invalid credentials")) {
         toast.error("Invalid email or password. Please try again.", {
           toastId: `login-error-${email}`,
         });
@@ -200,7 +205,9 @@ export const AuthProvider = ({ children }) => {
         role,
         subject,
       });
-      if (res.data.success && res.data.user.approval_status === "approved") {
+
+      // ❌ Removed res.data.success check
+      if (res.data.user && res.data.user.approval_status === "approved") {
         const normalizedUser = normalizeUser(res.data.user);
         setToken(res.data.token);
         setUser(normalizedUser);
