@@ -255,6 +255,9 @@
 
 
 
+
+// src/context/AuthContext.js
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
@@ -277,7 +280,6 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Normalize role and approval_status to lowercase
   const normalizeUser = (userData) => {
     if (!userData) return null;
     return {
@@ -289,7 +291,6 @@ export const AuthProvider = ({ children }) => {
     };
   };
 
-  // Check auth on mount, skip for public routes
   useEffect(() => {
     const publicRoutes = [
       "/register",
@@ -317,7 +318,6 @@ export const AuthProvider = ({ children }) => {
         "Authorization"
       ] = `Bearer ${savedToken}`;
 
-      // Retry logic for /auth/me
       const verifyToken = async (retries = 3, delay = 1000) => {
         for (let i = 0; i < retries; i++) {
           try {
@@ -368,7 +368,6 @@ export const AuthProvider = ({ children }) => {
     }
   }, [location.pathname, navigate]);
 
-  // Login user
   const loginUser = async (email, password) => {
     try {
       console.log("AuthContext: Attempting login", { email });
@@ -432,7 +431,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Register user
   const register = async (name, email, password, role, subject) => {
     try {
       console.log("AuthContext: Attempting registration", { email, role });
@@ -491,7 +489,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout user
   const logoutUser = () => {
     console.log("AuthContext: Logging out");
     setToken(null);
@@ -502,7 +499,6 @@ export const AuthProvider = ({ children }) => {
     navigate("/login");
   };
 
-  // Update user profile
   const updateUser = (updatedUser) => {
     const normalizedUser = normalizeUser(updatedUser);
     setUser(normalizedUser);
