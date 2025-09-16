@@ -111,10 +111,9 @@
 
 
 
-
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axiosInstance from "../utils/axiosInstance"; // unified axios
+import axiosInstance from "../utils/axiosInstance";
 import { toast } from "react-toastify";
 
 const CourseLessons = () => {

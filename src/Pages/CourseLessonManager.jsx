@@ -163,7 +163,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import axiosInstance from "../utils/axiosInstance"; // ✅ unified axios
+import axiosInstance from "../utils/axiosInstance";
 import { toast } from "react-toastify";
 import "./CourseLessonManager.css";
 
@@ -180,7 +180,7 @@ const CourseLessonManager = () => {
     try {
       const res = await axiosInstance.get(`/lessons/${courseId}/lessons`);
       setLessons(res.data.lessons);
-    } catch {
+    } catch (err) {
       toast.error("❌ Failed to load lessons");
     } finally {
       setLoading(false);
@@ -226,6 +226,7 @@ const CourseLessonManager = () => {
     try {
       await axiosInstance.put(`/lessons/${lessonId}`, { title: editedTitle });
       toast.success("✏️ Lesson title updated");
+
       setLessons((prev) =>
         prev.map((l) => (l.id === lessonId ? { ...l, title: editedTitle } : l))
       );
@@ -273,28 +274,6 @@ const CourseLessonManager = () => {
                 ) : (
                   <>
                     <strong>{lesson.title}</strong> — {lesson.contentType}
-                    {lesson.contentType === "file" && lesson.contentUrl && (
-                      <>
-                        {" "}
-                        —{" "}
-                        <a
-                          href={`${axiosInstance.defaults.baseURL}${lesson.contentUrl}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          📄 View PDF
-                        </a>
-                      </>
-                    )}
-                    {lesson.contentType === "text" && (
-                      <span className="preview-inline"> — 📝 Text Content</span>
-                    )}
-                    {lesson.contentType === "video" && (
-                      <span className="preview-inline">
-                        {" "}
-                        — 🎥 Video Content
-                      </span>
-                    )}
                   </>
                 )}
               </div>

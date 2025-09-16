@@ -227,11 +227,10 @@
 
 
 
-
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import axiosInstance from "../../utils/axiosInstance"; // ✅ unified axios
+import axiosInstance from "../../utils/axiosInstance";
 import { useDropzone } from "react-dropzone";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -268,7 +267,7 @@ const EditLesson = () => {
           isPreview: data.isPreview || false,
           isUnitHeader: data.isUnitHeader || false,
         });
-      } catch {
+      } catch (err) {
         toast.error("❌ Failed to load lesson.");
       } finally {
         setLoading(false);
@@ -314,7 +313,6 @@ const EditLesson = () => {
     for (const key in form) {
       formData.append(key, form[key]);
     }
-
     if (file) formData.append("file", file);
 
     try {
@@ -399,11 +397,7 @@ const EditLesson = () => {
             {lesson?.contentUrl && (
               <p>
                 Current:{" "}
-                <a
-                  href={`${axiosInstance.defaults.baseURL}${lesson.contentUrl}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
+                <a href={lesson.contentUrl} target="_blank" rel="noreferrer">
                   📄 View Existing PDF
                 </a>
               </p>
