@@ -283,6 +283,7 @@
 
 
 
+// src/context/AuthContext.js
 import React, {
   createContext,
   useContext,
@@ -326,33 +327,28 @@ export const AuthProvider = ({ children }) => {
     console.log("AuthContext: Logging out");
     setToken(null);
     setUser(null);
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("authUser");
     delete axiosInstance.defaults.headers.common["Authorization"];
     navigate("/login");
   }, [navigate]);
 
   useEffect(() => {
-    const publicRoutes = [
-      "/register",
-      "/login",
-      "/courses",
-      "/",
-      "/unauthorized",
-    ];
+    const publicRoutes = ["/register", "/login", "/courses", "/", "/unauthorized"];
 
     if (publicRoutes.includes(location.pathname)) {
       setLoading(false);
       return;
     }
 
-    const savedToken = localStorage.getItem("token");
-    const savedUser = localStorage.getItem("user");
+    const savedToken = localStorage.getItem("authToken");
+    const savedUser = localStorage.getItem("authUser");
 
     if (savedToken && savedUser) {
       const parsedUser = normalizeUser(JSON.parse(savedUser));
       setToken(savedToken);
       setUser(parsedUser);
+
       axiosInstance.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${savedToken}`;
@@ -360,17 +356,22 @@ export const AuthProvider = ({ children }) => {
       const verifyToken = async () => {
         try {
           const res = await axiosInstance.get("/auth/me");
+
           if (res.data && (res.data.user || res.data.id)) {
             const userData = res.data.user || res.data;
-            const normalized = normalizeUser(userData);
-            setUser(normalized);
-            localStorage.setItem("user", JSON.stringify(normalized));
-            console.log("AuthContext: Token verified");
+            setUser(normalizeUser(userData));
+            localStorage.setItem(
+              "authUser",
+              JSON.stringify(normalizeUser(userData))
+            );
+            return;
           }
         } catch (err) {
           console.error("AuthContext: Token verification failed", err);
           logoutUser();
-          navigate("/unauthorized");
+          if (!publicRoutes.includes(location.pathname)) {
+            navigate("/unauthorized");
+          }
         } finally {
           setLoading(false);
         }
@@ -378,6 +379,7 @@ export const AuthProvider = ({ children }) => {
 
       verifyToken();
     } else {
+      console.log("AuthContext: No token/user found");
       setLoading(false);
       if (!publicRoutes.includes(location.pathname)) {
         navigate("/unauthorized");
@@ -387,19 +389,25 @@ export const AuthProvider = ({ children }) => {
 
   const loginUser = async (email, password) => {
     try {
+      console.log("AuthContext: Attempting login", { email });
       const res = await axiosInstance.post("/auth/login", {
         email: email.toLowerCase(),
         password,
       });
 
       const { token: jwtToken, user: userData } = res.data;
-      if (!jwtToken || !userData) throw new Error("Invalid login response");
+      if (!jwtToken || !userData) {
+        throw new Error("Invalid login response");
+      }
 
       const normalizedUser = normalizeUser(userData);
       setToken(jwtToken);
       setUser(normalizedUser);
-      localStorage.setItem("token", jwtToken);
-      localStorage.setItem("user", JSON.stringify(normalizedUser));
+
+      // ✅ always use same keys
+      localStorage.setItem("authToken", jwtToken);
+      localStorage.setItem("authUser", JSON.stringify(normalizedUser));
+
       axiosInstance.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${jwtToken}`;
@@ -414,7 +422,8 @@ export const AuthProvider = ({ children }) => {
       );
     } catch (err) {
       const errorMsg = err.response?.data?.error || "Login failed";
-      toast.error(errorMsg);
+      console.error("AuthContext: Login failed", err);
+      toast.error(`Login failed: ${errorMsg}`);
       throw err;
     }
   };
@@ -433,8 +442,11 @@ export const AuthProvider = ({ children }) => {
         const normalizedUser = normalizeUser(res.data.user);
         setToken(res.data.token);
         setUser(normalizedUser);
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("user", JSON.stringify(normalizedUser));
+
+        // ✅ consistent keys
+        localStorage.setItem("authToken", res.data.token);
+        localStorage.setItem("authUser", JSON.stringify(normalizedUser));
+
         axiosInstance.defaults.headers.common[
           "Authorization"
         ] = `Bearer ${res.data.token}`;
@@ -449,12 +461,12 @@ export const AuthProvider = ({ children }) => {
         );
       } else {
         logoutUser();
-        toast.info("Registration pending approval");
+        toast.info(res.data.message || "Registration pending approval");
         navigate("/login");
       }
     } catch (err) {
       const errorMsg = err.response?.data?.error || "Registration failed";
-      toast.error(errorMsg);
+      toast.error(`Registration failed: ${errorMsg}`);
       throw err;
     }
   };
@@ -462,7 +474,7 @@ export const AuthProvider = ({ children }) => {
   const updateUser = (updatedUser) => {
     const normalizedUser = normalizeUser(updatedUser);
     setUser(normalizedUser);
-    localStorage.setItem("user", JSON.stringify(normalizedUser));
+    localStorage.setItem("authUser", JSON.stringify(normalizedUser));
   };
 
   return (

@@ -94,10 +94,6 @@
 // export default Navbar;
 
 
-
-
-
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -108,7 +104,7 @@ import logo from "../assets/images/mathlogo.jpeg";
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { user, logoutUser } = useAuth();
+  const { user, logoutUser, isAuthenticated, loading } = useAuth();
 
   const toggleMenu = (e) => {
     e.stopPropagation();
@@ -150,19 +146,26 @@ const Navbar = () => {
           Courses
         </Link>
 
-        {user ? (
+        {loading ? (
+          <div className="navbar-spinner" title="Checking login..."></div>
+        ) : isAuthenticated ? (
           <>
-            {user.role === "teacher" && (
+            {/* ✅ Greeting with name and role */}
+            <span className="navbar-greeting">
+              Welcome, {user?.name} ({user?.role})
+            </span>
+
+            {user?.role === "teacher" && (
               <Link to="/create-course" onClick={handleLinkClick}>
                 Create Course
               </Link>
             )}
-            {(user.role === "teacher" || user.role === "admin") && (
+            {(user?.role === "teacher" || user?.role === "admin") && (
               <Link
-                to={user.role === "admin" ? "/admindashboard" : "/dashboard"}
+                to={user?.role === "admin" ? "/admindashboard" : "/dashboard"}
                 onClick={handleLinkClick}
               >
-                {user.role === "admin"
+                {user?.role === "admin"
                   ? "Admin Dashboard"
                   : "Teacher Dashboard"}
               </Link>
