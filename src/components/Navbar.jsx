@@ -1,7 +1,6 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import "./Navbar.css";
 import logo from "../assets/images/mathlogo.jpeg";
@@ -13,30 +12,26 @@ const Navbar = () => {
 
   const toggleMenu = (e) => {
     e.stopPropagation();
-    setIsMenuOpen(!isMenuOpen);
+    setIsMenuOpen((prev) => !prev);
   };
 
   const handleLinkClick = () => setIsMenuOpen(false);
 
-  const handleLogout = () => {
-    logoutUser();
-    toast.success("Logged out successfully");
+  const handleLogout = async () => {
+    await logoutUser(); // ✅ AuthContext handles toast + cleanup
     navigate("/");
   };
 
   // Close menu when clicking outside
-  React.useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = () => {
-      if (isMenuOpen) {
-        setIsMenuOpen(false);
-      }
+      if (isMenuOpen) setIsMenuOpen(false);
     };
-
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, [isMenuOpen]);
 
-  // ✅ Helper to render avatar
+  // ✅ Render avatar or initials
   const renderAvatar = () => {
     if (user?.avatar || user?.profileImage) {
       return (
@@ -47,7 +42,6 @@ const Navbar = () => {
         />
       );
     }
-    // fallback: initials
     const initials = user?.name
       ? user.name
           .split(" ")
@@ -60,6 +54,7 @@ const Navbar = () => {
 
   return (
     <nav className="navbar">
+      {/* Brand */}
       <div className="navbar-brand">
         <Link to="/" onClick={handleLinkClick}>
           <img src={logo} alt="Math Logo" className="navbar-logo" />
@@ -67,6 +62,7 @@ const Navbar = () => {
         </Link>
       </div>
 
+      {/* Mobile toggle */}
       <button
         className="hamburger"
         onClick={toggleMenu}
@@ -77,6 +73,7 @@ const Navbar = () => {
         <span className="hamburger-bar"></span>
       </button>
 
+      {/* Links */}
       <div className={`navbar-links ${isMenuOpen ? "active" : ""}`}>
         <Link to="/" onClick={handleLinkClick}>
           Home
@@ -89,18 +86,12 @@ const Navbar = () => {
           <div className="navbar-spinner" title="Checking login..."></div>
         ) : isAuthenticated ? (
           <>
-            {/* Desktop Greeting with avatar */}
-            <span className="navbar-greeting desktop-greeting">
+            {/* Greeting */}
+            <span className="navbar-greeting">
               {renderAvatar()} Welcome, {user?.name} ({user?.role})
             </span>
 
-            {/* Mobile Greeting inside dropdown */}
-            {isMenuOpen && (
-              <span className="navbar-greeting mobile-greeting">
-                {renderAvatar()} Welcome, {user?.name} ({user?.role})
-              </span>
-            )}
-
+            {/* Role-specific links */}
             {user?.role === "teacher" && (
               <Link to="/create-course" onClick={handleLinkClick}>
                 Create Course
@@ -116,6 +107,8 @@ const Navbar = () => {
                   : "Teacher Dashboard"}
               </Link>
             )}
+
+            {/* Shared */}
             <Link to="/profile" onClick={handleLinkClick}>
               Profile
             </Link>

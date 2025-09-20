@@ -4,7 +4,6 @@ import { Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { ThemeProvider } from "./context/ThemeContext";
 import ErrorBoundary from "./components/ErrorBoundary";
-
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Loading from "./components/Loading";

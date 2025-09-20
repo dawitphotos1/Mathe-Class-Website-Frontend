@@ -1,25 +1,15 @@
 
+// src/utils/axiosInstance.js
 import axios from "axios";
 
 const axiosInstance = axios.create({
   baseURL: "https://mathe-class-website-backend-1.onrender.com/api/v1",
-  withCredentials: true, // 🔥 ensure cookies are sent
+  withCredentials: true, // ✅ allow cookies
 });
 
-axiosInstance.interceptors.request.use(
-  (config) => {
-    console.log("🔗 Sending request:", config.method, config.url);
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-axiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error("❌ API error:", error.message);
-    return Promise.reject(error);
-  }
-);
+axiosInstance.interceptors.request.use((config) => {
+  console.log("🔗 Sending request:", config.method, config.url);
+  return config;
+});
 
 export default axiosInstance;
