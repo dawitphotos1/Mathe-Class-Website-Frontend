@@ -57,30 +57,27 @@
 
 
 
-
 import axios from "axios";
 
-const api = axios.create({
+const axiosInstance = axios.create({
   baseURL: "https://mathe-class-website-backend-1.onrender.com/api/v1",
-  withCredentials: true, // ✅ important for cookies
+  withCredentials: true, // 🔥 ensure cookies are sent
 });
 
-// Login
-export async function login(email, password) {
-  const res = await api.post("/auth/login", { email, password });
-  return res.data;
-}
+axiosInstance.interceptors.request.use(
+  (config) => {
+    console.log("🔗 Sending request:", config.method, config.url);
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-// Logout
-export async function logout() {
-  const res = await api.post("/auth/logout");
-  return res.data;
-}
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error("❌ API error:", error.message);
+    return Promise.reject(error);
+  }
+);
 
-// Get current user
-export async function getMe() {
-  const res = await api.get("/auth/me");
-  return res.data;
-}
-
-export default api;
+export default axiosInstance;
