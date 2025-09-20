@@ -58,46 +58,29 @@
 
 
 
-
-
-// src/utils/axiosInstance.js
 import axios from "axios";
 
-let API_BASE_URL;
-
-if (process.env.REACT_APP_API_URL) {
-  API_BASE_URL = process.env.REACT_APP_API_URL;
-} else if (process.env.NODE_ENV === "development") {
-  API_BASE_URL = "http://localhost:5000/api/v1";
-} else {
-  API_BASE_URL = "https://mathe-class-website-backend-1.onrender.com/api/v1";
-}
-
-console.log("🔗 Using API_BASE_URL:", API_BASE_URL);
-
-const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-  withCredentials: true, // ✅ crucial for sending cookies
-  headers: {
-    "Content-Type": "application/json",
-  },
+const api = axios.create({
+  baseURL: "https://mathe-class-website-backend-1.onrender.com/api/v1",
+  withCredentials: true, // ✅ important for cookies
 });
 
-// ✅ Remove token logic — cookies are sent automatically
-// ✅ Error handler
-axiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    const { response } = error;
+// Login
+export async function login(email, password) {
+  const res = await api.post("/auth/login", { email, password });
+  return res.data;
+}
 
-    if (response?.status === 401 || response?.status === 403) {
-      window.location.href = "/login";
-    }
+// Logout
+export async function logout() {
+  const res = await api.post("/auth/logout");
+  return res.data;
+}
 
-    console.error("❌ API error:", response?.data || error.message);
-    return Promise.reject(error);
-  }
-);
+// Get current user
+export async function getMe() {
+  const res = await api.get("/auth/me");
+  return res.data;
+}
 
-export default axiosInstance;
+export default api;
