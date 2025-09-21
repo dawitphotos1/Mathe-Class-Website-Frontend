@@ -95,12 +95,9 @@
 
 
 
-
-
 // src/Pages/auth/Login.jsx
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import authService from "../../services/authService"; // ✅ new service
 import { useAuth } from "../../context/AuthContext";
 import "./Login.css";
 
@@ -110,7 +107,7 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  const { setUser, setIsAuthenticated } = useAuth(); // ✅ from AuthContext
+  const { loginUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -121,22 +118,9 @@ const Login = () => {
     setError(null);
 
     try {
-      // 🔹 Login (sets cookie)
-      await authService.login({ email, password });
-
-      // 🔹 Fetch current user
-      const me = await authService.getMe();
-      setUser(me.user);
-      setIsAuthenticated(true);
-
-      // 🔹 Redirect by role
-      if (me.user.role === "admin") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/student/dashboard");
-      }
+      await loginUser({ email, password });
+      // ✅ redirection is handled inside loginUser
     } catch (err) {
-      console.error("❌ Login failed:", err.response?.data || err.message);
       setError(err.response?.data?.error || "Login failed. Try again.");
     } finally {
       setIsSubmitting(false);

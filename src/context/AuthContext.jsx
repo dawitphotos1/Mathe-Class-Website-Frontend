@@ -83,8 +83,6 @@
 
 
 
-
-
 // src/context/AuthContext.jsx
 import React, {
   createContext,
@@ -95,7 +93,7 @@ import React, {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import authService from "../services/authService"; // ✅ Using your new service
+import authService from "../services/authService";
 
 export const AuthContext = createContext();
 
@@ -106,12 +104,50 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // 🔐 Login
+  const loginUser = async ({ email, password }) => {
+    try {
+      await authService.login({ email, password }); // sets cookie
+      const me = await authService.getMe(); // fetch user profile
+      setUser(me.user);
+      toast.success("Logged in successfully");
+
+      if (me.user.role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/student/dashboard");
+      }
+    } catch (err) {
+      console.error("❌ Login failed:", err.response?.data || err.message);
+      toast.error(err.response?.data?.error || "Login failed");
+      throw err;
+    }
+  };
+
+  // 📝 Register
+  const registerUser = async (payload) => {
+    try {
+      const data = await authService.register(payload);
+
+      if (data.user.approval_status === "approved") {
+        setUser(data.user);
+        toast.success("Registered and logged in");
+        navigate("/courses");
+      } else {
+        toast.info("Registration pending approval");
+        navigate("/login");
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Registration failed");
+      throw err;
+    }
+  };
+
   // 🔒 Logout
   const logoutUser = useCallback(async () => {
     try {
       await authService.logout();
       setUser(null);
-      localStorage.removeItem("authUser");
       toast.info("Logged out");
       navigate("/login");
     } catch (err) {
@@ -120,53 +156,12 @@ export const AuthProvider = ({ children }) => {
     }
   }, [navigate]);
 
-  // 🔐 Login
-  const loginUser = async (email, password) => {
-    try {
-      const data = await authService.login({ email, password });
-      setUser(data.user);
-      localStorage.setItem("authUser", JSON.stringify(data.user));
-      toast.success("Logged in successfully");
-      navigate("/courses");
-    } catch (err) {
-      toast.error(err?.response?.data?.error || "Login failed");
-      throw err;
-    }
-  };
-
-  // 📝 Register
-  const registerUser = async (name, email, password, role, subject) => {
-    try {
-      const data = await authService.register({
-        name,
-        email,
-        password,
-        role,
-        subject,
-      });
-
-      if (data.user.approval_status === "approved") {
-        setUser(data.user);
-        localStorage.setItem("authUser", JSON.stringify(data.user));
-        toast.success("Registered and logged in");
-        navigate("/courses");
-      } else {
-        toast.info("Registration pending approval");
-        navigate("/login");
-      }
-    } catch (err) {
-      toast.error(err?.response?.data?.error || "Registration failed");
-      throw err;
-    }
-  };
-
   // 🚀 On mount: check user session
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const data = await authService.getMe();
-        setUser(data.user);
-        localStorage.setItem("authUser", JSON.stringify(data.user));
+        const me = await authService.getMe();
+        setUser(me.user);
       } catch (err) {
         console.warn("Not authenticated");
         setUser(null);
@@ -184,8 +179,8 @@ export const AuthProvider = ({ children }) => {
         loading,
         isAuthenticated: !!user,
         loginUser,
-        logoutUser,
         registerUser,
+        logoutUser,
       }}
     >
       {children}

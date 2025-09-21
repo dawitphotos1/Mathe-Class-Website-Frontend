@@ -285,19 +285,15 @@
 
 
 
-
-// src/Pages/AdminDashboard.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axiosInstance from "../utils/axiosInstance";
-import authService from "../services/authService"; // ✅ added
 import { useAuth } from "../context/AuthContext";
 import "./AdminDashboard.css";
 
 const AdminDashboard = () => {
-  const { user, setUser, isAuthenticated, setIsAuthenticated, logoutUser } =
-    useAuth();
+  const { user, isAuthenticated, logoutUser } = useAuth();
   const navigate = useNavigate();
 
   // Users
@@ -314,11 +310,12 @@ const AdminDashboard = () => {
   const [errorApproved, setErrorApproved] = useState("");
   const [activeTab, setActiveTab] = useState("pending");
 
+  // 🔒 Handle errors globally
   const handleError = useCallback(
     (err, setError) => {
       const status = err.response?.status;
       if (status === 401) {
-        logoutUser();
+        logoutUser(); // clears context + cookie
         toast.error("Session expired. Please log in again.");
         navigate("/login");
       } else {
@@ -330,22 +327,7 @@ const AdminDashboard = () => {
     [navigate, logoutUser]
   );
 
-  // ✅ Verify user first
-  useEffect(() => {
-    const verifyUser = async () => {
-      try {
-        const me = await authService.getMe();
-        setUser(me.user);
-        setIsAuthenticated(true);
-      } catch {
-        setIsAuthenticated(false);
-        navigate("/login");
-      }
-    };
-    verifyUser();
-  }, [setUser, setIsAuthenticated, navigate]);
-
-  // Fetch pending users
+  // 📌 Fetch pending users
   const fetchPendingUsers = useCallback(async () => {
     setLoadingUsers(true);
     setErrorUsers("");
@@ -359,7 +341,7 @@ const AdminDashboard = () => {
     }
   }, [handleError]);
 
-  // Fetch enrollments
+  // 📌 Fetch pending enrollments
   const fetchPendingEnrollments = useCallback(async () => {
     setLoadingEnrollments(true);
     setErrorEnrollments("");
@@ -373,6 +355,7 @@ const AdminDashboard = () => {
     }
   }, [handleError]);
 
+  // 📌 Fetch approved enrollments
   const fetchApprovedEnrollments = useCallback(async () => {
     setLoadingApproved(true);
     setErrorApproved("");
@@ -386,7 +369,7 @@ const AdminDashboard = () => {
     }
   }, [handleError]);
 
-  // Approve / reject user
+  // 📌 Approve / reject users
   const handleApproveUser = async (userId) => {
     try {
       await axiosInstance.patch(`/admin/users/${userId}/approval`, {
@@ -411,7 +394,7 @@ const AdminDashboard = () => {
     }
   };
 
-  // Approve enrollment
+  // 📌 Approve enrollment
   const handleApproveEnrollment = async (enrollmentId) => {
     try {
       await axiosInstance.put(`/admin/enrollments/${enrollmentId}/approve`);
@@ -423,6 +406,7 @@ const AdminDashboard = () => {
     }
   };
 
+  // 🚀 Fetch data when authenticated as admin
   useEffect(() => {
     if (isAuthenticated && user?.role === "admin") {
       fetchPendingUsers();
@@ -437,6 +421,7 @@ const AdminDashboard = () => {
     fetchApprovedEnrollments,
   ]);
 
+  // 🚫 If not admin, block access
   if (!isAuthenticated || user?.role !== "admin") {
     return <Navigate to="/unauthorized" replace />;
   }
@@ -449,7 +434,7 @@ const AdminDashboard = () => {
           Logout
         </button>
 
-        {/* Pending Users */}
+        {/* Section 1: Pending Users */}
         <h3>Pending User Approvals</h3>
         {errorUsers && <p className="error">{errorUsers}</p>}
         {loadingUsers ? (
@@ -494,7 +479,7 @@ const AdminDashboard = () => {
           </table>
         )}
 
-        {/* Enrollment Tabs */}
+        {/* Section 2: Enrollments */}
         <h3>Course Enrollments</h3>
         <div className="tab-buttons">
           <button

@@ -17,29 +17,29 @@
 
 
 
-
 // src/utils/axiosInstance.js
 import axios from "axios";
 
+// 🔹 Dynamically pick API base URL
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL || "http://localhost:5000/api/v1";
+
 const axiosInstance = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || "https://mathe-class-website-backend-1.onrender.com/api/v1",
-  withCredentials: true, // ✅ crucial for cookies
+  baseURL: API_BASE_URL,
+  withCredentials: true, // ✅ send cookies
 });
 
-// Log outgoing requests
+// 🔍 Debug requests/responses
 axiosInstance.interceptors.request.use((config) => {
-  console.log("🔗 Sending request:", config.method?.toUpperCase(), config.url, {
-    withCredentials: config.withCredentials,
-  });
+  console.log("📤 Request:", config.method?.toUpperCase(), config.url, config.data || "");
   return config;
 });
 
-// Log incoming responses
 axiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error("❌ API Error:", error.response?.status, error.response?.data);
-    return Promise.reject(error);
+  (res) => res,
+  (err) => {
+    console.error("❌ API error:", err.response?.status, err.response?.data);
+    return Promise.reject(err);
   }
 );
 
