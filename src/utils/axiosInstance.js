@@ -1,4 +1,3 @@
-
 // src/utils/axiosInstance.js
 import axios from "axios";
 
@@ -7,8 +6,9 @@ const axiosInstance = axios.create({
   withCredentials: true, // ✅ allow cookies
 });
 
+// Interceptor for debug
 axiosInstance.interceptors.request.use((config) => {
-  console.log("🔗 Sending request:", config.method, config.url);
+  console.log("🔗 Sending request:", config.method?.toUpperCase(), config.url);
   return config;
 });
 
