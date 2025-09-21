@@ -1,15 +1,116 @@
 
+// // src/Pages/auth/Login.jsx
+// import React, { useState } from "react";
+// import { useAuth } from "../../context/AuthContext";
+// import { useNavigate, useLocation } from "react-router-dom";
+// import "./Login.css";
+
+// const Login = () => {
+//   const [email, setEmail] = useState("");
+//   const [password, setPassword] = useState("");
+//   const [isSubmitting, setIsSubmitting] = useState(false);
+//   const { loginUser } = useAuth();
+//   const navigate = useNavigate();
+//   const location = useLocation();
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     if (isSubmitting) return;
+//     setIsSubmitting(true);
+
+//     try {
+//       await loginUser(email, password);
+//     } catch (err) {
+//       console.error("Login attempt failed:", err);
+//     } finally {
+//       setIsSubmitting(false);
+//     }
+//   };
+
+//   return (
+//     <div className="auth-container">
+//       <div className="auth-form">
+//         <h2>Login</h2>
+        
+//         {location.state?.message && (
+//           <div className="auth-message info">
+//             {location.state.message}
+//           </div>
+//         )}
+        
+//         <form onSubmit={handleSubmit}>
+//           <div className="form-group">
+//             <label htmlFor="email">Email</label>
+//             <input
+//               type="email"
+//               id="email"
+//               value={email}
+//               onChange={(e) => setEmail(e.target.value)}
+//               required
+//               disabled={isSubmitting}
+//               placeholder="Enter your email"
+//             />
+//           </div>
+          
+//           <div className="form-group password-group">
+//             <label htmlFor="password">Password</label>
+//             <div className="password-input">
+//               <input
+//                 type="password"
+//                 id="password"
+//                 value={password}
+//                 onChange={(e) => setPassword(e.target.value)}
+//                 required
+//                 disabled={isSubmitting}
+//                 placeholder="Enter your password"
+//               />
+//             </div>
+//           </div>
+          
+//           <button
+//             type="submit"
+//             className="btn-primary"
+//             disabled={isSubmitting}
+//           >
+//             {isSubmitting ? "Logging in..." : "Login"}
+//           </button>
+//         </form>
+
+//         <div className="auth-footer">
+//           Don't have an account?{" "}
+//           <button
+//             onClick={() => navigate("/register")}
+//             className="text-link"
+//             disabled={isSubmitting}
+//           >
+//             Register
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default Login;
+
+
+
+
+
 // src/Pages/auth/Login.jsx
 import React, { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
+import authService from "../../services/authService"; // ✅ new service
+import { useAuth } from "../../context/AuthContext";
 import "./Login.css";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { loginUser } = useAuth();
+  const [error, setError] = useState(null);
+
+  const { setUser, setIsAuthenticated } = useAuth(); // ✅ from AuthContext
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -17,11 +118,26 @@ const Login = () => {
     e.preventDefault();
     if (isSubmitting) return;
     setIsSubmitting(true);
+    setError(null);
 
     try {
-      await loginUser(email, password);
+      // 🔹 Login (sets cookie)
+      await authService.login({ email, password });
+
+      // 🔹 Fetch current user
+      const me = await authService.getMe();
+      setUser(me.user);
+      setIsAuthenticated(true);
+
+      // 🔹 Redirect by role
+      if (me.user.role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/student/dashboard");
+      }
     } catch (err) {
-      console.error("Login attempt failed:", err);
+      console.error("❌ Login failed:", err.response?.data || err.message);
+      setError(err.response?.data?.error || "Login failed. Try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -31,13 +147,12 @@ const Login = () => {
     <div className="auth-container">
       <div className="auth-form">
         <h2>Login</h2>
-        
+
         {location.state?.message && (
-          <div className="auth-message info">
-            {location.state.message}
-          </div>
+          <div className="auth-message info">{location.state.message}</div>
         )}
-        
+        {error && <div className="auth-message error">{error}</div>}
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="email">Email</label>
@@ -51,7 +166,7 @@ const Login = () => {
               placeholder="Enter your email"
             />
           </div>
-          
+
           <div className="form-group password-group">
             <label htmlFor="password">Password</label>
             <div className="password-input">
@@ -66,18 +181,14 @@ const Login = () => {
               />
             </div>
           </div>
-          
-          <button
-            type="submit"
-            className="btn-primary"
-            disabled={isSubmitting}
-          >
+
+          <button type="submit" className="btn-primary" disabled={isSubmitting}>
             {isSubmitting ? "Logging in..." : "Login"}
           </button>
         </form>
 
         <div className="auth-footer">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <button
             onClick={() => navigate("/register")}
             className="text-link"
