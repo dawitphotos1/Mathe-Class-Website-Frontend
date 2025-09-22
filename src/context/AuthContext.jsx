@@ -1,115 +1,4 @@
 
-// src/context/AuthContext.jsx
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-} from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import authService from "../services/authService";
-
-export const AuthContext = createContext();
-
-export const useAuth = () => useContext(AuthContext);
-
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-
-  // 🔐 Login
-  const loginUser = async ({ email, password }) => {
-    try {
-      await authService.login({ email, password }); // sets cookie
-      const me = await authService.getMe(); // fetch user profile
-      setUser(me.user);
-      toast.success("Logged in successfully");
-
-      if (me.user.role === "admin") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/student/dashboard");
-      }
-    } catch (err) {
-      console.error("❌ Login failed:", err.response?.data || err.message);
-      toast.error(err.response?.data?.error || "Login failed");
-      throw err;
-    }
-  };
-
-  // 📝 Register
-  const registerUser = async (payload) => {
-    try {
-      const data = await authService.register(payload);
-
-      if (data.user.approval_status === "approved") {
-        setUser(data.user);
-        toast.success("Registered and logged in");
-        navigate("/courses");
-      } else {
-        toast.info("Registration pending approval");
-        navigate("/login");
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.error || "Registration failed");
-      throw err;
-    }
-  };
-
-  // 🔒 Logout
-  const logoutUser = useCallback(async () => {
-    try {
-      await authService.logout();
-      setUser(null);
-      toast.info("Logged out");
-      navigate("/login");
-    } catch (err) {
-      console.error("Logout error:", err);
-      toast.error("Logout failed");
-    }
-  }, [navigate]);
-
-  // 🚀 On mount: check user session
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const me = await authService.getMe();
-        setUser(me.user);
-      } catch (err) {
-        console.warn("Not authenticated");
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    checkAuth();
-  }, []);
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        isAuthenticated: !!user,
-        loginUser,
-        registerUser,
-        logoutUser,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-
-
-
-
-
-
 // // src/context/AuthContext.jsx
 // import React, {
 //   createContext,
@@ -123,6 +12,7 @@ export const AuthProvider = ({ children }) => {
 // import authService from "../services/authService";
 
 // export const AuthContext = createContext();
+
 // export const useAuth = () => useContext(AuthContext);
 
 // export const AuthProvider = ({ children }) => {
@@ -182,25 +72,20 @@ export const AuthProvider = ({ children }) => {
 //     }
 //   }, [navigate]);
 
-//   // 🚀 On mount: check user session (safe, no redirect here)
+//   // 🚀 On mount: check user session
 //   useEffect(() => {
-//     let isMounted = true;
-
 //     const checkAuth = async () => {
 //       try {
 //         const me = await authService.getMe();
-//         if (isMounted) setUser(me.user);
-//       } catch {
-//         if (isMounted) setUser(null); // just clear, don’t redirect
+//         setUser(me.user);
+//       } catch (err) {
+//         console.warn("Not authenticated");
+//         setUser(null);
 //       } finally {
-//         if (isMounted) setLoading(false);
+//         setLoading(false);
 //       }
 //     };
-
 //     checkAuth();
-//     return () => {
-//       isMounted = false;
-//     };
 //   }, []);
 
 //   return (
@@ -218,3 +103,49 @@ export const AuthProvider = ({ children }) => {
 //     </AuthContext.Provider>
 //   );
 // };
+
+
+
+
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { getCurrentUser } from "../services/authService";
+
+const AuthContext = createContext();
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchUser = async () => {
+      try {
+        const res = await getCurrentUser();
+        if (isMounted) {
+          setUser(res.user || null);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setUser(null);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchUser();
+
+    return () => {
+      isMounted = false; // cleanup to prevent re-renders
+    };
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, setUser, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => useContext(AuthContext);
