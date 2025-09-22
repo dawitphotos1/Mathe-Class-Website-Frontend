@@ -47,13 +47,12 @@
 
 
 
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; // ✅ use only useAuth
+import { useAuth } from "../context/AuthContext";
 
 const AdminSidebar = () => {
-  const { user } = useAuth(); // ✅ only use useAuth
+  const { user } = useAuth();
   const location = useLocation();
 
   if (!user || user.role !== "admin") {

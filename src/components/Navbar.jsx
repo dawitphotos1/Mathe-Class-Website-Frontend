@@ -1,4 +1,144 @@
 
+// import React, { useState, useEffect } from "react";
+// import { Link, useNavigate } from "react-router-dom";
+// import { useAuth } from "../context/AuthContext";
+// import "./Navbar.css";
+// import logo from "../assets/images/mathlogo.jpeg";
+
+// const Navbar = () => {
+//   const [isMenuOpen, setIsMenuOpen] = useState(false);
+//   const navigate = useNavigate();
+//   const { user, logoutUser, isAuthenticated, loading } = useAuth();
+
+//   const toggleMenu = (e) => {
+//     e.stopPropagation();
+//     setIsMenuOpen((prev) => !prev);
+//   };
+
+//   const handleLinkClick = () => setIsMenuOpen(false);
+
+//   const handleLogout = async () => {
+//     await logoutUser(); // ✅ AuthContext handles toast + cleanup
+//     navigate("/");
+//   };
+
+//   // Close menu when clicking outside
+//   useEffect(() => {
+//     const handleClickOutside = () => {
+//       if (isMenuOpen) setIsMenuOpen(false);
+//     };
+//     document.addEventListener("click", handleClickOutside);
+//     return () => document.removeEventListener("click", handleClickOutside);
+//   }, [isMenuOpen]);
+
+//   // ✅ Render avatar or initials
+//   const renderAvatar = () => {
+//     if (user?.avatar || user?.profileImage) {
+//       return (
+//         <img
+//           src={user.avatar || user.profileImage}
+//           alt={user.name}
+//           className="navbar-avatar"
+//         />
+//       );
+//     }
+//     const initials = user?.name
+//       ? user.name
+//           .split(" ")
+//           .map((n) => n[0])
+//           .join("")
+//           .toUpperCase()
+//       : "?";
+//     return <div className="navbar-avatar fallback">{initials}</div>;
+//   };
+
+//   return (
+//     <nav className="navbar">
+//       {/* Brand */}
+//       <div className="navbar-brand">
+//         <Link to="/" onClick={handleLinkClick}>
+//           <img src={logo} alt="Math Logo" className="navbar-logo" />
+//           <span>Math Class</span>
+//         </Link>
+//       </div>
+
+//       {/* Mobile toggle */}
+//       <button
+//         className="hamburger"
+//         onClick={toggleMenu}
+//         aria-label="Toggle menu"
+//       >
+//         <span className="hamburger-bar"></span>
+//         <span className="hamburger-bar"></span>
+//         <span className="hamburger-bar"></span>
+//       </button>
+
+//       {/* Links */}
+//       <div className={`navbar-links ${isMenuOpen ? "active" : ""}`}>
+//         <Link to="/" onClick={handleLinkClick}>
+//           Home
+//         </Link>
+//         <Link to="/courses" onClick={handleLinkClick}>
+//           Courses
+//         </Link>
+
+//         {loading ? (
+//           <div className="navbar-spinner" title="Checking login..."></div>
+//         ) : isAuthenticated ? (
+//           <>
+//             {/* Greeting */}
+//             <span className="navbar-greeting">
+//               {renderAvatar()} Welcome, {user?.name} ({user?.role})
+//             </span>
+
+//             {/* Role-specific links */}
+//             {user?.role === "teacher" && (
+//               <Link to="/create-course" onClick={handleLinkClick}>
+//                 Create Course
+//               </Link>
+//             )}
+//             {(user?.role === "teacher" || user?.role === "admin") && (
+//               <Link
+//                 to={user?.role === "admin" ? "/admindashboard" : "/dashboard"}
+//                 onClick={handleLinkClick}
+//               >
+//                 {user?.role === "admin"
+//                   ? "Admin Dashboard"
+//                   : "Teacher Dashboard"}
+//               </Link>
+//             )}
+
+//             {/* Shared */}
+//             <Link to="/profile" onClick={handleLinkClick}>
+//               Profile
+//             </Link>
+//             <button className="logout-btn" onClick={handleLogout}>
+//               Logout
+//             </button>
+//           </>
+//         ) : (
+//           <>
+//             <Link to="/register" onClick={handleLinkClick}>
+//               Register
+//             </Link>
+//             <Link to="/login" onClick={handleLinkClick}>
+//               Login
+//             </Link>
+//           </>
+//         )}
+//       </div>
+//     </nav>
+//   );
+// };
+
+// export default Navbar;
+
+
+
+
+
+
+
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -18,11 +158,10 @@ const Navbar = () => {
   const handleLinkClick = () => setIsMenuOpen(false);
 
   const handleLogout = async () => {
-    await logoutUser(); // ✅ AuthContext handles toast + cleanup
+    await logoutUser();
     navigate("/");
   };
 
-  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = () => {
       if (isMenuOpen) setIsMenuOpen(false);
@@ -31,7 +170,6 @@ const Navbar = () => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [isMenuOpen]);
 
-  // ✅ Render avatar or initials
   const renderAvatar = () => {
     if (user?.avatar || user?.profileImage) {
       return (
@@ -54,7 +192,6 @@ const Navbar = () => {
 
   return (
     <nav className="navbar">
-      {/* Brand */}
       <div className="navbar-brand">
         <Link to="/" onClick={handleLinkClick}>
           <img src={logo} alt="Math Logo" className="navbar-logo" />
@@ -62,7 +199,6 @@ const Navbar = () => {
         </Link>
       </div>
 
-      {/* Mobile toggle */}
       <button
         className="hamburger"
         onClick={toggleMenu}
@@ -73,7 +209,6 @@ const Navbar = () => {
         <span className="hamburger-bar"></span>
       </button>
 
-      {/* Links */}
       <div className={`navbar-links ${isMenuOpen ? "active" : ""}`}>
         <Link to="/" onClick={handleLinkClick}>
           Home
@@ -86,12 +221,9 @@ const Navbar = () => {
           <div className="navbar-spinner" title="Checking login..."></div>
         ) : isAuthenticated ? (
           <>
-            {/* Greeting */}
             <span className="navbar-greeting">
               {renderAvatar()} Welcome, {user?.name} ({user?.role})
             </span>
-
-            {/* Role-specific links */}
             {user?.role === "teacher" && (
               <Link to="/create-course" onClick={handleLinkClick}>
                 Create Course
@@ -107,8 +239,6 @@ const Navbar = () => {
                   : "Teacher Dashboard"}
               </Link>
             )}
-
-            {/* Shared */}
             <Link to="/profile" onClick={handleLinkClick}>
               Profile
             </Link>

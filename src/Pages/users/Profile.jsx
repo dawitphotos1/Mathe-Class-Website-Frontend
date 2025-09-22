@@ -116,7 +116,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "../../config";
-import { useAuth } from "../../context/AuthContext"; // ✅ use only useAuth
+import { useAuth } from "../../context/AuthContext";
 import "./Profile.css";
 
 import adminAvatar from "../../assets/images/admin.avif";
@@ -124,7 +124,7 @@ import teacherAvatar from "../../assets/images/teacher.jpeg";
 import defaultAvatar from "../../assets/images/student.jpeg";
 
 const Profile = () => {
-  const { user } = useAuth(); // ✅ only one declaration
+  const { user } = useAuth();
   const [profile, setProfile] = useState(user || null);
   const [loading, setLoading] = useState(!user);
   const [error, setError] = useState("");

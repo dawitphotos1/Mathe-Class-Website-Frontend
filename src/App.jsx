@@ -309,7 +309,7 @@
 
 
 
-
+// src/App.jsx
 import React, { Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
@@ -384,14 +384,6 @@ function App() {
                   }
                 />
                 <Route
-                  path="/courses/:slug"
-                  element={
-                    <ErrorBoundary>
-                      <CourseDetail />
-                    </ErrorBoundary>
-                  }
-                />
-                <Route
                   path="/enrollment-success"
                   element={<EnrollmentSuccess />}
                 />
@@ -400,6 +392,8 @@ function App() {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/cancel" element={<Cancel />} />
                 <Route path="/unauthorized" element={<Unauthorized />} />
+
+                {/* Course Management */}
                 <Route
                   path="/courses/:slug/edit"
                   element={
@@ -433,43 +427,20 @@ function App() {
                   }
                 />
 
-                {/* Admin Routes */}
-                <Route path="/admin" element={<AdminLayout />}>
-                  <Route
-                    path="pending-students"
-                    element={<PendingStudents />}
-                  />
+                {/* ✅ Admin Routes (all under /admin) */}
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin"]}>
+                      <AdminLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="pending-students" element={<PendingStudents />} />
+                  <Route path="lesson-logs" element={<AdminLessonLogs />} />
+                  <Route path="files" element={<FileManager />} />
                 </Route>
-                <Route
-                  path="/admin/lesson-logs"
-                  element={
-                    <ProtectedRoute allowedRoles={["admin"]}>
-                      <ErrorBoundary>
-                        <AdminLessonLogs />
-                      </ErrorBoundary>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/files"
-                  element={
-                    <ProtectedRoute allowedRoles={["admin"]}>
-                      <ErrorBoundary>
-                        <FileManager />
-                      </ErrorBoundary>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admindashboard"
-                  element={
-                    <ProtectedRoute allowedRoles={["admin"]}>
-                      <ErrorBoundary>
-                        <AdminDashboard />
-                      </ErrorBoundary>
-                    </ProtectedRoute>
-                  }
-                />
 
                 {/* Teacher Routes */}
                 <Route
@@ -478,26 +449,6 @@ function App() {
                     <ProtectedRoute allowedRoles={["teacher"]}>
                       <ErrorBoundary>
                         <CreateCourse />
-                      </ErrorBoundary>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/teacher/create-course"
-                  element={
-                    <ProtectedRoute allowedRoles={["teacher"]}>
-                      <ErrorBoundary>
-                        <CreateCourse />
-                      </ErrorBoundary>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/my-teaching-courses"
-                  element={
-                    <ProtectedRoute allowedRoles={["teacher"]}>
-                      <ErrorBoundary>
-                        <MyTeachingCourses />
                       </ErrorBoundary>
                     </ProtectedRoute>
                   }
