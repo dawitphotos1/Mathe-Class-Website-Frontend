@@ -285,6 +285,8 @@
 
 
 
+
+// src/Pages/AdminDashboard.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -341,7 +343,7 @@ const AdminDashboard = () => {
     }
   }, [handleError]);
 
-  // 📌 Fetch pending enrollments
+  // 📌 Fetch enrollments
   const fetchPendingEnrollments = useCallback(async () => {
     setLoadingEnrollments(true);
     setErrorEnrollments("");
@@ -355,7 +357,6 @@ const AdminDashboard = () => {
     }
   }, [handleError]);
 
-  // 📌 Fetch approved enrollments
   const fetchApprovedEnrollments = useCallback(async () => {
     setLoadingApproved(true);
     setErrorApproved("");
@@ -406,20 +407,16 @@ const AdminDashboard = () => {
     }
   };
 
-  // 🚀 Fetch data when authenticated as admin
+  // 🚀 Only fetch once when authenticated + admin
   useEffect(() => {
     if (isAuthenticated && user?.role === "admin") {
       fetchPendingUsers();
       fetchPendingEnrollments();
       fetchApprovedEnrollments();
     }
-  }, [
-    isAuthenticated,
-    user,
-    fetchPendingUsers,
-    fetchPendingEnrollments,
-    fetchApprovedEnrollments,
-  ]);
+    // ✅ empty deps: only run once on mount, not every re-render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user?.role]);
 
   // 🚫 If not admin, block access
   if (!isAuthenticated || user?.role !== "admin") {
