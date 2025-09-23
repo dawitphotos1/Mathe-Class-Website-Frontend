@@ -22,22 +22,3 @@ export const logout = () =>
 
 
 
-
-// // src/services/authService.js
-// import axiosInstance from "../utils/axiosInstance";
-
-// // 🔐 Login
-// export const login = (payload) =>
-//   axiosInstance.post("/auth/login", payload, { withCredentials: true });
-
-// // 📝 Register
-// export const register = (payload) =>
-//   axiosInstance.post("/auth/register", payload, { withCredentials: true });
-
-// // 👤 Get current user
-// export const getCurrentUser = () =>
-//   axiosInstance.get("/auth/me", { withCredentials: true });
-
-// // 🚪 Logout
-// export const logout = () =>
-//   axiosInstance.post("/auth/logout", {}, { withCredentials: true });
