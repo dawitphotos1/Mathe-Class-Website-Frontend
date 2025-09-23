@@ -108,8 +108,7 @@
 // };
 
 
-
-
+// context/AuthContext.jsx
 import React, {
   createContext,
   useContext,
@@ -136,6 +135,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [checkedOnce, setCheckedOnce] = useState(false); // 🚀 prevent infinite re-checks
   const navigate = useNavigate();
 
   // 🔐 Login
@@ -191,9 +191,12 @@ export const AuthProvider = ({ children }) => {
     }
   }, [navigate]);
 
-  // 🚀 On mount: check session
+  // 🚀 On mount: check session once
   useEffect(() => {
     const checkAuth = async () => {
+      if (checkedOnce) return; // ⛔ don’t re-check
+      setCheckedOnce(true);
+
       try {
         const me = await getCurrentUser();
         setUser(me.user);
@@ -204,8 +207,9 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
       }
     };
+
     checkAuth();
-  }, []);
+  }, [checkedOnce]);
 
   return (
     <AuthContext.Provider
