@@ -1,6 +1,5 @@
-// import React, { useState, useEffect } from "react";
-// import axios from "axios";
-// import { API_BASE_URL } from "../../config";
+
+// import React from "react";
 // import { useAuth } from "../../context/AuthContext";
 // import "./Profile.css";
 
@@ -9,25 +8,10 @@
 // import defaultAvatar from "../../assets/images/student.jpeg";
 
 // const Profile = () => {
-//   const { user } = useAuth();
-//   const [profile, setProfile] = useState(user || null);
-//   const [loading, setLoading] = useState(!user);
-//   const [error, setError] = useState("");
+//   const { user, loading } = useAuth();
 
-//   useEffect(() => {
-//     const token = localStorage.getItem("token");
-
-//     if (!user && token) {
-//       setLoading(true);
-//       axios
-//         .get(`${API_BASE_URL}/api/v1/users/me`, {
-//           headers: { Authorization: `Bearer ${token}` },
-//         })
-//         .then((res) => setProfile(res.data.user))
-//         .catch(() => setError("Failed to fetch user data"))
-//         .finally(() => setLoading(false));
-//     }
-//   }, [user]);
+//   if (loading) return <p className="loading">Loading profile...</p>;
+//   if (!user) return <p className="error">No profile found</p>;
 
 //   const getInitialsAvatar = (name = "User") => {
 //     const initials = name
@@ -54,11 +38,8 @@
 //     return `data:image/svg+xml;base64,${btoa(svg)}`;
 //   };
 
-//   if (loading) return <p className="loading">Loading profile...</p>;
-//   if (error) return <p className="error">{error}</p>;
-
 //   let avatarSrc;
-//   switch (profile?.role) {
+//   switch (user.role) {
 //     case "admin":
 //       avatarSrc = adminAvatar;
 //       break;
@@ -72,8 +53,7 @@
 //       avatarSrc = null;
 //   }
 
-//   avatarSrc =
-//     profile?.avatar || avatarSrc || getInitialsAvatar(profile?.name || "User");
+//   avatarSrc = user.avatar || avatarSrc || getInitialsAvatar(user.name);
 
 //   return (
 //     <div className="profile-container">
@@ -81,21 +61,21 @@
 //         <div className="avatar-wrapper">
 //           <img src={avatarSrc} alt="User Avatar" className="profile-avatar" />
 //         </div>
-//         <h1>{profile?.name || "User"}</h1>
+//         <h1>{user.name}</h1>
 //       </div>
 
 //       <div className="profile-details">
 //         <p>
-//           <strong>Name:</strong> {profile?.name || "-"}
+//           <strong>Name:</strong> {user.name}
 //         </p>
 //         <p>
-//           <strong>Email:</strong> {profile?.email || "-"}
+//           <strong>Email:</strong> {user.email}
 //         </p>
 //         <p>
-//           <strong>Role:</strong> {profile?.role || "-"}
+//           <strong>Role:</strong> {user.role}
 //         </p>
 //         <p>
-//           <strong>Approval Status:</strong> {profile?.approval_status || "-"}
+//           <strong>Approval Status:</strong> {user.approval_status}
 //         </p>
 //       </div>
 //     </div>
@@ -106,8 +86,7 @@
 
 
 
-
-
+// src/Pages/users/Profile.jsx
 import React from "react";
 import { useAuth } from "../../context/AuthContext";
 import "./Profile.css";
@@ -119,9 +98,11 @@ import defaultAvatar from "../../assets/images/student.jpeg";
 const Profile = () => {
   const { user, loading } = useAuth();
 
+  // ✅ Loading state from context
   if (loading) return <p className="loading">Loading profile...</p>;
-  if (!user) return <p className="error">No profile found</p>;
+  if (!user) return <p className="error">No user data available</p>;
 
+  // ✅ Avatar logic
   const getInitialsAvatar = (name = "User") => {
     const initials = name
       .split(" ")
@@ -148,7 +129,7 @@ const Profile = () => {
   };
 
   let avatarSrc;
-  switch (user.role) {
+  switch (user?.role) {
     case "admin":
       avatarSrc = adminAvatar;
       break;
@@ -162,7 +143,7 @@ const Profile = () => {
       avatarSrc = null;
   }
 
-  avatarSrc = user.avatar || avatarSrc || getInitialsAvatar(user.name);
+  avatarSrc = user?.avatar || avatarSrc || getInitialsAvatar(user?.name || "User");
 
   return (
     <div className="profile-container">
@@ -170,21 +151,21 @@ const Profile = () => {
         <div className="avatar-wrapper">
           <img src={avatarSrc} alt="User Avatar" className="profile-avatar" />
         </div>
-        <h1>{user.name}</h1>
+        <h1>{user?.name || "User"}</h1>
       </div>
 
       <div className="profile-details">
         <p>
-          <strong>Name:</strong> {user.name}
+          <strong>Name:</strong> {user?.name || "-"}
         </p>
         <p>
-          <strong>Email:</strong> {user.email}
+          <strong>Email:</strong> {user?.email || "-"}
         </p>
         <p>
-          <strong>Role:</strong> {user.role}
+          <strong>Role:</strong> {user?.role || "-"}
         </p>
         <p>
-          <strong>Approval Status:</strong> {user.approval_status}
+          <strong>Approval Status:</strong> {user?.approval_status || "-"}
         </p>
       </div>
     </div>

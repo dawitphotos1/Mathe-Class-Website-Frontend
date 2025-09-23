@@ -1,84 +1,65 @@
+// // src/services/authService.js
+// import axios from "axios";
+// import { API_BASE_URL } from "../config";
 
-// import axiosInstance from "../utils/axiosInstance";
+// // Create axios instance
+// const api = axios.create({
+//   baseURL: `${API_BASE_URL}/api/v1/auth`,
+//   withCredentials: true, // ✅ send cookies with requests
+// });
 
-// // Individual functions
+// // -------------------------
+// // 🔐 LOGIN
+// // -------------------------
 // export const login = async ({ email, password }) => {
-//   const res = await axiosInstance.post("/auth/login", { email, password });
+//   const res = await api.post("/login", { email, password });
 //   return res.data;
 // };
 
-// export const register = async ({ name, email, password, role, subject }) => {
-//   const res = await axiosInstance.post("/auth/register", {
-//     name,
-//     email,
-//     password,
-//     role,
-//     subject,
-//   });
+// // -------------------------
+// // 📝 REGISTER
+// // -------------------------
+// export const register = async (payload) => {
+//   const res = await api.post("/register", payload);
 //   return res.data;
 // };
 
+// // -------------------------
+// // 👤 CURRENT USER
+// // -------------------------
 // export const getCurrentUser = async () => {
-//   const res = await axiosInstance.get("/auth/me");
+//   const res = await api.get("/me");
 //   return res.data;
 // };
 
+// // -------------------------
+// // 🚪 LOGOUT
+// // -------------------------
 // export const logout = async () => {
-//   const res = await axiosInstance.post("/auth/logout");
+//   const res = await api.post("/logout");
 //   return res.data;
 // };
-
-// // ✅ Bundle into default export for backward compatibility
-// const authService = {
-//   login,
-//   register,
-//   getCurrentUser,
-//   logout,
-// };
-
-// export default authService;
 
 
 
 
 // src/services/authService.js
 import axios from "axios";
-import { API_BASE_URL } from "../config";
 
-// Create axios instance
-const api = axios.create({
-  baseURL: `${API_BASE_URL}/api/v1/auth`,
-  withCredentials: true, // ✅ send cookies with requests
-});
+const API_URL = "http://localhost:5000/api/v1"; // only ONE /api/v1
 
-// -------------------------
-// 🔐 LOGIN
-// -------------------------
-export const login = async ({ email, password }) => {
-  const res = await api.post("/login", { email, password });
-  return res.data;
-};
+// 🔐 Login
+export const login = (payload) =>
+  axios.post(`${API_URL}/auth/login`, payload, { withCredentials: true });
 
-// -------------------------
-// 📝 REGISTER
-// -------------------------
-export const register = async (payload) => {
-  const res = await api.post("/register", payload);
-  return res.data;
-};
+// 📝 Register
+export const register = (payload) =>
+  axios.post(`${API_URL}/auth/register`, payload, { withCredentials: true });
 
-// -------------------------
-// 👤 CURRENT USER
-// -------------------------
-export const getCurrentUser = async () => {
-  const res = await api.get("/me");
-  return res.data;
-};
+// 👤 Get current user
+export const getCurrentUser = () =>
+  axios.get(`${API_URL}/auth/me`, { withCredentials: true });
 
-// -------------------------
-// 🚪 LOGOUT
-// -------------------------
-export const logout = async () => {
-  const res = await api.post("/logout");
-  return res.data;
-};
+// 🚪 Logout
+export const logout = () =>
+  axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true });
