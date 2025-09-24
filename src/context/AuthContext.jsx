@@ -16,30 +16,26 @@
 //   logout,
 // } from "../services/authService";
 
-// // ✅ Create context
 // export const AuthContext = createContext();
-
-// // ✅ Hook
 // export const useAuth = () => useContext(AuthContext);
 
-// // ✅ Provider
 // export const AuthProvider = ({ children }) => {
 //   const [user, setUser] = useState(null);
 //   const [loading, setLoading] = useState(true);
-//   const [checkedOnce, setCheckedOnce] = useState(false); // 🚀 prevent infinite re-checks
+//   const [checkedOnce, setCheckedOnce] = useState(false);
 //   const navigate = useNavigate();
 
 //   // 🔐 Login
 //   const loginUser = async ({ email, password }) => {
 //     try {
 //       await login({ email, password }); // sets cookie
-//       const me = await getCurrentUser(); // fetch user profile
-//       setUser(me.user);
+//       const me = await getCurrentUser();
+//       setUser(me.data.user);
 //       toast.success("Logged in successfully");
 
-//       if (me.user.role === "admin") {
+//       if (me.data.user.role === "admin") {
 //         navigate("/admindashboard");
-//       } else if (me.user.role === "teacher") {
+//       } else if (me.data.user.role === "teacher") {
 //         navigate("/dashboard");
 //       } else {
 //         navigate("/student/dashboard");
@@ -54,7 +50,9 @@
 //   // 📝 Register
 //   const registerUser = async (payload) => {
 //     try {
-//       const data = await register(payload);
+//       const res = await register(payload);
+//       const data = res.data;
+
 //       if (data.user.approval_status === "approved") {
 //         setUser(data.user);
 //         toast.success("Registered and logged in");
@@ -64,6 +62,7 @@
 //         navigate("/login");
 //       }
 //     } catch (err) {
+//       console.error("❌ Register failed:", err.response?.data || err.message);
 //       toast.error(err.response?.data?.error || "Registration failed");
 //       throw err;
 //     }
@@ -85,12 +84,12 @@
 //   // 🚀 On mount: check session once
 //   useEffect(() => {
 //     const checkAuth = async () => {
-//       if (checkedOnce) return; // ⛔ don’t re-check
+//       if (checkedOnce) return;
 //       setCheckedOnce(true);
 
 //       try {
 //         const me = await getCurrentUser();
-//         setUser(me.user);
+//         setUser(me.data.user);
 //       } catch {
 //         console.warn("Not authenticated");
 //         setUser(null);
@@ -153,8 +152,8 @@ export const AuthProvider = ({ children }) => {
   // 🔐 Login
   const loginUser = async ({ email, password }) => {
     try {
-      await login({ email, password }); // sets cookie
-      const me = await getCurrentUser();
+      await login({ email, password }, { withCredentials: true });
+      const me = await getCurrentUser({ withCredentials: true });
       setUser(me.data.user);
       toast.success("Logged in successfully");
 
@@ -175,7 +174,7 @@ export const AuthProvider = ({ children }) => {
   // 📝 Register
   const registerUser = async (payload) => {
     try {
-      const res = await register(payload);
+      const res = await register(payload, { withCredentials: true });
       const data = res.data;
 
       if (data.user.approval_status === "approved") {
@@ -196,7 +195,7 @@ export const AuthProvider = ({ children }) => {
   // 🔒 Logout
   const logoutUser = useCallback(async () => {
     try {
-      await logout();
+      await logout({ withCredentials: true });
       setUser(null);
       toast.info("Logged out");
       navigate("/login");
@@ -213,7 +212,7 @@ export const AuthProvider = ({ children }) => {
       setCheckedOnce(true);
 
       try {
-        const me = await getCurrentUser();
+        const me = await getCurrentUser({ withCredentials: true });
         setUser(me.data.user);
       } catch {
         console.warn("Not authenticated");
