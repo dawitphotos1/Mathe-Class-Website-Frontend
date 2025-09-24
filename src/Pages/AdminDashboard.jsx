@@ -1,7 +1,7 @@
 
 // src/Pages/AdminDashboard.jsx
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate, Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axiosInstance from "../utils/axiosInstance";
 import { useAuth } from "../context/AuthContext";
@@ -30,7 +30,7 @@ const AdminDashboard = () => {
     (err, setError) => {
       const status = err.response?.status;
       if (status === 401) {
-        logoutUser(); // clears context + cookie
+        logoutUser();
         toast.error("Session expired. Please log in again.");
         navigate("/login");
       } else {
@@ -127,152 +127,145 @@ const AdminDashboard = () => {
       fetchPendingEnrollments();
       fetchApprovedEnrollments();
     }
-    // ✅ empty deps: only run once on mount, not every re-render
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, user?.role]);
-
-  // 🚫 If not admin, block access
-  if (!isAuthenticated || user?.role !== "admin") {
-    return <Navigate to="/unauthorized" replace />;
-  }
+  }, [isAuthenticated, user?.role, fetchPendingUsers, fetchPendingEnrollments, fetchApprovedEnrollments]);
 
   return (
     <div className="dashboard-container">
-      <div className="dashboard-card">
+      <div className="dashboard-header">
         <h2>Admin Dashboard</h2>
         <button onClick={logoutUser} className="btn-secondary logout-btn">
           Logout
         </button>
-
-        {/* Section 1: Pending Users */}
-        <h3>Pending User Approvals</h3>
-        {errorUsers && <p className="error">{errorUsers}</p>}
-        {loadingUsers ? (
-          <p>Loading users...</p>
-        ) : pendingUsers.length === 0 ? (
-          <p>No pending users</p>
-        ) : (
-          <table className="user-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Subject</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pendingUsers.map((pu) => (
-                <tr key={pu.id}>
-                  <td>{pu.name}</td>
-                  <td>{pu.email}</td>
-                  <td>{pu.role}</td>
-                  <td>{pu.subject || "N/A"}</td>
-                  <td>
-                    <button
-                      onClick={() => handleApproveUser(pu.id)}
-                      className="btn-primary"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => handleRejectUser(pu.id)}
-                      className="btn-danger"
-                    >
-                      Reject
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-
-        {/* Section 2: Enrollments */}
-        <h3>Course Enrollments</h3>
-        <div className="tab-buttons">
-          <button
-            className={activeTab === "pending" ? "tab active" : "tab"}
-            onClick={() => setActiveTab("pending")}
-          >
-            Pending
-          </button>
-          <button
-            className={activeTab === "approved" ? "tab active" : "tab"}
-            onClick={() => setActiveTab("approved")}
-          >
-            Approved
-          </button>
-        </div>
-
-        {activeTab === "pending" ? (
-          <>
-            {errorEnrollments && <p className="error">{errorEnrollments}</p>}
-            {loadingEnrollments ? (
-              <p>Loading pending enrollments...</p>
-            ) : pendingEnrollments.length === 0 ? (
-              <p>No pending enrollments</p>
-            ) : (
-              <table className="user-table">
-                <thead>
-                  <tr>
-                    <th>Student</th>
-                    <th>Email</th>
-                    <th>Course</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pendingEnrollments.map((enroll) => (
-                    <tr key={enroll.id}>
-                      <td>{enroll.student?.name}</td>
-                      <td>{enroll.student?.email}</td>
-                      <td>{enroll.course?.title}</td>
-                      <td>
-                        <button
-                          onClick={() => handleApproveEnrollment(enroll.id)}
-                          className="btn-primary"
-                        >
-                          Approve
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </>
-        ) : (
-          <>
-            {errorApproved && <p className="error">{errorApproved}</p>}
-            {loadingApproved ? (
-              <p>Loading approved enrollments...</p>
-            ) : approvedEnrollments.length === 0 ? (
-              <p>No approved enrollments</p>
-            ) : (
-              <table className="user-table">
-                <thead>
-                  <tr>
-                    <th>Student</th>
-                    <th>Email</th>
-                    <th>Course</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {approvedEnrollments.map((enroll) => (
-                    <tr key={enroll.id}>
-                      <td>{enroll.student?.name}</td>
-                      <td>{enroll.student?.email}</td>
-                      <td>{enroll.course?.title}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </>
-        )}
       </div>
+
+      {/* Section 1: Pending Users */}
+      <h3>Pending User Approvals</h3>
+      {errorUsers && <p className="error">{errorUsers}</p>}
+      {loadingUsers ? (
+        <p>Loading users...</p>
+      ) : pendingUsers.length === 0 ? (
+        <p>No pending users</p>
+      ) : (
+        <table className="user-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Subject</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pendingUsers.map((pu) => (
+              <tr key={pu.id}>
+                <td>{pu.name}</td>
+                <td>{pu.email}</td>
+                <td>{pu.role}</td>
+                <td>{pu.subject || "N/A"}</td>
+                <td>
+                  <button
+                    onClick={() => handleApproveUser(pu.id)}
+                    className="btn-primary"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => handleRejectUser(pu.id)}
+                    className="btn-danger"
+                  >
+                    Reject
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {/* Section 2: Enrollments */}
+      <h3>Course Enrollments</h3>
+      <div className="admin-tabs">
+        <button
+          className={activeTab === "pending" ? "tab-button tab-active" : "tab-button"}
+          onClick={() => setActiveTab("pending")}
+        >
+          Pending
+        </button>
+        <button
+          className={activeTab === "approved" ? "tab-button tab-active" : "tab-button"}
+          onClick={() => setActiveTab("approved")}
+        >
+          Approved
+        </button>
+      </div>
+
+      {activeTab === "pending" ? (
+        <>
+          {errorEnrollments && <p className="error">{errorEnrollments}</p>}
+          {loadingEnrollments ? (
+            <p>Loading pending enrollments...</p>
+          ) : pendingEnrollments.length === 0 ? (
+            <p>No pending enrollments</p>
+          ) : (
+            <table className="enrollment-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Email</th>
+                  <th>Course</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingEnrollments.map((enroll) => (
+                  <tr key={enroll.id}>
+                    <td>{enroll.student?.name}</td>
+                    <td>{enroll.student?.email}</td>
+                    <td>{enroll.course?.title}</td>
+                    <td>
+                      <button
+                        onClick={() => handleApproveEnrollment(enroll.id)}
+                        className="btn-primary"
+                      >
+                        Approve
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </>
+      ) : (
+        <>
+          {errorApproved && <p className="error">{errorApproved}</p>}
+          {loadingApproved ? (
+            <p>Loading approved enrollments...</p>
+          ) : approvedEnrollments.length === 0 ? (
+            <p>No approved enrollments</p>
+          ) : (
+            <table className="enrollment-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Email</th>
+                  <th>Course</th>
+                </tr>
+              </thead>
+              <tbody>
+                {approvedEnrollments.map((enroll) => (
+                  <tr key={enroll.id}>
+                    <td>{enroll.student?.name}</td>
+                    <td>{enroll.student?.email}</td>
+                    <td>{enroll.course?.title}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </>
+      )}
     </div>
   );
 };
