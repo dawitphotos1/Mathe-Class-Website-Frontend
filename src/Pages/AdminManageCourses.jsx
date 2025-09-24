@@ -1,0 +1,30 @@
+// // src/Pages/AdminManageCourses.jsx
+// import React from "react";
+
+// const AdminManageCourses = () => {
+//   return (
+//     <div className="p-6">
+//       <h2 className="text-2xl font-bold mb-4">Manage Courses</h2>
+//       <p>This is the placeholder page for managing courses.</p>
+//     </div>
+//   );
+// };
+
+// export default AdminManageCourses;
+
+
+
+
+// src/Pages/AdminManageCourses.jsx
+import React from "react";
+
+const AdminManageCourses = () => {
+  return (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Manage Courses</h2>
+      <p>This is the placeholder page for managing courses.</p>
+    </div>
+  );
+};
+
+export default AdminManageCourses;
