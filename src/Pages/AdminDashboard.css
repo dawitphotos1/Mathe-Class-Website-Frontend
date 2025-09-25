@@ -230,6 +230,7 @@
   color: white;
   padding: 0.4rem 0.8rem;
   border-radius: 6px;
+  margin-right: 0.4rem;
   border: none;
   cursor: pointer;
 }
