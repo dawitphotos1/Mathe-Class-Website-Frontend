@@ -34,12 +34,16 @@ export const AuthProvider = ({ children }) => {
       toast.success("Logged in successfully");
 
       if (me.data.user.role === "admin") {
-        navigate("/admin"); // ✅ updated
+        navigate("/admin");
       } else if (me.data.user.role === "teacher") {
         navigate("/dashboard");
+      } else if (me.data.user.role === "student") {
+        navigate("/my-courses"); // ✅ fixed student redirect
       } else {
-        navigate("/student/dashboard");
+        navigate("/");
       }
+
+      return me.data.user; // 👈 allows caller to use the user object if needed
     } catch (err) {
       console.error("❌ Login failed:", err.response?.data || err.message);
       toast.error(err.response?.data?.error || "Login failed");
@@ -58,16 +62,20 @@ export const AuthProvider = ({ children }) => {
         toast.success("Registered and logged in");
 
         if (data.user.role === "admin") {
-          navigate("/admin"); // ✅ updated
+          navigate("/admin");
         } else if (data.user.role === "teacher") {
           navigate("/dashboard");
+        } else if (data.user.role === "student") {
+          navigate("/my-courses"); // ✅ fixed student redirect
         } else {
-          navigate("/student/dashboard");
+          navigate("/");
         }
       } else {
         toast.info("Registration pending approval");
         navigate("/login");
       }
+
+      return data.user;
     } catch (err) {
       console.error("❌ Register failed:", err.response?.data || err.message);
       toast.error(err.response?.data?.error || "Registration failed");

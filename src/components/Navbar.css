@@ -256,3 +256,51 @@ body.dark-mode .dropdown-content a:hover {
 .dark-switch input {
   margin-right: 0.5rem;
 }
+
+
+/* ============================
+   Animated underline for ALL navbar links
+   ============================ */
+.navbar-links a,
+.navbar-links button.logout-btn {
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.navbar-links a::after,
+.navbar-links button.logout-btn::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 0;
+  height: 2px;
+  background-color: currentColor;
+  transition: width 0.3s ease;
+}
+
+.navbar-links a:hover::after,
+.navbar-links button.logout-btn:hover::after {
+  width: 100%;
+}
+
+/* ============================
+   Special highlight for My Courses (student)
+   ============================ */
+.navbar-links a.my-courses-link {
+  font-weight: 600;
+  color: #ffeb3b; /* bright yellow in light mode */
+}
+
+.navbar-links a.my-courses-link:hover {
+  color: #fff176;
+}
+
+/* Dark mode adjustment for My Courses */
+body.dark-mode .navbar-links a.my-courses-link {
+  color: #ffd54f; /* warm gold in dark mode */
+}
+
+body.dark-mode .navbar-links a.my-courses-link:hover {
+  color: #ffe082;
+}

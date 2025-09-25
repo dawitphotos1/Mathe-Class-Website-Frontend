@@ -1,5 +1,4 @@
 
-
 // src/Pages/auth/Login.jsx
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -23,8 +22,18 @@ const Login = () => {
     setError(null);
 
     try {
-      await loginUser({ email, password });
-      // ✅ redirection is handled inside loginUser
+      // loginUser should return the user object
+      const user = await loginUser({ email, password });
+
+      if (user?.role === "admin") {
+        navigate("/admin");
+      } else if (user?.role === "teacher") {
+        navigate("/dashboard");
+      } else if (user?.role === "student") {
+        navigate("/my-courses");
+      } else {
+        navigate("/"); // fallback
+      }
     } catch (err) {
       setError(err.response?.data?.error || "Login failed. Try again.");
     } finally {
