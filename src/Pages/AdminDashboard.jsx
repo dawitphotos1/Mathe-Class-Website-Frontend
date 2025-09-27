@@ -273,7 +273,6 @@
 // export default AdminDashboard;
 
 
-
 // src/Pages/AdminDashboard.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -290,14 +289,11 @@ const AdminDashboard = () => {
   const [pendingUsers, setPendingUsers] = useState([]);
   const [approvedUsers, setApprovedUsers] = useState([]);
   const [rejectedUsers, setRejectedUsers] = useState([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
   const [errorUsers, setErrorUsers] = useState("");
 
   // Enrollments
   const [pendingEnrollments, setPendingEnrollments] = useState([]);
   const [approvedEnrollments, setApprovedEnrollments] = useState([]);
-  const [loadingEnrollments, setLoadingEnrollments] = useState(false);
-  const [loadingApproved, setLoadingApproved] = useState(false);
   const [errorEnrollments, setErrorEnrollments] = useState("");
   const [errorApproved, setErrorApproved] = useState("");
 
@@ -322,62 +318,39 @@ const AdminDashboard = () => {
     [navigate, logoutUser]
   );
 
-  // 📌 Fetch pending students
-  const fetchPendingUsers = useCallback(async () => {
-    try {
-      const res = await axiosInstance.get("/admin/pending-students");
-      setPendingUsers(res.data || []);
-    } catch (err) {
-      handleError(err, setErrorUsers);
-    }
-  }, [handleError]);
+  // 📌 Fetch students by status
+  const fetchUsersByStatus = useCallback(
+    async (status, setter) => {
+      try {
+        const res = await axiosInstance.get(`/admin/students?status=${status}`);
+        setter(res.data.students || []);
+      } catch (err) {
+        handleError(err, setErrorUsers);
+      }
+    },
+    [handleError]
+  );
 
-  // 📌 Fetch approved students
-  const fetchApprovedUsers = useCallback(async () => {
-    try {
-      const res = await axiosInstance.get("/admin/approved-students");
-      setApprovedUsers(res.data || []);
-    } catch (err) {
-      handleError(err, setErrorUsers);
-    }
-  }, [handleError]);
-
-  // 📌 Fetch rejected students
-  const fetchRejectedUsers = useCallback(async () => {
-    try {
-      const res = await axiosInstance.get("/admin/rejected-students");
-      setRejectedUsers(res.data || []);
-    } catch (err) {
-      handleError(err, setErrorUsers);
-    }
-  }, [handleError]);
-
-  // 📌 Fetch enrollments
-  const fetchPendingEnrollments = useCallback(async () => {
-    try {
-      const res = await axiosInstance.get("/admin/enrollments?status=pending");
-      setPendingEnrollments(res.data.enrollments || []);
-    } catch (err) {
-      handleError(err, setErrorEnrollments);
-    }
-  }, [handleError]);
-
-  const fetchApprovedEnrollments = useCallback(async () => {
-    try {
-      const res = await axiosInstance.get("/admin/enrollments?status=approved");
-      setApprovedEnrollments(res.data.enrollments || []);
-    } catch (err) {
-      handleError(err, setErrorApproved);
-    }
-  }, [handleError]);
+  // 📌 Fetch enrollments by status
+  const fetchEnrollmentsByStatus = useCallback(
+    async (status, setter, setError) => {
+      try {
+        const res = await axiosInstance.get(`/admin/enrollments?status=${status}`);
+        setter(res.data.enrollments || []);
+      } catch (err) {
+        handleError(err, setError);
+      }
+    },
+    [handleError]
+  );
 
   // 📌 Approve / reject students
   const handleApproveUser = async (userId) => {
     try {
-      await axiosInstance.patch(`/admin/approve/${userId}`);
+      await axiosInstance.patch(`/admin/students/${userId}/approve`);
       toast.success("Student approved");
-      fetchPendingUsers();
-      fetchApprovedUsers();
+      fetchUsersByStatus("pending", setPendingUsers);
+      fetchUsersByStatus("approved", setApprovedUsers);
     } catch (err) {
       handleError(err, setErrorUsers);
     }
@@ -385,10 +358,10 @@ const AdminDashboard = () => {
 
   const handleRejectUser = async (userId) => {
     try {
-      await axiosInstance.patch(`/admin/reject/${userId}`);
+      await axiosInstance.patch(`/admin/students/${userId}/reject`);
       toast.success("Student rejected");
-      fetchPendingUsers();
-      fetchRejectedUsers();
+      fetchUsersByStatus("pending", setPendingUsers);
+      fetchUsersByStatus("rejected", setRejectedUsers);
     } catch (err) {
       handleError(err, setErrorUsers);
     }
@@ -397,10 +370,10 @@ const AdminDashboard = () => {
   // 📌 Approve enrollment
   const handleApproveEnrollment = async (enrollmentId) => {
     try {
-      await axiosInstance.patch(`/enrollments/${enrollmentId}/approve`);
+      await axiosInstance.patch(`/admin/enrollments/${enrollmentId}/approve`);
       toast.success("Enrollment approved");
-      fetchPendingEnrollments();
-      fetchApprovedEnrollments();
+      fetchEnrollmentsByStatus("pending", setPendingEnrollments, setErrorEnrollments);
+      fetchEnrollmentsByStatus("approved", setApprovedEnrollments, setErrorApproved);
     } catch (err) {
       handleError(err, setErrorEnrollments);
     }
@@ -409,21 +382,13 @@ const AdminDashboard = () => {
   // 🚀 Initial data fetch
   useEffect(() => {
     if (isAuthenticated && user?.role === "admin") {
-      fetchPendingUsers();
-      fetchApprovedUsers();
-      fetchRejectedUsers();
-      fetchPendingEnrollments();
-      fetchApprovedEnrollments();
+      fetchUsersByStatus("pending", setPendingUsers);
+      fetchUsersByStatus("approved", setApprovedUsers);
+      fetchUsersByStatus("rejected", setRejectedUsers);
+      fetchEnrollmentsByStatus("pending", setPendingEnrollments, setErrorEnrollments);
+      fetchEnrollmentsByStatus("approved", setApprovedEnrollments, setErrorApproved);
     }
-  }, [
-    isAuthenticated,
-    user?.role,
-    fetchPendingUsers,
-    fetchApprovedUsers,
-    fetchRejectedUsers,
-    fetchPendingEnrollments,
-    fetchApprovedEnrollments,
-  ]);
+  }, [isAuthenticated, user?.role, fetchUsersByStatus, fetchEnrollmentsByStatus]);
 
   return (
     <div className="dashboard-container">
@@ -459,11 +424,8 @@ const AdminDashboard = () => {
 
       {errorUsers && <p className="error">{errorUsers}</p>}
 
-      {/* Pending Students */}
       {activeUserTab === "pending" &&
-        (loadingUsers ? (
-          <p>Loading pending students...</p>
-        ) : pendingUsers.length === 0 ? (
+        (pendingUsers.length === 0 ? (
           <p>No pending students</p>
         ) : (
           <table className="user-table">
@@ -495,11 +457,8 @@ const AdminDashboard = () => {
           </table>
         ))}
 
-      {/* Approved Students */}
       {activeUserTab === "approved" &&
-        (loadingUsers ? (
-          <p>Loading approved students...</p>
-        ) : approvedUsers.length === 0 ? (
+        (approvedUsers.length === 0 ? (
           <p>No approved students</p>
         ) : (
           <table className="user-table">
@@ -522,11 +481,8 @@ const AdminDashboard = () => {
           </table>
         ))}
 
-      {/* Rejected Students */}
       {activeUserTab === "rejected" &&
-        (loadingUsers ? (
-          <p>Loading rejected students...</p>
-        ) : rejectedUsers.length === 0 ? (
+        (rejectedUsers.length === 0 ? (
           <p>No rejected students</p>
         ) : (
           <table className="user-table">
@@ -571,9 +527,7 @@ const AdminDashboard = () => {
       {activeEnrollTab === "pending" ? (
         <>
           {errorEnrollments && <p className="error">{errorEnrollments}</p>}
-          {loadingEnrollments ? (
-            <p>Loading pending enrollments...</p>
-          ) : pendingEnrollments.length === 0 ? (
+          {pendingEnrollments.length === 0 ? (
             <p>No pending enrollments</p>
           ) : (
             <table className="enrollment-table">
@@ -608,9 +562,7 @@ const AdminDashboard = () => {
       ) : (
         <>
           {errorApproved && <p className="error">{errorApproved}</p>}
-          {loadingApproved ? (
-            <p>Loading approved enrollments...</p>
-          ) : approvedEnrollments.length === 0 ? (
+          {approvedEnrollments.length === 0 ? (
             <p>No approved enrollments</p>
           ) : (
             <table className="enrollment-table">
