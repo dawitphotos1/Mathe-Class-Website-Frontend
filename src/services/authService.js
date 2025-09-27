@@ -25,18 +25,45 @@
 
 
 
+
+
 // src/services/authService.js
-import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
 
-const API_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:5000/api/v1";
+// 🔑 Login
+export const login = async ({ email, password }) => {
+  const res = await axiosInstance.post("/auth/login", { email, password });
 
-const api = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-});
+  // Save JWT in localStorage so axiosInstance can attach it
+  if (res.data?.token) {
+    localStorage.setItem("authToken", res.data.token);
+  }
 
-export const login = (payload) => api.post("/auth/login", payload);
-export const register = (payload) => api.post("/auth/register", payload);
-export const getCurrentUser = () => api.get("/auth/me");
-export const logout = () => api.post("/auth/logout");
+  return res;
+};
+
+// 📝 Register
+export const register = async (payload) => {
+  const res = await axiosInstance.post("/auth/register", payload);
+
+  // If auto-login (teacher/admin), save token
+  if (res.data?.token) {
+    localStorage.setItem("authToken", res.data.token);
+  }
+
+  return res;
+};
+
+// 👤 Get current user
+export const getCurrentUser = async () => {
+  const res = await axiosInstance.get("/auth/me");
+  return res;
+};
+
+// 🚪 Logout
+export const logout = async () => {
+  await axiosInstance.post("/auth/logout");
+
+  // Clear token on logout
+  localStorage.removeItem("authToken");
+};

@@ -45,8 +45,6 @@
 
 
 
-
-
 // src/utils/axiosInstance.js
 import axios from "axios";
 
@@ -58,16 +56,26 @@ const API_BASE_URL =
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true,
+  withCredentials: true, // send cookies too
 });
 
+// 📤 Attach token before every request
 axiosInstance.interceptors.request.use((config) => {
-  if (process.env.NODE_ENV === "development") {
-    console.log("📤 Request:", config.method?.toUpperCase(), config.url);
+  const token = localStorage.getItem("authToken");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
+
+  if (process.env.NODE_ENV === "development") {
+    console.log("📤 Request:", config.method?.toUpperCase(), config.url, {
+      headers: config.headers,
+    });
+  }
+
   return config;
 });
 
+// 📥 Handle errors
 axiosInstance.interceptors.response.use(
   (res) => res,
   (err) => {
