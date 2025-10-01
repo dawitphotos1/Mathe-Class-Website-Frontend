@@ -1,4 +1,4 @@
-
+// CourseList.jsx
 import React, { useEffect, useState } from "react";
 import axios from "../utils/axiosInstance"; // updated import
 import { useParams, useNavigate } from "react-router-dom";
@@ -27,9 +27,13 @@ const StartCoursePage = () => {
         const headers = { Authorization: `Bearer ${token}` };
 
         // Fetch course by slug
-        const courseRes = await axios.get(`/api/v1/courses/slug/${slug}`, {
-          headers,
-        });
+        // Fetch course by slug
+        const courseRes = await axios.get(
+          `/api/v1/courses/public/slug/${slug}`,
+          {
+            headers,
+          }
+        );
         const courseData = courseRes.data;
 
         if (!courseData?.id) {
