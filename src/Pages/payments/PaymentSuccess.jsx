@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -13,7 +14,6 @@ const PaymentSuccess = () => {
     let isMounted = true;
     const session_id = params.get("session_id");
     const courseId = params.get("courseId");
-    const token = localStorage.getItem("token");
 
     if (!session_id || !courseId) {
       toast.error("Missing payment details");
@@ -40,6 +40,18 @@ const PaymentSuccess = () => {
 
         if (enrollmentRes.data.success) {
           toast.success("Enrollment request submitted for approval.");
+
+          // ✅ Save enrolled course ID to localStorage
+          const enrolledCourses =
+            JSON.parse(localStorage.getItem("enrolledCourses")) || [];
+          if (!enrolledCourses.includes(courseId)) {
+            enrolledCourses.push(courseId);
+            localStorage.setItem(
+              "enrolledCourses",
+              JSON.stringify(enrolledCourses)
+            );
+          }
+
           if (isMounted) {
             setStatus("success");
             setTimeout(() => navigate("/my-courses"), 3000);
