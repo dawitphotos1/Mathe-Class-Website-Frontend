@@ -958,9 +958,14 @@ const CourseDetail = () => {
 
       <div className="course-footer">
         {isStudent && (
-          <Link to={`/payment/${courseNumericId}`} className="btn-enroll">
-            Enroll Now
-          </Link>
+          <>
+            <Link to={`/payment/${courseNumericId}`} className="btn-enroll">
+              Enroll Now
+            </Link>
+            <Link to={`/course/${id}/viewer`} className="btn-start">
+              Start Learning
+            </Link>
+          </>
         )}
         <Link to="/courses" className="btn-back">
           ← Back to Courses

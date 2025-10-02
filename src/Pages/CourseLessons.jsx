@@ -1,4 +1,114 @@
 
+// import React, { useEffect, useState } from "react";
+// import { useParams } from "react-router-dom";
+// import axiosInstance from "../utils/axiosInstance";
+// import { toast } from "react-toastify";
+
+// const CourseLessons = () => {
+//   const { courseId } = useParams();
+//   const [lessons, setLessons] = useState([]);
+//   const [completedLessons, setCompletedLessons] = useState(new Set());
+//   const [loading, setLoading] = useState(true);
+//   const [progress, setProgress] = useState(0);
+
+//   useEffect(() => {
+//     const fetchLessonsAndProgress = async () => {
+//       try {
+//         const [lessonRes, progressRes] = await Promise.all([
+//           axiosInstance.get(`/lessons/${courseId}`),
+//           axiosInstance.get(`/progress/${courseId}`),
+//         ]);
+
+//         const lessonData = lessonRes.data.lessons || [];
+//         const completedIds = new Set(progressRes.data.completedLessonIds || []);
+
+//         setLessons(lessonData);
+//         setCompletedLessons(completedIds);
+
+//         if (lessonData.length > 0) {
+//           const pct = (completedIds.size / lessonData.length) * 100;
+//           setProgress(pct.toFixed(0));
+//         }
+//       } catch (err) {
+//         console.error("Failed to fetch lessons or progress", err);
+//         toast.error("Could not load lessons or progress.");
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchLessonsAndProgress();
+//   }, [courseId]);
+
+//   const markComplete = async (lessonId) => {
+//     try {
+//       await axiosInstance.post(`/progress/complete`, { lessonId });
+//       toast.success("Lesson marked as complete!");
+//       setCompletedLessons((prev) => new Set(prev).add(lessonId));
+//     } catch (err) {
+//       console.error("Failed to mark lesson complete", err);
+//       toast.error("Could not mark as complete.");
+//     }
+//   };
+
+//   return (
+//     <div className="student-lessons">
+//       <h2>Your Lessons</h2>
+//       {loading ? (
+//         <p>Loading...</p>
+//       ) : lessons.length === 0 ? (
+//         <p>No lessons found or access not approved yet.</p>
+//       ) : (
+//         <>
+//           {/* Progress bar */}
+//           <div style={{ margin: "20px 0" }}>
+//             <label>Progress: {progress}%</label>
+//             <div
+//               style={{
+//                 background: "#eee",
+//                 borderRadius: "5px",
+//                 height: "20px",
+//                 width: "100%",
+//               }}
+//             >
+//               <div
+//                 style={{
+//                   width: `${progress}%`,
+//                   background: "#28a745",
+//                   height: "100%",
+//                   borderRadius: "5px",
+//                   transition: "width 0.4s ease-in-out",
+//                 }}
+//               />
+//             </div>
+//           </div>
+
+//           <ul>
+//             {lessons.map((lesson) => (
+//               <li key={lesson.id}>
+//                 <strong>{lesson.title}</strong>
+//                 {completedLessons.has(lesson.id) ? (
+//                   <span> ✅ Completed</span>
+//                 ) : (
+//                   <button onClick={() => markComplete(lesson.id)}>
+//                     Mark Complete
+//                   </button>
+//                 )}
+//               </li>
+//             ))}
+//           </ul>
+//         </>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default CourseLessons;
+
+
+
+
+// CourseLessons.jsx
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
@@ -14,8 +124,9 @@ const CourseLessons = () => {
   useEffect(() => {
     const fetchLessonsAndProgress = async () => {
       try {
+        // ✅ fixed endpoints (no /api/v1)
         const [lessonRes, progressRes] = await Promise.all([
-          axiosInstance.get(`/lessons/${courseId}`),
+          axiosInstance.get(`/lessons/course/${courseId}`),
           axiosInstance.get(`/progress/${courseId}`),
         ]);
 
