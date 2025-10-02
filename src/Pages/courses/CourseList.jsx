@@ -136,7 +136,6 @@
 
 
 
-
 // CourseList.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -184,8 +183,13 @@ const CourseList = () => {
   }, []);
 
   const handleCourseClick = (slug) => {
-    // Always go to CourseDetail first
-    navigate(`/course/${slug}`);
+    if (user?.role === "student") {
+      // ✅ Students go directly to lessons
+      navigate(`/course/${slug}/viewer`);
+    } else {
+      // ✅ Guests / teachers go to curriculum overview
+      navigate(`/course/${slug}`);
+    }
   };
 
   const formatPrice = (price) =>
@@ -217,7 +221,7 @@ const CourseList = () => {
               <p>{course.description || "No description available."}</p>
               <p className="course-price">Price: ${formatPrice(course.price)}</p>
 
-              {/* ✅ Button text changes depending on role */}
+              {/* ✅ Button text & action depend on user role */}
               <button className="btn btn-primary">
                 {user?.role === "student" ? "Start Learning" : "View Curriculum"}
               </button>
