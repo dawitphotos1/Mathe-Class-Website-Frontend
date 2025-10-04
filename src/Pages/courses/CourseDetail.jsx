@@ -1,41 +1,132 @@
-
-// import React from "react";
-// import { useParams, Link } from "react-router-dom";
+// // src/pages/courses/CourseDetail.jsx
+// import React, { useState, useEffect } from "react";
+// import { useParams, Link, useNavigate } from "react-router-dom";
 // import "./CourseDetail.css";
 // import { courseData, slugToIdMap } from "./courseData";
+// import axios from "../../utils/axiosInstance";
 
 // const CourseDetail = () => {
 //   const { id } = useParams();
+//   const navigate = useNavigate();
 //   const course = courseData[id];
-//   const user = JSON.parse(localStorage.getItem("user"));
+//   const [user, setUser] = useState(null);
+//   const [enrollmentStatus, setEnrollmentStatus] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [apiLoading, setApiLoading] = useState(false);
 
-//   const isStudent = user?.role === "student";
 //   const courseNumericId = slugToIdMap[id];
 
-//   // ✅ Check enrollment from both user object and localStorage
-//   const localEnrolled =
-//     JSON.parse(localStorage.getItem("enrolledCourses")) || [];
-//   const isEnrolled =
-//     user?.enrolledCourses?.includes(courseNumericId) ||
-//     localEnrolled.includes(String(courseNumericId));
+//   useEffect(() => {
+//     // Get user from localStorage
+//     const userData = JSON.parse(localStorage.getItem("user"));
+//     setUser(userData);
+    
+//     if (userData && userData.role === "student" && courseNumericId) {
+//       checkEnrollmentEligibility();
+//     } else {
+//       setLoading(false);
+//     }
+//   }, [courseNumericId]);
 
-//   if (!course) return <div className="error">❌ Course not found.</div>;
+//   const checkEnrollmentEligibility = async () => {
+//     try {
+//       setApiLoading(true);
+//       const response = await axios.get(`/enrollments/eligibility/${courseNumericId}`);
+//       console.log("Enrollment eligibility response:", response.data); // Debug log
+//       setEnrollmentStatus(response.data);
+//     } catch (err) {
+//       console.error("Error checking enrollment eligibility:", err);
+//       // If API fails, set default status
+//       setEnrollmentStatus({ 
+//         canEnroll: false, 
+//         reason: "Error checking enrollment status",
+//         userApproved: false 
+//       });
+//     } finally {
+//       setLoading(false);
+//       setApiLoading(false);
+//     }
+//   };
+
+//   const handleEnrollNow = async () => {
+//     try {
+//       setApiLoading(true);
+//       // Create payment session
+//       const response = await axios.post("/payments/create-checkout-session", {
+//         courseId: courseNumericId
+//       });
+      
+//       // Redirect to Stripe checkout
+//       if (response.data.sessionId) {
+//         window.location.href = `https://checkout.stripe.com/pay/${response.data.sessionId}`;
+//       } else {
+//         throw new Error("No session ID received");
+//       }
+//     } catch (err) {
+//       console.error("Enrollment error:", err);
+//       alert("Failed to start enrollment process. Please try again.");
+//     } finally {
+//       setApiLoading(false);
+//     }
+//   };
+
+//   const handleViewCurriculum = () => {
+//     // Navigate to curriculum page
+//     navigate(`/courses/${id}/curriculum`);
+//   };
+
+//   const handleBackToCourses = () => {
+//     navigate("/courses");
+//   };
+
+//   // Debug information
+//   console.log("Current state:", {
+//     user,
+//     enrollmentStatus,
+//     loading,
+//     courseNumericId,
+//     isStudent: user?.role === "student"
+//   });
+
+//   if (!course) {
+//     return (
+//       <div className="course-detail-container">
+//         <div className="error-message">
+//           <h2>❌ Course not found</h2>
+//           <button onClick={handleBackToCourses} className="btn-back">
+//             ← Back to Courses
+//           </button>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   if (loading) {
+//     return (
+//       <div className="course-detail-container">
+//         <div className="loading-message">Loading course information...</div>
+//       </div>
+//     );
+//   }
 
 //   return (
-//     <div className="course-detail">
+//     <div className="course-detail-container">
 //       <div className="course-header">
 //         <h1>{course.title}</h1>
 //         <p className="course-description">{course.description}</p>
+//         <p className="course-price">Price: ${course.price}</p>
 //       </div>
 
 //       <div className="course-content">
+//         <h2 className="curriculum-title">Course Curriculum</h2>
 //         {course.contents.map((section, index) => (
 //           <div className="unit-card" key={index}>
-//             <h2 className="unit-title">{section.unit}</h2>
+//             <h3 className="unit-title">{section.unit}</h3>
 //             <ul className="lesson-list">
 //               {section.lessons.map((lesson, idx) => (
 //                 <li key={idx} className="lesson-item">
-//                   {lesson}
+//                   <span className="lesson-icon">📘</span>
+//                   <span className="lesson-text">{lesson}</span>
 //                 </li>
 //               ))}
 //             </ul>
@@ -43,93 +134,68 @@
 //         ))}
 //       </div>
 
-//       <div className="course-footer">
-//         {isStudent && (
-//           <>
-//             {!isEnrolled ? (
-//               <Link to={`/payment/${courseNumericId}`} className="btn-enroll">
-//                 Enroll Now
-//               </Link>
-//             ) : (
-//               <Link to={`/course/${id}/viewer`} className="btn-start">
+//       <div className="course-actions">
+//         {/* View Curriculum Button - Always Visible */}
+//         <button 
+//           className="btn-view-curriculum"
+//           onClick={handleViewCurriculum}
+//           disabled={apiLoading}
+//         >
+//           {apiLoading ? "Loading..." : "View Curriculum"}
+//         </button>
+
+//         {/* Enrollment Section - FIXED LOGIC */}
+//         {user && user.role === "student" ? (
+//           enrollmentStatus?.canEnroll ? (
+//             // Student is approved and can enroll - SHOW ENROLL NOW BUTTON
+//             <button 
+//               className="btn-enroll-now" 
+//               onClick={handleEnrollNow}
+//               disabled={apiLoading}
+//             >
+//               {apiLoading ? "Processing..." : `Enroll Now - $${course.price}`}
+//             </button>
+//           ) : enrollmentStatus?.userApproved === false ? (
+//             // Student NOT approved
+//             <div className="enrollment-status">
+//               <p className="status-message">
+//                 ⏳ Your account is pending approval. Please wait for admin approval to enroll in courses.
+//               </p>
+//             </div>
+//           ) : enrollmentStatus?.enrollmentStatus === 'pending' ? (
+//             // Enrollment pending approval
+//             <div className="enrollment-status">
+//               <p className="status-message">📝 Your enrollment is pending approval</p>
+//             </div>
+//           ) : enrollmentStatus?.enrollmentStatus === 'approved' ? (
+//             // Already enrolled and approved
+//             <div className="enrollment-status">
+//               <p className="status-message">✅ You are enrolled in this course</p>
+//               <Link to={`/course/${id}/viewer`} className="btn-start-learning">
 //                 Start Learning
 //               </Link>
-//             )}
-//           </>
-//         )}
-//         <Link to="/courses" className="btn-back">
-//           ← Back to Courses
-//         </Link>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default CourseDetail;
-
-
-
-
-// // src/Pages/courses/CourseDetail.jsx
-// import React from "react";
-// import { useParams, Link } from "react-router-dom";
-// import "./CourseDetail.css";
-// import { courseData, slugToIdMap } from "./courseData";
-
-// const CourseDetail = () => {
-//   const { id } = useParams();
-//   const course = courseData[id];
-//   const user = JSON.parse(localStorage.getItem("user"));
-
-//   const isStudent = user?.role === "student";
-//   const courseNumericId = slugToIdMap[id];
-
-//   // ✅ Check enrollment from both user object and localStorage
-//   const localEnrolled =
-//     JSON.parse(localStorage.getItem("enrolledCourses")) || [];
-//   const isEnrolled =
-//     user?.enrolledCourses?.includes(courseNumericId) ||
-//     localEnrolled.includes(String(courseNumericId));
-
-//   if (!course) return <div className="error">❌ Course not found.</div>;
-
-//   return (
-//     <div className="course-detail">
-//       <div className="course-header">
-//         <h1>{course.title}</h1>
-//         <p className="course-description">{course.description}</p>
-//       </div>
-
-//       <div className="course-content">
-//         {course.contents.map((section, index) => (
-//           <div className="unit-card" key={index}>
-//             <h2 className="unit-title">{section.unit}</h2>
-//             <ul className="lesson-list">
-//               {section.lessons.map((lesson, idx) => (
-//                 <li key={idx} className="lesson-item">
-//                   {lesson}
-//                 </li>
-//               ))}
-//             </ul>
-//           </div>
-//         ))}
-//       </div>
-
-//       <div className="course-footer">
-//         {isStudent ? (
-//           isEnrolled ? (
-//             <Link to={`/course/${id}/viewer`} className="btn-start-course">
-//               Start Learning
-//             </Link>
+//             </div>
 //           ) : (
-//             <Link to={`/payment/${courseNumericId}`} className="btn-enroll">
-//               Enroll Now
-//             </Link>
+//             // Other cases - show the reason
+//             <div className="enrollment-status">
+//               <p className="status-message">{enrollmentStatus?.reason || "Unable to enroll at this time"}</p>
+//             </div>
 //           )
 //         ) : (
-//           <Link to="/courses" className="btn-back">
-//             ← Back to Courses
-//           </Link>
+//           // Not a student or not logged in
+//           <div className="enrollment-status">
+//             <p className="status-message">
+//               {!user ? "🔐 Please login to enroll in this course" : "🎓 This course is for students only"}
+//             </p>
+//             {!user && (
+//               <Link to="/login" className="btn-login">
+//                 Login Now
+//               </Link>
+//             )}
+//             <button onClick={handleBackToCourses} className="btn-back">
+//               ← Back to Courses
+//             </button>
+//           </div>
 //         )}
 //       </div>
 //     </div>
@@ -142,7 +208,8 @@
 
 
 
-// src/Pages/courses/CourseDetail.jsx
+
+// src/pages/courses/CourseDetail.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import "./CourseDetail.css";
@@ -153,60 +220,109 @@ const CourseDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const course = courseData[id];
-  const user = JSON.parse(localStorage.getItem("user"));
+  const [user, setUser] = useState(null);
   const [enrollmentStatus, setEnrollmentStatus] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [apiLoading, setApiLoading] = useState(false);
 
-  const isStudent = user?.role === "student";
   const courseNumericId = slugToIdMap[id];
 
   useEffect(() => {
-    const checkEnrollmentEligibility = async () => {
-      if (isStudent && courseNumericId) {
-        try {
-          const response = await axios.get(`/enrollments/eligibility/${courseNumericId}`);
-          setEnrollmentStatus(response.data);
-        } catch (err) {
-          console.error("Error checking enrollment eligibility:", err);
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        setLoading(false);
-      }
-    };
+    // Get user from localStorage
+    const userData = JSON.parse(localStorage.getItem("user"));
+    setUser(userData);
+    
+    if (userData && userData.role === "student" && courseNumericId) {
+      checkEnrollmentEligibility();
+    } else {
+      setLoading(false);
+    }
+  }, [courseNumericId]);
 
-    checkEnrollmentEligibility();
-  }, [isStudent, courseNumericId]);
+  const checkEnrollmentEligibility = async () => {
+    try {
+      setApiLoading(true);
+      const response = await axios.get(`/enrollments/eligibility/${courseNumericId}`);
+      console.log("Enrollment eligibility response:", response.data);
+      setEnrollmentStatus(response.data);
+    } catch (err) {
+      console.error("Error checking enrollment eligibility:", err);
+      setEnrollmentStatus({ 
+        canEnroll: false, 
+        reason: "Error checking enrollment status",
+        userApproved: false 
+      });
+    } finally {
+      setLoading(false);
+      setApiLoading(false);
+    }
+  };
 
   const handleEnrollNow = () => {
+    // Navigate to payment page with course ID
     navigate(`/payment/${courseNumericId}`);
   };
 
   const handleViewCurriculum = () => {
-    // Navigate to curriculum page
     navigate(`/courses/${id}/curriculum`);
   };
 
-  if (!course) return <div className="error">❌ Course not found.</div>;
-  if (loading) return <div className="loading">Loading...</div>;
+  const handleBackToCourses = () => {
+    navigate("/courses");
+  };
+
+  const handleLogin = () => {
+    navigate("/login");
+  };
+
+  // Debug information
+  console.log("Current state:", {
+    user,
+    enrollmentStatus,
+    loading,
+    courseNumericId,
+    isStudent: user?.role === "student"
+  });
+
+  if (!course) {
+    return (
+      <div className="course-detail-container">
+        <div className="error-message">
+          <h2>❌ Course not found</h2>
+          <button onClick={handleBackToCourses} className="btn-back">
+            ← Back to Courses
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="course-detail-container">
+        <div className="loading-message">Loading course information...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="course-detail">
+    <div className="course-detail-container">
       <div className="course-header">
         <h1>{course.title}</h1>
         <p className="course-description">{course.description}</p>
-        <p className="course-price">Price: ${course.price || "Free"}</p>
+        <p className="course-price">Price: ${course.price}</p>
       </div>
 
       <div className="course-content">
+        <h2 className="curriculum-title">Course Curriculum</h2>
         {course.contents.map((section, index) => (
           <div className="unit-card" key={index}>
-            <h2 className="unit-title">{section.unit}</h2>
+            <h3 className="unit-title">{section.unit}</h3>
             <ul className="lesson-list">
               {section.lessons.map((lesson, idx) => (
                 <li key={idx} className="lesson-item">
-                  {lesson}
+                  <span className="lesson-icon">📘</span>
+                  <span className="lesson-text">{lesson}</span>
                 </li>
               ))}
             </ul>
@@ -214,46 +330,74 @@ const CourseDetail = () => {
         ))}
       </div>
 
-      <div className="course-footer">
+      <div className="course-actions">
         {/* View Curriculum Button - Always Visible */}
         <button 
           className="btn-view-curriculum"
           onClick={handleViewCurriculum}
+          disabled={apiLoading}
         >
-          View Curriculum
+          {apiLoading ? "Loading..." : "View Curriculum"}
         </button>
 
-        {/* Enrollment Section */}
-        {isStudent ? (
-          enrollmentStatus?.canEnroll ? (
-            // Student is approved and can enroll
-            <button className="btn-enroll" onClick={handleEnrollNow}>
-              Enroll Now - ${course.price || "Free"}
-            </button>
-          ) : enrollmentStatus?.userApproved ? (
-            // Student is approved but already enrolled or other status
-            <div className="enrollment-status">
-              <p>{enrollmentStatus.reason}</p>
-              {enrollmentStatus.enrollmentStatus === 'pending' && (
-                <p>Your enrollment is pending approval</p>
-              )}
-              {enrollmentStatus.enrollmentStatus === 'approved' && (
-                <Link to={`/course/${id}/viewer`} className="btn-start-course">
-                  Start Learning
-                </Link>
-              )}
-            </div>
-          ) : (
-            // Student not approved
-            <div className="enrollment-status">
-              <p>Your account is pending approval. Please wait for admin approval to enroll in courses.</p>
-            </div>
-          )
+        {/* ENROLL NOW BUTTON - Show for ALL students (approved or not) */}
+        {user && user.role === "student" ? (
+          // Student is logged in - show ENROLL NOW button
+          <button 
+            className="btn-enroll-now" 
+            onClick={handleEnrollNow}
+            disabled={apiLoading}
+          >
+            {apiLoading ? "Processing..." : `Enroll Now - $${course.price}`}
+          </button>
         ) : (
-          // Not a student
-          <Link to="/courses" className="btn-back">
-            ← Back to Courses
-          </Link>
+          // Not logged in or not a student
+          <div className="enrollment-options">
+            {!user ? (
+              // Not logged in - show both login and enroll options
+              <>
+                <button 
+                  className="btn-enroll-now" 
+                  onClick={handleEnrollNow}
+                >
+                  Enroll Now - ${course.price}
+                </button>
+                <p className="login-prompt">
+                  Already have an account?{" "}
+                  <button onClick={handleLogin} className="btn-login-text">
+                    Login here
+                  </button>
+                </p>
+              </>
+            ) : (
+              // Logged in but not a student
+              <div className="enrollment-status">
+                <p className="status-message">
+                  🎓 This course is for students only
+                </p>
+                <button onClick={handleBackToCourses} className="btn-back">
+                  ← Back to Courses
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Show status messages for enrolled students */}
+        {user && user.role === "student" && enrollmentStatus && (
+          <div className="enrollment-status">
+            {enrollmentStatus.enrollmentStatus === 'pending' && (
+              <p className="status-message">📝 Your enrollment is pending approval</p>
+            )}
+            {enrollmentStatus.enrollmentStatus === 'approved' && (
+              <p className="status-message">✅ You are enrolled in this course</p>
+            )}
+            {enrollmentStatus.userApproved === false && (
+              <p className="status-message">
+                ⏳ Your account is pending admin approval
+              </p>
+            )}
+          </div>
         )}
       </div>
     </div>

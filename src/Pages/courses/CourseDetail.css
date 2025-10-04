@@ -203,200 +203,324 @@ body {
 }
  */
 
-
-
-
- /* src/Pages/courses/CourseDetail.css */
-.course-detail {
-  max-width: 900px;
+/* src/pages/courses/CourseDetail.css */
+.course-detail-container {
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f8f9fa;
+  min-height: 100vh;
 }
 
 .course-header {
   text-align: center;
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 2px solid #e9ecef;
+  margin-bottom: 3rem;
+  padding: 3rem 2rem;
+  border-bottom: 3px solid #e9ecef;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
 .course-header h1 {
-  color: #2c3e50;
+  font-size: 2.8rem;
   margin-bottom: 1rem;
-  font-size: 2.5rem;
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
 .course-description {
-  font-size: 1.2rem;
-  color: #6c757d;
-  margin-bottom: 1rem;
+  font-size: 1.3rem;
+  margin-bottom: 1.5rem;
   line-height: 1.6;
+  opacity: 0.95;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .course-price {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: bold;
-  color: #28a745;
-  margin: 1rem 0;
+  background: rgba(255,255,255,0.2);
+  padding: 0.8rem 2rem;
+  border-radius: 25px;
+  display: inline-block;
+  backdrop-filter: blur(10px);
+  margin-top: 1rem;
 }
 
 .course-content {
-  margin: 2rem 0;
+  margin: 3rem 0;
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+}
+
+.curriculum-title {
+  text-align: left;
+  color: #2c3e50;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 3px solid #007bff;
+  font-weight: 600;
 }
 
 .unit-card {
   background: #f8f9fa;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
-  border-left: 4px solid #007bff;
+  border-left: 6px solid #007bff;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-align: left;
+}
+
+.unit-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
 }
 
 .unit-title {
   color: #2c3e50;
-  margin-bottom: 1rem;
+  margin-bottom: 1.2rem;
   font-size: 1.3rem;
+  font-weight: 600;
+  border-bottom: 2px solid #dee2e6;
+  padding-bottom: 0.5rem;
+  text-align: left;
 }
 
 .lesson-list {
   list-style: none;
   padding: 0;
+  margin: 0;
+  text-align: left;
 }
 
 .lesson-item {
-  padding: 0.5rem 0;
+  padding: 0.8rem 0.5rem;
   border-bottom: 1px solid #e9ecef;
   color: #495057;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s ease;
+  text-align: left;
+  margin-left: 0;
+}
+
+.lesson-item:hover {
+  background-color: #e9ecef;
+  border-radius: 6px;
 }
 
 .lesson-item:last-child {
   border-bottom: none;
 }
 
-.course-footer {
+.lesson-icon {
+  margin-right: 12px;
+  font-size: 1.1rem;
+  min-width: 30px;
+  text-align: center;
+}
+
+.lesson-text {
+  flex: 1;
+  text-align: left;
+  font-weight: 500;
+}
+
+.course-actions {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.2rem;
   align-items: center;
-  margin-top: 2rem;
+  margin-top: 3rem;
   padding-top: 2rem;
-  border-top: 2px solid #e9ecef;
+  border-top: 3px solid #e9ecef;
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
 }
 
 .btn-view-curriculum {
-  background-color: #6c757d;
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
   color: white;
-  padding: 12px 30px;
+  padding: 15px 40px;
   border: none;
-  border-radius: 6px;
+  border-radius: 50px;
   cursor: pointer;
-  font-size: 1rem;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
-  text-decoration: none;
-  display: inline-block;
-  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(106, 17, 203, 0.4);
+  min-width: 220px;
 }
 
-.btn-view-curriculum:hover {
-  background-color: #5a6268;
-  color: white;
-  text-decoration: none;
+.btn-view-curriculum:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(106, 17, 203, 0.6);
 }
 
-.btn-enroll {
-  background-color: #28a745;
+.btn-view-curriculum:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-enroll-now {
+  background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
   color: white;
-  padding: 12px 30px;
+  padding: 16px 45px;
   border: none;
-  border-radius: 6px;
+  border-radius: 50px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: bold;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 20px rgba(0, 176, 155, 0.4);
+  min-width: 250px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.btn-enroll:hover {
-  background-color: #218838;
+.btn-enroll-now:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0, 176, 155, 0.6);
+  background: linear-gradient(135deg, #00a18b 0%, #8bc34a 100%);
 }
 
-.btn-start-course {
-  background-color: #007bff;
-  color: white;
-  padding: 12px 30px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
-  text-decoration: none;
-  display: inline-block;
+.btn-enroll-now:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.enrollment-options {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.login-prompt {
   text-align: center;
+  color: #6c757d;
+  font-size: 1rem;
+  margin: 0.5rem 0;
 }
 
-.btn-start-course:hover {
-  background-color: #0056b3;
-  color: white;
-  text-decoration: none;
+.btn-login-text {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 1rem;
 }
 
-.btn-back {
-  background-color: #6c757d;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 6px;
-  text-decoration: none;
-  transition: background-color 0.3s ease;
-}
-
-.btn-back:hover {
-  background-color: #5a6268;
-  color: white;
-  text-decoration: none;
+.btn-login-text:hover {
+  color: #0056b3;
 }
 
 .enrollment-status {
   text-align: center;
   padding: 1rem;
-  background-color: #e9ecef;
-  border-radius: 6px;
-  border: 1px solid #dee2e6;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 2px solid #e9ecef;
+  width: 100%;
+  max-width: 600px;
 }
 
-.enrollment-status p {
-  margin: 0.5rem 0;
-  color: #6c757d;
+.status-message {
+  font-size: 1.1rem;
+  color: #495057;
+  margin-bottom: 0.8rem;
+  font-weight: 500;
 }
 
-.loading, .error {
+.loading-message, .error-message {
   text-align: center;
-  padding: 2rem;
-  font-size: 1.2rem;
+  padding: 3rem;
+  font-size: 1.3rem;
+  color: #6c757d;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
 }
 
-.error {
+.error-message {
   color: #dc3545;
 }
 
-.loading {
-  color: #6c757d;
+.error-message h2 {
+  margin-bottom: 1.5rem;
 }
 
-/* Responsive design */
+/* Responsive Design */
 @media (max-width: 768px) {
-  .course-detail {
+  .course-detail-container {
     padding: 1rem;
   }
   
+  .course-header {
+    padding: 2rem 1rem;
+  }
+  
   .course-header h1 {
-    font-size: 2rem;
+    font-size: 2.2rem;
+  }
+  
+  .course-description {
+    font-size: 1.1rem;
+  }
+  
+  .course-content {
+    padding: 1.5rem;
+  }
+  
+  .curriculum-title {
+    font-size: 1.7rem;
+  }
+  
+  .unit-card {
+    padding: 1.2rem;
   }
   
   .btn-view-curriculum,
-  .btn-enroll,
-  .btn-start-course {
+  .btn-enroll-now {
     width: 100%;
-    padding: 15px;
+    padding: 14px 20px;
+    font-size: 1rem;
+    margin: 5px 0;
   }
+  
+  .course-actions {
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .enrollment-status {
+    padding: 1rem;
+  }
+}
+
+/* Ensure all text is left-aligned */
+.course-content * {
+  text-align: left;
+}
+
+.lesson-list,
+.lesson-item,
+.unit-title,
+.curriculum-title {
+  text-align: left !important;
 }
