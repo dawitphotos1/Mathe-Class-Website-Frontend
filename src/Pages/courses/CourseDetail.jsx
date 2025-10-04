@@ -110,7 +110,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import axiosInstance from "../../utils/axiosInstance";
+import { courseData, slugToIdMap } from "./courseData";
 import "./CourseDetail.css";
 
 const CourseDetail = () => {
@@ -121,21 +121,25 @@ const CourseDetail = () => {
   const [expandedUnit, setExpandedUnit] = useState(null);
 
   useEffect(() => {
-    const fetchCourse = async () => {
-      try {
-        const res = await axiosInstance.get(`/courses/public/slug/${slug}`);
-        setCourse(res.data);
-      } catch (err) {
-        console.error("Error fetching course:", err);
-        toast.error("Failed to load course.");
-        navigate("/courses");
-      }
-    };
-    fetchCourse();
+    // ✅ Use slug directly as the key
+    const selectedCourse = courseData[slug];
+
+    if (!selectedCourse) {
+      toast.error("Course not found.");
+      navigate("/courses");
+      return;
+    }
+
+    setCourse(selectedCourse);
   }, [slug, navigate]);
 
+
   if (!course) {
-    return <div className="course-detail-container"><div className="error-message">❌ Course not found</div></div>;
+    return (
+      <div className="course-detail-container">
+        <div className="error-message">❌ Course not found</div>
+      </div>
+    );
   }
 
   const toggleUnit = (index) => {
@@ -150,12 +154,55 @@ const CourseDetail = () => {
         <p className="course-price">Price: ${course.price}</p>
       </div>
 
+      {/* ✅ Units & Sub-units (Curriculum) */}
+      <div className="course-content">
+        <h2 className="curriculum-title">Course Curriculum</h2>
+
+        {course.contents.map((section, index) => (
+          <div
+            key={index}
+            className={`unit-card ${expandedUnit === index ? "expanded" : ""}`}
+          >
+            <div className="unit-header" onClick={() => toggleUnit(index)}>
+              <h3 className="unit-title">
+                {section.unit}
+                <span className="unit-toggle">
+                  {expandedUnit === index ? "−" : "+"}
+                </span>
+              </h3>
+            </div>
+
+            {expandedUnit === index && (
+              <ul className="lesson-list">
+                {section.lessons.map((lesson, idx) => (
+                  <li key={idx} className="lesson-item">
+                    <span className="lesson-icon">📘</span>
+                    <span className="lesson-text">{lesson}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ))}
+      </div>
+
       <div className="course-actions">
         <button
           className="btn-enroll-now"
-          onClick={() => navigate(`/payment/${course.id}`)}
+          onClick={() => {
+            const realId = slugToIdMap[slug];
+            if (!realId) {
+              toast.error("Course ID not found for this course.");
+              return;
+            }
+            navigate(`/payment/${realId}`);
+          }}
         >
           Enroll Now - ${course.price}
+        </button>
+
+        <button className="btn-login-text" onClick={() => navigate("/login")}>
+          Already have an account? Login here
         </button>
       </div>
     </div>
