@@ -471,7 +471,7 @@ const ManageUsers = React.lazy(() => import("./Pages/AdminManageUsers"));
 const CourseViewer = React.lazy(() => import("./Pages/courses/CourseViewer"));
 const Profile = React.lazy(() => import("./Pages/users/Profile"));
 const Payment = React.lazy(() => import("./Pages/payments/Payment"));
-const PaymentPage = React.lazy(() => import("./Pages/payment/PaymentPage")); // NEW: Import the PaymentPage component
+// const PaymentPage = React.lazy(() => import("./Pages/payment/PaymentPage")); // NEW: Import the PaymentPage component
 const Cancel = React.lazy(() => import("./Pages/payments/Cancel"));
 const NotFound = React.lazy(() => import("./Pages/NotFound"));
 
@@ -507,7 +507,7 @@ function App() {
                 <Route path="/unauthorized" element={<Unauthorized />} />
 
                 {/* ✅ FIXED: Payment page should be PUBLIC so anyone can access it */}
-                <Route path="/payment/:courseId" element={<PaymentPage />} />
+                <Route path="/payment/:courseId" element={<Payment />} />
 
                 {/* Course Management */}
                 <Route path="/courses/:slug/edit" element={<EditCourse />} />
