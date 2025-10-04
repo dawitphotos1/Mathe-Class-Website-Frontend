@@ -104,8 +104,6 @@
 
 
 
-
-
 // src/Pages/courses/CourseDetail.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -130,9 +128,24 @@ const CourseDetail = () => {
       return;
     }
 
-    setCourse(selectedCourse);
-  }, [slug, navigate]);
+    // ✅ Get the actual course ID from the mapping
+    const courseId = slugToIdMap[slug];
+    
+    if (!courseId) {
+      console.error("❌ No course ID mapping found for slug:", slug);
+      toast.error("Course configuration error. Please contact support.");
+      return;
+    }
 
+    // ✅ Add the course ID to the course object
+    const courseWithId = {
+      ...selectedCourse,
+      id: courseId
+    };
+
+    console.log("✅ Course with ID:", courseWithId); // Debug log
+    setCourse(courseWithId);
+  }, [slug, navigate]);
 
   if (!course) {
     return (
@@ -144,6 +157,17 @@ const CourseDetail = () => {
 
   const toggleUnit = (index) => {
     setExpandedUnit(expandedUnit === index ? null : index);
+  };
+
+  const handleEnroll = () => {
+    if (!course.id) {
+      toast.error("Course ID is missing. Cannot proceed with enrollment.");
+      console.error("Course ID is undefined:", course);
+      return;
+    }
+    
+    console.log("🚀 Navigating to payment with course ID:", course.id);
+    navigate(`/payment/${course.id}`);
   };
 
   return (
@@ -163,7 +187,10 @@ const CourseDetail = () => {
             key={index}
             className={`unit-card ${expandedUnit === index ? "expanded" : ""}`}
           >
-            <div className="unit-header" onClick={() => toggleUnit(index)}>
+            <div
+              className="unit-header"
+              onClick={() => toggleUnit(index)}
+            >
               <h3 className="unit-title">
                 {section.unit}
                 <span className="unit-toggle">
@@ -189,19 +216,15 @@ const CourseDetail = () => {
       <div className="course-actions">
         <button
           className="btn-enroll-now"
-          onClick={() => {
-            const realId = slugToIdMap[slug];
-            if (!realId) {
-              toast.error("Course ID not found for this course.");
-              return;
-            }
-            navigate(`/payment/${realId}`);
-          }}
+          onClick={handleEnroll}
         >
           Enroll Now - ${course.price}
         </button>
 
-        <button className="btn-login-text" onClick={() => navigate("/login")}>
+        <button
+          className="btn-login-text"
+          onClick={() => navigate("/login")}
+        >
           Already have an account? Login here
         </button>
       </div>

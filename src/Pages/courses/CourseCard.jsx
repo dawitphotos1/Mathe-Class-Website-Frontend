@@ -1,4 +1,4 @@
-// src/components/CourseCard.jsx
+// src/Pages/CourseCard.jsx
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -25,7 +25,9 @@ const CourseCard = ({ course, user, onCourseDeleted }) => {
 
       try {
         setIsCheckingEnrollment(true);
-        const response = await axiosInstance.get(`/api/v1/enrollments/check/${course.id}`);
+        const response = await axiosInstance.get(
+          `/api/v1/enrollments/check/${course.id}`
+        );
         if (isMounted) setIsEnrolled(response.data.isEnrolled);
       } catch (err) {
         if (isMounted) setIsEnrolled(false);
@@ -82,18 +84,22 @@ const CourseCard = ({ course, user, onCourseDeleted }) => {
 
       const stripe = await loadStripe(stripePublicKey);
 
-      const res = await axiosInstance.post("/api/v1/payments/create-checkout-session", {
-        courseId: String(course.id),
-        courseTitle: course.title,
-        coursePrice: parseFloat(course.price),
-        userId: user.id,
-      });
+      const res = await axiosInstance.post(
+        "/api/v1/payments/create-checkout-session",
+        {
+          courseId: String(course.id),
+          courseTitle: course.title,
+          coursePrice: parseFloat(course.price),
+          userId: user.id,
+        }
+      );
 
       window.location.href = res.data.url;
     } catch (err) {
       console.error("Payment error:", err.response?.data || err);
       toast.error(
-        err.response?.data?.error || "Failed to initiate payment. Please try again."
+        err.response?.data?.error ||
+          "Failed to initiate payment. Please try again."
       );
     } finally {
       setIsLoading(false);
@@ -152,19 +158,28 @@ const CourseCard = ({ course, user, onCourseDeleted }) => {
         </p>
 
         <div className="course-meta">
-          <span className={`difficulty-badge ${course.difficulty?.toLowerCase() || ""}`}>
+          <span
+            className={`difficulty-badge ${
+              course.difficulty?.toLowerCase() || ""
+            }`}
+          >
             {course.difficulty || "All Levels"}
           </span>
           <span className="course-price">
             {course.price > 0 ? `$${course.price}` : "Free"}
           </span>
           {course.studentCount && (
-            <span className="student-count">👥 {course.studentCount} students</span>
+            <span className="student-count">
+              👥 {course.studentCount} students
+            </span>
           )}
         </div>
 
         <div className="action-buttons">
-          <Link to={`/courses/${course.id}`} className="btn btn-outline view-course-btn">
+          <Link
+            to={`/courses/${course.id}`}
+            className="btn btn-outline view-course-btn"
+          >
             View Details
           </Link>
 
@@ -174,7 +189,11 @@ const CourseCard = ({ course, user, onCourseDeleted }) => {
               onClick={handleStartCourse}
               disabled={isCheckingEnrollment}
             >
-              {isCheckingEnrollment ? "Checking..." : (isTeacher ? "Manage Course" : "Start Course")}
+              {isCheckingEnrollment
+                ? "Checking..."
+                : isTeacher
+                ? "Manage Course"
+                : "Start Course"}
             </button>
           ) : (
             user?.role === "student" && (
@@ -190,7 +209,10 @@ const CourseCard = ({ course, user, onCourseDeleted }) => {
 
           {isTeacher && (
             <>
-              <Link to={`/courses/${course.id}/edit`} className="btn btn-outline edit-btn">
+              <Link
+                to={`/courses/${course.id}/edit`}
+                className="btn btn-outline edit-btn"
+              >
                 Edit
               </Link>
               <button
