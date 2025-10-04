@@ -173,21 +173,27 @@ const CourseList = () => {
         {courses.map((course) => (
           <div key={course.id} className="course-card">
             <img
-              src={courseImages[course.title] || "/math-logos/default-course.jpg"}
+              src={
+                courseImages[course.title] || "/math-logos/default-course.jpg"
+              }
               alt={course.title}
               className="course-image"
             />
             <div className="course-info">
               <h3>{course.title}</h3>
               <p>{course.description || "No description available."}</p>
-              <p className="course-price">Price: ${formatPrice(course.price)}</p>
+              <p className="course-price">
+                Price: ${formatPrice(course.price)}
+              </p>
 
               <button
                 className="btn btn-primary"
                 onClick={() => handleCourseClick(course.slug, course.id)}
               >
-                {user?.role === "student" && enrolledCourses.includes(String(course.id))
-                  ? "Start Learning"
+                {user?.role === "student"
+                  ? enrolledCourses.includes(String(course.id))
+                    ? "Start Learning"
+                    : "View Curriculum"
                   : "View Curriculum"}
               </button>
             </div>
