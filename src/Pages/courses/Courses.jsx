@@ -1,56 +1,56 @@
+
+// src/Pages/courses/Courses.jsx
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import axiosInstance from "../../utils/axiosInstance"; // ✅ centralized axios
+import axiosInstance from "../../utils/axiosInstance";
 import "./Courses.css";
 
-const Courses = () => {
+const CourseSkeleton = () => (
+  <div className="course-item skeleton">
+    <div className="skeleton-title"></div>
+    <div className="skeleton-text short"></div>
+    <div className="skeleton-text long"></div>
+    <div className="skeleton-btn"></div>
+  </div>
+);
+
+const Courses = ({ user }) => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        setLoading(true);
-
-        // ✅ axiosInstance already attaches baseURL + token
         const res = await axiosInstance.get("/courses");
-        const fetchedCourses = res.data.courses || res.data;
-
-        if (!Array.isArray(fetchedCourses)) {
-          throw new Error("Invalid courses data received");
-        }
-
-        // ✅ Validate course slugs
-        const validCourses = fetchedCourses.filter(
-          (course) => course.slug && course.slug !== "undefined"
-        );
-
-        if (validCourses.length === 0) {
-          setError("No valid courses found");
-          toast.error("No valid courses available");
-        } else {
-          setCourses(validCourses);
-          setError(null);
-        }
+        const data = res.data.courses || res.data;
+        setCourses(data);
       } catch (err) {
-        console.error("Fetch courses error:", err);
-        const msg =
-          err.response?.data?.error || err.message || "Failed to load courses";
-        setError(`❌ Error: ${msg}`);
-        toast.error(`❌ ${msg}`);
+        toast.error("Failed to load courses");
       } finally {
         setLoading(false);
       }
     };
-
     fetchCourses();
   }, []);
 
-  if (loading) return <div className="loading">Loading...</div>;
-  if (error) return <div className="error">{error}</div>;
-  if (courses.length === 0)
+  const handleViewCurriculum = (slug) => navigate(`/courses/${slug}`);
+
+  if (loading) {
+    return (
+      <div className="courses">
+        <h1>Available Courses</h1>
+        <div className="course-list">
+          {[1, 2, 3].map((i) => (
+            <CourseSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!courses.length)
     return <div className="error">No courses available</div>;
 
   return (
@@ -59,21 +59,15 @@ const Courses = () => {
       <div className="course-list">
         {courses.map((course) => (
           <div key={course.id} className="course-item">
-            <h2>{course.title || "Untitled Course"}</h2>
-            <p>{course.description || "No description available"}</p>
+            <h2>{course.title}</h2>
+            <p>{course.description}</p>
             <p>Price: ${parseFloat(course.price || 0).toFixed(2)}</p>
-            <Link
-              to={`/course/${course.slug}`}
+            <button
               className="btn-view-course"
-              onClick={() => {
-                if (!course.slug) {
-                  console.error("Invalid slug for course:", course);
-                  toast.error("Cannot view course: Invalid course URL");
-                }
-              }}
+              onClick={() => navigate(`/courses/${course.slug}`)}
             >
-              View Course
-            </Link>
+              View Curriculum
+            </button>
           </div>
         ))}
       </div>

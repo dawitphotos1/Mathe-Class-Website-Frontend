@@ -1,526 +1,322 @@
-/* CourseDetail.css */
-/* 
-:root {
-  --bg: #ffffff;
-  --fg: #1a1a1a;
-  --muted: #555;
-  --card: #f9f9f9;
-  --accent: #007bff;
-  --success: #28a745;
-  --danger: #dc3545;
-  --border: #ddd;
-}
+/* src/Pages/courses/CourseDetail.css */
 
-[data-theme="dark"] {
-  --bg: #1e1e1e;
-  --fg: #f0f0f0;
-  --muted: #aaa;
-  --card: #2c2c2c;
-  --accent: #339cff;
-  --success: #3ac97a;
-  --danger: #ff6b6b;
-  --border: #444;
-}
-
-body {
-  background-color: var(--bg);
-  color: var(--fg);
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.course-detail {
-  max-width: 900px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background-color: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-  transition: background 0.3s ease, color 0.3s ease;
-}
-
-.course-header h1 {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-}
-
-.course-description,
-.course-price,
-.course-teacher,
-.course-lessons {
-  margin: 0.3rem 0;
-  font-size: 1rem;
-  color: var(--muted);
-}
-
-.course-material {
-  margin-top: 1rem;
-  background-color: var(--card);
-  padding: 1rem;
-  border-radius: 10px;
-}
-
-.material-download {
-  display: inline-block;
-  margin-top: 0.5rem;
-  padding: 0.5rem 1rem;
-  background-color: var(--accent);
-  color: white;
-  border-radius: 6px;
-  text-decoration: none;
-  transition: background-color 0.3s ease;
-}
-
-.material-download:hover {
-  background-color: #0056b3;
-}
-
-.theme-toggle {
-  float: right;
-  padding: 0.4rem 1rem;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: var(--fg);
-}
-
-.theme-toggle:hover {
-  background: var(--accent);
-  color: white;
-  border-color: var(--accent);
-}
-
-.course-content {
-  margin-top: 2rem;
-}
-
-.lesson-item {
-  padding: 1rem;
-  background-color: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  margin-bottom: 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-  transition: transform 0.25s ease, background-color 0.3s;
-}
-
-.lesson-item:hover {
-  transform: scale(1.02);
-  background-color: rgba(0, 123, 255, 0.05);
-}
-
-.lesson-item h4 {
-  margin-bottom: 0.3rem;
-}
-
-.lesson-item a {
-  display: inline-block;
-  margin-right: 1rem;
-  font-size: 0.9rem;
-  color: var(--accent);
-  text-decoration: none;
-}
-
-.lesson-item a:hover {
-  text-decoration: underline;
-}
-
-.course-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
-.btn-enroll,
-.btn-start-course,
-.btn-back {
-  padding: 0.6rem 1.4rem;
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s, box-shadow 0.3s ease;
-  text-decoration: none;
-}
-
-.btn-enroll {
-  background-color: var(--success);
-  color: white;
-}
-
-.btn-enroll:hover {
-  background-color: #218838;
-  transform: translateY(-2px);
-  box-shadow: 0 0 12px rgba(40, 167, 69, 0.4);
-}
-
-.btn-start-course {
-  background-color: var(--accent);
-  color: white;
-}
-
-.btn-start-course:hover {
-  background-color: #0056b3;
-  transform: translateY(-2px);
-  box-shadow: 0 0 12px rgba(0, 123, 255, 0.4);
-}
-
-.btn-back {
-  background-color: var(--muted);
-  color: white;
-}
-
-.btn-back:hover {
-  background-color: #444;
-  transform: translateY(-2px);
-  box-shadow: 0 0 12px rgba(85, 85, 85, 0.4);
-}
-
-.loading,
-.error {
-  text-align: center;
-  font-size: 1.2rem;
-  padding: 2rem;
-  color: var(--danger);
-}
-
-@media (max-width: 600px) {
-  .course-detail {
-    padding: 1rem;
-  }
-
-  .btn-enroll,
-  .btn-start-course,
-  .btn-back {
-    width: 100%;
-    text-align: center;
-  }
-}
- */
-
-/* src/pages/courses/CourseDetail.css */
+/* --------- GLOBAL CONTAINER --------- */
 .course-detail-container {
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 2rem;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #f8f9fa;
+  background: #f9fafb;
   min-height: 100vh;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* --------- HEADER --------- */
 .course-header {
   text-align: center;
-  margin-bottom: 3rem;
-  padding: 3rem 2rem;
-  border-bottom: 3px solid #e9ecef;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  padding: 3rem 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  margin-bottom: 2.5rem;
+  transition: transform 0.3s ease;
 }
-
+.course-header:hover { transform: translateY(-3px); }
 .course-header h1 {
-  font-size: 2.8rem;
-  margin-bottom: 1rem;
+  font-size: 2.5rem;
   font-weight: 700;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  margin-bottom: 1rem;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
 }
-
 .course-description {
-  font-size: 1.3rem;
-  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
   line-height: 1.6;
   opacity: 0.95;
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
+  max-width: 750px;
+  margin: 0 auto 1.5rem auto;
 }
-
 .course-price {
-  font-size: 1.8rem;
-  font-weight: bold;
-  background: rgba(255,255,255,0.2);
-  padding: 0.8rem 2rem;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.6rem 1.8rem;
   border-radius: 25px;
+  font-weight: bold;
   display: inline-block;
   backdrop-filter: blur(10px);
-  margin-top: 1rem;
+  font-size: 1.4rem;
 }
 
+/* --------- CURRICULUM --------- */
 .course-content {
-  margin: 3rem 0;
   background: white;
   padding: 2rem;
   border-radius: 15px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2.5rem;
 }
-
 .curriculum-title {
-  text-align: left;
   color: #2c3e50;
-  font-size: 2rem;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
+  font-size: 1.8rem;
+  margin-bottom: 1.2rem;
   border-bottom: 3px solid #007bff;
+  padding-bottom: 0.8rem;
+  text-align: left;
   font-weight: 600;
 }
 
+/* ---------- EXPANDABLE CURRICULUM ---------- */
 .unit-card {
   background: #f8f9fa;
   border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  border-left: 6px solid #007bff;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  text-align: left;
-}
-
-.unit-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-}
-
-.unit-title {
-  color: #2c3e50;
   margin-bottom: 1.2rem;
-  font-size: 1.3rem;
+  border-left: 5px solid #007bff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.unit-card:hover { transform: translateY(-2px); }
+
+.unit-header {
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.2s ease;
+}
+.unit-header:hover { background-color: #eef4ff; }
+.unit-title {
+  font-size: 1.2rem;
+  color: #2c3e50;
   font-weight: 600;
-  border-bottom: 2px solid #dee2e6;
-  padding-bottom: 0.5rem;
-  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+.unit-toggle {
+  font-size: 1.5rem;
+  color: #007bff;
+  font-weight: bold;
 }
 
 .lesson-list {
-  list-style: none;
-  padding: 0;
   margin: 0;
-  text-align: left;
+  padding: 0.5rem 0 1rem 1.5rem; /* indent the whole list */
+  list-style: none;
 }
 
 .lesson-item {
-  padding: 0.8rem 0.5rem;
-  border-bottom: 1px solid #e9ecef;
-  color: #495057;
-  font-size: 1rem;
   display: flex;
   align-items: center;
-  transition: background-color 0.2s ease;
-  text-align: left;
-  margin-left: 0;
-}
-
-.lesson-item:hover {
-  background-color: #e9ecef;
-  border-radius: 6px;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e9ecef;
+  color: #444;
+  font-size: 1rem;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .lesson-item:last-child {
   border-bottom: none;
 }
 
+.lesson-item:hover {
+  background-color: #eef3fc;
+  transform: translateX(4px);
+}
+
 .lesson-icon {
-  margin-right: 12px;
+  margin-right: 6px;   /* tighter spacing between 📘 and text */
   font-size: 1.1rem;
-  min-width: 30px;
+  color: #007bff;
+}
+
+.lesson-list {
+  margin: 0;
+  padding: 0.5rem 0 1rem 0; /* no left indent */
+  list-style: none;
+}
+
+.lesson-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e9ecef;
+  color: #444;
+  font-size: 1rem;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.lesson-item:last-child {
+  border-bottom: none;
+}
+
+.lesson-item:hover {
+  background-color: #eef3fc;
+  transform: translateX(4px);
+}
+
+.lesson-icon {
+  margin-right: 6px;  /* small space between 📘 and text */
+  font-size: 1.1rem;
+  color: #007bff;
+}
+
+
+/* ---------- SUB-LESSONS (topics under lessons) ---------- */
+.sublesson-list {
+  margin: 0.3rem 0 0.5rem 1.5rem; /* indent inside lesson */
+  padding-left: 1rem;
+  list-style: none;
+}
+
+.sublesson-item {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0;
+  font-size: 0.95rem;
+  color: #555;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.sublesson-item:hover {
+  background-color: #f2f6ff;
+  transform: translateX(3px);
+}
+
+.sublesson-icon {
+  margin-right: 6px; /* tight spacing just like lessons */
+  font-size: 1rem;
+  color: #6c8cff;
+}
+
+
+.no-lessons {
+  color: #6c757d;
   text-align: center;
+  font-size: 1.05rem;
+  padding: 1rem 0;
 }
 
-.lesson-text {
-  flex: 1;
-  text-align: left;
-  font-weight: 500;
-}
-
+/* --------- BUTTONS & ACTIONS --------- */
 .course-actions {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+  padding: 2rem;
+  text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
-  align-items: center;
-  margin-top: 3rem;
-  padding-top: 2rem;
-  border-top: 3px solid #e9ecef;
-  background: white;
-  padding: 2rem;
-  border-radius: 15px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+  gap: 1rem;
 }
-
-.btn-view-curriculum {
-  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-  color: white;
-  padding: 15px 40px;
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  font-size: 1.1rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: 0 5px 15px rgba(106, 17, 203, 0.4);
-  min-width: 220px;
-}
-
-.btn-view-curriculum:hover:not(:disabled) {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(106, 17, 203, 0.6);
-}
-
-.btn-view-curriculum:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
 .btn-enroll-now {
   background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
   color: white;
-  padding: 16px 45px;
   border: none;
   border-radius: 50px;
+  padding: 14px 45px;
+  font-size: 1.1rem;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 1.2rem;
-  font-weight: bold;
-  transition: all 0.3s ease;
-  box-shadow: 0 5px 20px rgba(0, 176, 155, 0.4);
-  min-width: 250px;
-  text-transform: uppercase;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 176, 155, 0.4);
   letter-spacing: 0.5px;
 }
-
 .btn-enroll-now:hover:not(:disabled) {
   transform: translateY(-3px);
-  box-shadow: 0 10px 30px rgba(0, 176, 155, 0.6);
-  background: linear-gradient(135deg, #00a18b 0%, #8bc34a 100%);
+  box-shadow: 0 8px 25px rgba(0, 176, 155, 0.6);
 }
-
 .btn-enroll-now:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
-
-.enrollment-options {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  width: 100%;
-}
-
-.login-prompt {
-  text-align: center;
-  color: #6c757d;
-  font-size: 1rem;
-  margin: 0.5rem 0;
-}
-
 .btn-login-text {
   background: none;
   border: none;
   color: #007bff;
-  cursor: pointer;
   text-decoration: underline;
   font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s ease;
 }
+.btn-login-text:hover { color: #0056b3; }
 
-.btn-login-text:hover {
-  color: #0056b3;
-}
-
+/* --------- STATUS & FEEDBACK --------- */
 .enrollment-status {
   text-align: center;
   padding: 1rem;
   background: #f8f9fa;
   border-radius: 12px;
   border: 2px solid #e9ecef;
-  width: 100%;
-  max-width: 600px;
+  margin-top: 1rem;
 }
-
 .status-message {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   color: #495057;
-  margin-bottom: 0.8rem;
   font-weight: 500;
 }
-
-.loading-message, .error-message {
+.loading,
+.error {
   text-align: center;
   padding: 3rem;
-  font-size: 1.3rem;
-  color: #6c757d;
+  font-size: 1.2rem;
+  border-radius: 12px;
   background: white;
-  border-radius: 15px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  color: #555;
 }
+.error { color: #dc3545; }
 
-.error-message {
-  color: #dc3545;
-}
-
-.error-message h2 {
-  margin-bottom: 1.5rem;
-}
-
-/* Responsive Design */
+/* --------- RESPONSIVE DESIGN --------- */
 @media (max-width: 768px) {
-  .course-detail-container {
-    padding: 1rem;
-  }
-  
-  .course-header {
-    padding: 2rem 1rem;
-  }
-  
-  .course-header h1 {
-    font-size: 2.2rem;
-  }
-  
-  .course-description {
-    font-size: 1.1rem;
-  }
-  
-  .course-content {
-    padding: 1.5rem;
-  }
-  
-  .curriculum-title {
-    font-size: 1.7rem;
-  }
-  
-  .unit-card {
-    padding: 1.2rem;
-  }
-  
-  .btn-view-curriculum,
+  .course-detail-container { padding: 1rem; }
+  .course-header { padding: 2rem 1rem; }
+  .course-header h1 { font-size: 2rem; }
+  .course-description { font-size: 1.05rem; }
+  .course-content { padding: 1.5rem; }
   .btn-enroll-now {
     width: 100%;
     padding: 14px 20px;
     font-size: 1rem;
-    margin: 5px 0;
-  }
-  
-  .course-actions {
-    gap: 1rem;
-    padding: 1.5rem;
-  }
-  
-  .enrollment-status {
-    padding: 1rem;
   }
 }
 
-/* Ensure all text is left-aligned */
-.course-content * {
-  text-align: left;
+/* ---------- SKELETON FOR COURSE DETAIL ---------- */
+.skeleton-header {
+  height: 200px;
+  border-radius: 16px;
+  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: shimmerDetail 1.8s infinite;
+  margin-bottom: 2rem;
 }
-
-.lesson-list,
-.lesson-item,
-.unit-title,
-.curriculum-title {
-  text-align: left !important;
+@keyframes shimmerDetail { 100% { background-position: -200% 0; } }
+.skeleton-detail-content {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+.skeleton-lesson {
+  height: 18px;
+  width: 80%;
+  background: #e9ecef;
+  border-radius: 6px;
+  margin-bottom: 0.8rem;
+  animation: pulseDetail 1.5s infinite ease-in-out;
+}
+@keyframes pulseDetail {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+.skeleton-btn-large {
+  width: 220px;
+  height: 48px;
+  background: #e9ecef;
+  border-radius: 25px;
+  margin: 0 auto;
+  animation: pulseDetail 1.5s infinite ease-in-out;
 }
