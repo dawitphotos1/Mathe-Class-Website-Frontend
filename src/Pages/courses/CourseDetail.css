@@ -64,7 +64,82 @@
   border-bottom: 3px solid #007bff;
   font-weight: 600;
 }
+/* Add these styles to your existing CourseDetail.css */
 
+.course-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e1e8ed;
+}
+
+.course-price {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #27ae60;
+}
+
+.user-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.role-student {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.role-teacher {
+  background: #ffeaa7;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.role-admin {
+  background: #e8d7f7;
+  color: #4a235a;
+  border: 1px solid #d2b4de;
+}
+
+.non-student-access {
+  text-align: center;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.access-info h4 {
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.access-info p {
+  color: #7f8c8d;
+  margin-bottom: 1rem;
+}
+
+.btn-view-content {
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-view-content:hover {
+  background: #2980b9;
+  transform: translateY(-2px);
+}
 /* ---------- EXPANDABLE UNIT CARDS ---------- */
 .unit-card {
   background: #f8f9fa;
