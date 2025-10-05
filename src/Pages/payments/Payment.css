@@ -213,6 +213,88 @@
   color: #dc3545;
 }
 
+/* Payment.css - Add these styles */
+
+.user-status {
+  margin: 20px 0;
+  padding: 15px;
+  border-radius: 8px;
+  background: #f8f9fa;
+  border-left: 4px solid #007bff;
+}
+
+.user-authenticated {
+  color: #155724;
+  background: #d4edda;
+  border-left-color: #28a745;
+}
+
+.user-not-authenticated {
+  color: #856404;
+  background: #fff3cd;
+  border-left-color: #ffc107;
+}
+
+.login-required {
+  color: #dc3545;
+  font-size: 0.9em;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.login-actions {
+  text-align: center;
+  padding: 20px;
+  background: #e9ecef;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.auth-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.btn-login, .btn-register {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.btn-login {
+  background: #007bff;
+  color: white;
+}
+
+.btn-login:hover {
+  background: #0056b3;
+}
+
+.btn-register {
+  background: #28a745;
+  color: white;
+}
+
+.btn-register:hover {
+  background: #1e7e34;
+}
+
+.btn-payment-real:disabled,
+.btn-payment-test:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.security-notice {
+  text-align: center;
+  margin-top: 15px;
+  color: #6c757d;
+}
 @media (max-width: 768px) {
   .payment-container {
     padding: 1rem;
