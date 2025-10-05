@@ -28,6 +28,8 @@ import EditLesson from "./Pages/teachers/EditLesson";
 import EnrollmentSuccess from "./Pages/payments/EnrollmentSuccess";
 import AdminLayout from "./components/AdminLayout";
 import PendingStudents from "./components/PendingStudents";
+// Add these imports
+import PaymentPage from './Pages/PaymentPage';
 
 // Lazy-loaded pages
 const Home = React.lazy(() => import("./Pages/Home"));
@@ -60,14 +62,17 @@ function App() {
                 <Route path="/courses" element={<Courses />} />
                 <Route path="/courses/:slug" element={<CourseDetail />} />
                 <Route path="/contact" element={<Contact />} />
-
+                // Add this route to your existing routes
+                <Route path="/payment/:courseId" element={<PaymentPage />} />
                 {/* Payments */}
                 <Route path="/payment/:courseId" element={<Payment />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/payment-cancel" element={<PaymentCancel />} />
-                <Route path="/enrollment-success" element={<EnrollmentSuccess />} />
+                <Route
+                  path="/enrollment-success"
+                  element={<EnrollmentSuccess />}
+                />
                 <Route path="/cancel" element={<Cancel />} />
-
                 {/* Admin Routes */}
                 <Route
                   path="/admin"
@@ -78,13 +83,15 @@ function App() {
                   }
                 >
                   <Route index element={<AdminDashboard />} />
-                  <Route path="pending-students" element={<PendingStudents />} />
+                  <Route
+                    path="pending-students"
+                    element={<PendingStudents />}
+                  />
                   <Route path="manage-courses" element={<ManageCourses />} />
                   <Route path="manage-users" element={<ManageUsers />} />
                   <Route path="lesson-logs" element={<AdminLessonLogs />} />
                   <Route path="files" element={<FileManager />} />
                 </Route>
-
                 {/* Teacher Routes */}
                 <Route
                   path="/create-course"
@@ -134,7 +141,6 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-
                 {/* Student Routes */}
                 <Route
                   path="/my-courses"
@@ -152,7 +158,6 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-
                 {/* Shared */}
                 <Route
                   path="/profile"
@@ -164,7 +169,6 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-
                 {/* 404 */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

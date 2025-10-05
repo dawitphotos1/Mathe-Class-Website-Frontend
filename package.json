@@ -7,7 +7,7 @@
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@stripe/react-stripe-js": "^3.6.0",
-    "@stripe/stripe-js": "^7.3.0",
+    "@stripe/stripe-js": "^7.9.0",
     "axios": "^1.12.1",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
