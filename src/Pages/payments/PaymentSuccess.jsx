@@ -128,6 +128,9 @@
 // export default PaymentSuccess;
 
 
+
+
+
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -142,6 +145,7 @@ const PaymentSuccess = () => {
   const [error, setError] = useState("");
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [debugInfo, setDebugInfo] = useState("");
 
   const sessionId = searchParams.get("session_id");
   const courseId = searchParams.get("courseId");
@@ -167,67 +171,55 @@ const PaymentSuccess = () => {
   const confirmEnrollment = async () => {
     try {
       setLoading(true);
+      setDebugInfo("Starting enrollment confirmation...");
       console.log("🔄 Starting enrollment confirmation...");
 
       // Step 1: Get course details
       try {
+        setDebugInfo("Loading course details...");
         const courseResponse = await axiosInstance.get(
           `/api/v1/payments/${courseId}`
         );
         if (courseResponse.data.success) {
           setCourse(courseResponse.data.course);
           console.log("✅ Course details loaded:", courseResponse.data.course);
+          setDebugInfo("Course details loaded successfully");
         }
       } catch (courseError) {
         console.warn(
           "⚠️ Could not load course details, but continuing...",
           courseError
         );
+        setDebugInfo("Course details load failed, but continuing...");
       }
 
-      // Step 2: Confirm enrollment - FIXED ENDPOINT
+      // Step 2: Confirm enrollment
+      setDebugInfo("Sending payment confirmation...");
       console.log(
         "📤 Sending payment confirmation to /api/v1/payments/confirm..."
       );
+
       const response = await axiosInstance.post("/api/v1/payments/confirm", {
         sessionId: sessionId,
         courseId: parseInt(courseId, 10),
       });
 
       console.log("✅ Payment confirmation response:", response.data);
+      setDebugInfo("Payment confirmed successfully!");
 
       if (response.data.success) {
         toast.success(
-          "🎉 Payment confirmed and enrollment completed successfully!"
+          "🎉 Payment confirmed and enrollment completed successfully! Check your email for confirmation."
         );
         setStatus("success");
 
-        // Update local storage with enrolled course
-        const enrolledCourses =
-          JSON.parse(localStorage.getItem("enrolledCourses")) || [];
-        if (!enrolledCourses.includes(courseId)) {
-          enrolledCourses.push(courseId);
-          localStorage.setItem(
-            "enrolledCourses",
-            JSON.stringify(enrolledCourses)
-          );
-        }
-
-        // Clear any pending enrollments
-        const pendingEnrollments =
-          JSON.parse(localStorage.getItem("pendingEnrollments")) || [];
-        const updatedPending = pendingEnrollments.filter(
-          (id) => id !== courseId
-        );
-        localStorage.setItem(
-          "pendingEnrollments",
-          JSON.stringify(updatedPending)
-        );
+        // Update local storage
+        updateLocalStorage();
 
         // Redirect after delay
         setTimeout(() => {
           navigate("/my-courses");
-        }, 3000);
+        }, 5000);
       } else {
         throw new Error(response.data.error || "Payment confirmation failed");
       }
@@ -235,10 +227,12 @@ const PaymentSuccess = () => {
       console.error("❌ Payment confirmation error:", err);
 
       let errorMessage = "We couldn't confirm your payment and enrollment.";
+      let debugMessage = "Error occurred during confirmation";
 
       if (err.response) {
         const serverError = err.response.data;
         errorMessage = serverError.error || serverError.message || errorMessage;
+        debugMessage = `Server error: ${err.response.status} - ${errorMessage}`;
 
         switch (err.response.status) {
           case 400:
@@ -248,7 +242,7 @@ const PaymentSuccess = () => {
             break;
           case 404:
             errorMessage =
-              "Payment confirmation endpoint not found. Please contact support.";
+              "Payment confirmation service unavailable. Please contact support.";
             break;
           case 500:
             errorMessage = "Server error. Please try again later.";
@@ -258,18 +252,17 @@ const PaymentSuccess = () => {
               serverError.error ||
               `Server error (${err.response.status}). Please try again.`;
         }
-
-        console.error("🔧 Server error details:", serverError);
       } else if (err.request) {
         errorMessage =
           "Network error. Please check your internet connection and try again.";
-        console.error("🔧 Network error details:", err.request);
+        debugMessage = "Network error - no response received";
       } else {
         errorMessage = err.message || "An unexpected error occurred.";
-        console.error("🔧 Other error details:", err);
+        debugMessage = `Client error: ${err.message}`;
       }
 
       setError(errorMessage);
+      setDebugInfo(debugMessage);
       setStatus("error");
       toast.error(errorMessage);
     } finally {
@@ -277,9 +270,29 @@ const PaymentSuccess = () => {
     }
   };
 
+  const updateLocalStorage = () => {
+    // Update enrolled courses
+    const enrolledCourses =
+      JSON.parse(localStorage.getItem("enrolledCourses")) || [];
+    if (!enrolledCourses.includes(courseId)) {
+      enrolledCourses.push(courseId);
+      localStorage.setItem("enrolledCourses", JSON.stringify(enrolledCourses));
+    }
+
+    // Clear pending enrollments
+    const pendingEnrollments =
+      JSON.parse(localStorage.getItem("pendingEnrollments")) || [];
+    const updatedPending = pendingEnrollments.filter((id) => id !== courseId);
+    localStorage.setItem("pendingEnrollments", JSON.stringify(updatedPending));
+
+    // Update user courses cache
+    localStorage.removeItem("userCourses");
+  };
+
   const handleRetry = () => {
     setStatus("loading");
     setError("");
+    setDebugInfo("Retrying...");
     setLoading(true);
     confirmEnrollment();
   };
@@ -318,6 +331,9 @@ const PaymentSuccess = () => {
               <p>
                 <strong>Course:</strong> {course?.title || "Loading..."}
               </p>
+              <p>
+                <strong>Status:</strong> {debugInfo}
+              </p>
             </div>
           </div>
         </div>
@@ -340,7 +356,10 @@ const PaymentSuccess = () => {
                 <div className="detail-item">
                   <span>Amount Paid:</span>
                   <span>
-                    ${course?.price ? course.price.toFixed(2) : "0.00"}
+                    $
+                    {course?.price
+                      ? parseFloat(course.price).toFixed(2)
+                      : "0.00"}
                   </span>
                 </div>
                 <div className="detail-item">
@@ -351,6 +370,17 @@ const PaymentSuccess = () => {
                   <span>Session:</span>
                   <span className="code">{sessionId}</span>
                 </div>
+                <div className="detail-item">
+                  <span>Email Sent:</span>
+                  <span className="status-badge approved">Yes</span>
+                </div>
+              </div>
+
+              <div className="email-notice">
+                <p>
+                  📧 A confirmation email has been sent to your registered email
+                  address with course access details.
+                </p>
               </div>
             </div>
 
@@ -393,6 +423,10 @@ const PaymentSuccess = () => {
                 <span>Course:</span>
                 <span>{course?.title || "Unknown"}</span>
               </div>
+              <div className="detail-item">
+                <span>Debug Info:</span>
+                <span className="code">{debugInfo}</span>
+              </div>
             </div>
 
             <div className="troubleshooting-tips">
@@ -401,6 +435,7 @@ const PaymentSuccess = () => {
                 <li>Wait a few minutes and try again</li>
                 <li>Check your internet connection</li>
                 <li>Verify you're logged in with the correct account</li>
+                <li>Check your email - you might already be enrolled</li>
                 <li>Contact support if the problem continues</li>
               </ul>
             </div>
