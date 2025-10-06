@@ -45,14 +45,15 @@
 
 
 
+
 import axios from "axios";
 
-// Remove /api/v1 from base URL - we'll add it in each request
+// Set base URL WITH /api/v1 included
 const API_BASE_URL =
   process.env.REACT_APP_API_URL ||
   (process.env.NODE_ENV === "development"
-    ? "http://localhost:5000" // No /api/v1 here
-    : "https://mathe-class-website-backend-1.onrender.com"); // No /api/v1 here
+    ? "http://localhost:5000/api/v1" // Include /api/v1 here
+    : "https://mathe-class-website-backend-1.onrender.com/api/v1"); // Include /api/v1 here
 
 console.log("🚀 API Base URL:", API_BASE_URL);
 
@@ -62,7 +63,7 @@ const axiosInstance = axios.create({
   timeout: 30000,
 });
 
-// Request interceptor
+// Request interceptor - REMOVED the part that adds /api/v1
 axiosInstance.interceptors.request.use(
   (config) => {
     const token =
@@ -71,13 +72,7 @@ axiosInstance.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Add /api/v1 to all requests
-    if (config.url && !config.url.startsWith("/api/v1/")) {
-      config.url = `/api/v1${config.url.startsWith("/") ? "" : "/"}${
-        config.url
-      }`;
-    }
-
+    // Log the full URL being called
     const fullUrl = `${config.baseURL}${config.url}`;
     console.log(`📤 ${config.method?.toUpperCase()} ${fullUrl}`, {
       data: config.data,

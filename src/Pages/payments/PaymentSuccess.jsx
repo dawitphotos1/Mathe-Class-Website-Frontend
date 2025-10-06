@@ -130,7 +130,6 @@
 
 
 
-
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -145,7 +144,6 @@ const PaymentSuccess = () => {
   const [error, setError] = useState("");
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [debugInfo, setDebugInfo] = useState("");
 
   const sessionId = searchParams.get("session_id");
   const courseId = searchParams.get("courseId");
@@ -171,41 +169,34 @@ const PaymentSuccess = () => {
   const confirmEnrollment = async () => {
     try {
       setLoading(true);
-      setDebugInfo("Starting enrollment confirmation...");
       console.log("🔄 Starting enrollment confirmation...");
 
       // Step 1: Get course details
       try {
-        setDebugInfo("Loading course details...");
         const courseResponse = await axiosInstance.get(`/payments/${courseId}`);
         if (courseResponse.data.success) {
           setCourse(courseResponse.data.course);
           console.log("✅ Course details loaded:", courseResponse.data.course);
-          setDebugInfo("Course details loaded successfully");
         }
       } catch (courseError) {
         console.warn(
           "⚠️ Could not load course details, but continuing...",
           courseError
         );
-        setDebugInfo("Course details load failed, but continuing...");
       }
 
-      // Step 2: Confirm enrollment - USE CORRECT ENDPOINT WITHOUT /api/v1
-      setDebugInfo("Sending payment confirmation...");
+      // Step 2: Confirm enrollment - USE CORRECT ENDPOINT
       console.log("📤 Sending payment confirmation to /payments/confirm...");
-
       const response = await axiosInstance.post("/payments/confirm", {
         sessionId: sessionId,
         courseId: parseInt(courseId, 10),
       });
 
       console.log("✅ Payment confirmation response:", response.data);
-      setDebugInfo("Payment confirmed successfully!");
 
       if (response.data.success) {
         toast.success(
-          "🎉 Payment confirmed and enrollment completed successfully! Check your email for confirmation."
+          "🎉 Payment confirmed and enrollment completed successfully!"
         );
         setStatus("success");
 
@@ -215,7 +206,7 @@ const PaymentSuccess = () => {
         // Redirect after delay
         setTimeout(() => {
           navigate("/my-courses");
-        }, 5000);
+        }, 3000);
       } else {
         throw new Error(response.data.error || "Payment confirmation failed");
       }
@@ -223,12 +214,10 @@ const PaymentSuccess = () => {
       console.error("❌ Payment confirmation error:", err);
 
       let errorMessage = "We couldn't confirm your payment and enrollment.";
-      let debugMessage = "Error occurred during confirmation";
 
       if (err.response) {
         const serverError = err.response.data;
         errorMessage = serverError.error || serverError.message || errorMessage;
-        debugMessage = `Server error: ${err.response.status} - ${errorMessage}`;
 
         switch (err.response.status) {
           case 400:
@@ -239,9 +228,6 @@ const PaymentSuccess = () => {
           case 404:
             errorMessage =
               "Payment confirmation endpoint not found. Please contact support.";
-            console.error(
-              "🔍 404 Error - Check if backend route is properly mounted"
-            );
             break;
           case 500:
             errorMessage = "Server error. Please try again later.";
@@ -251,21 +237,14 @@ const PaymentSuccess = () => {
               serverError.error ||
               `Server error (${err.response.status}). Please try again.`;
         }
-
-        console.error("🔧 Server error details:", serverError);
       } else if (err.request) {
         errorMessage =
           "Network error. Please check your internet connection and try again.";
-        debugMessage = "Network error - no response received";
-        console.error("🔧 Network error details:", err.request);
       } else {
         errorMessage = err.message || "An unexpected error occurred.";
-        debugMessage = `Client error: ${err.message}`;
-        console.error("🔧 Other error details:", err);
       }
 
       setError(errorMessage);
-      setDebugInfo(debugMessage);
       setStatus("error");
       toast.error(errorMessage);
     } finally {
@@ -274,7 +253,6 @@ const PaymentSuccess = () => {
   };
 
   const updateLocalStorage = () => {
-    // Update enrolled courses
     const enrolledCourses =
       JSON.parse(localStorage.getItem("enrolledCourses")) || [];
     if (!enrolledCourses.includes(courseId)) {
@@ -282,20 +260,17 @@ const PaymentSuccess = () => {
       localStorage.setItem("enrolledCourses", JSON.stringify(enrolledCourses));
     }
 
-    // Clear pending enrollments
     const pendingEnrollments =
       JSON.parse(localStorage.getItem("pendingEnrollments")) || [];
     const updatedPending = pendingEnrollments.filter((id) => id !== courseId);
     localStorage.setItem("pendingEnrollments", JSON.stringify(updatedPending));
 
-    // Update user courses cache
     localStorage.removeItem("userCourses");
   };
 
   const handleRetry = () => {
     setStatus("loading");
     setError("");
-    setDebugInfo("Retrying...");
     setLoading(true);
     confirmEnrollment();
   };
@@ -310,34 +285,6 @@ const PaymentSuccess = () => {
 
   const handleContactSupport = () => {
     navigate("/contact");
-  };
-
-  const handleManualCheck = async () => {
-    try {
-      setDebugInfo("Checking enrollment status manually...");
-      // Check if user is already enrolled despite the error
-      const myCoursesResponse = await axiosInstance.get(
-        "/enrollments/my-courses"
-      );
-      const enrolledCourses = myCoursesResponse.data.courses || [];
-      const isAlreadyEnrolled = enrolledCourses.some(
-        (course) => course.id === parseInt(courseId)
-      );
-
-      if (isAlreadyEnrolled) {
-        toast.success("✅ You are already enrolled in this course!");
-        setStatus("success");
-        updateLocalStorage();
-        setTimeout(() => navigate("/my-courses"), 2000);
-      } else {
-        toast.info(
-          "🔍 Enrollment not found. Please try the confirmation again."
-        );
-      }
-    } catch (checkError) {
-      console.error("Manual check error:", checkError);
-      toast.error("Could not verify enrollment status.");
-    }
   };
 
   if (loading) {
@@ -362,9 +309,6 @@ const PaymentSuccess = () => {
               <p>
                 <strong>Course:</strong> {course?.title || "Loading..."}
               </p>
-              <p>
-                <strong>Status:</strong> {debugInfo}
-              </p>
             </div>
           </div>
         </div>
@@ -387,10 +331,7 @@ const PaymentSuccess = () => {
                 <div className="detail-item">
                   <span>Amount Paid:</span>
                   <span>
-                    $
-                    {course?.price
-                      ? parseFloat(course.price).toFixed(2)
-                      : "0.00"}
+                    ${course?.price ? course.price.toFixed(2) : "0.00"}
                   </span>
                 </div>
                 <div className="detail-item">
@@ -401,17 +342,6 @@ const PaymentSuccess = () => {
                   <span>Session:</span>
                   <span className="code">{sessionId}</span>
                 </div>
-                <div className="detail-item">
-                  <span>Email Sent:</span>
-                  <span className="status-badge approved">Yes</span>
-                </div>
-              </div>
-
-              <div className="email-notice">
-                <p>
-                  📧 A confirmation email has been sent to your registered email
-                  address with course access details.
-                </p>
               </div>
             </div>
 
@@ -434,10 +364,6 @@ const PaymentSuccess = () => {
             <h1>Payment Confirmation Failed</h1>
             <div className="error-message">
               <p>{error}</p>
-              <p className="error-help">
-                If this problem continues, please contact support with your
-                Session ID.
-              </p>
             </div>
 
             <div className="error-details">
@@ -454,14 +380,6 @@ const PaymentSuccess = () => {
                 <span>Course:</span>
                 <span>{course?.title || "Unknown"}</span>
               </div>
-              <div className="detail-item">
-                <span>Debug Info:</span>
-                <span className="code">{debugInfo}</span>
-              </div>
-              <div className="detail-item">
-                <span>Full URL Attempted:</span>
-                <span className="code">/api/v1/payments/confirm</span>
-              </div>
             </div>
 
             <div className="troubleshooting-tips">
@@ -470,7 +388,6 @@ const PaymentSuccess = () => {
                 <li>Wait a few minutes and try again</li>
                 <li>Check your internet connection</li>
                 <li>Verify you're logged in with the correct account</li>
-                <li>Check your email - you might already be enrolled</li>
                 <li>Contact support if the problem continues</li>
               </ul>
             </div>
@@ -479,8 +396,8 @@ const PaymentSuccess = () => {
               <button className="btn-primary" onClick={handleRetry}>
                 Try Again
               </button>
-              <button className="btn-secondary" onClick={handleManualCheck}>
-                Check Enrollment Status
+              <button className="btn-secondary" onClick={handleBackToCourses}>
+                Back to Courses
               </button>
               <button className="btn-outline" onClick={handleContactSupport}>
                 Contact Support
