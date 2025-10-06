@@ -177,9 +177,7 @@ const PaymentSuccess = () => {
       // Step 1: Get course details
       try {
         setDebugInfo("Loading course details...");
-        const courseResponse = await axiosInstance.get(
-          `/api/v1/payments/${courseId}`
-        );
+        const courseResponse = await axiosInstance.get(`/payments/${courseId}`);
         if (courseResponse.data.success) {
           setCourse(courseResponse.data.course);
           console.log("✅ Course details loaded:", courseResponse.data.course);
@@ -193,13 +191,11 @@ const PaymentSuccess = () => {
         setDebugInfo("Course details load failed, but continuing...");
       }
 
-      // Step 2: Confirm enrollment
+      // Step 2: Confirm enrollment - USE CORRECT ENDPOINT WITHOUT /api/v1
       setDebugInfo("Sending payment confirmation...");
-      console.log(
-        "📤 Sending payment confirmation to /api/v1/payments/confirm..."
-      );
+      console.log("📤 Sending payment confirmation to /payments/confirm...");
 
-      const response = await axiosInstance.post("/api/v1/payments/confirm", {
+      const response = await axiosInstance.post("/payments/confirm", {
         sessionId: sessionId,
         courseId: parseInt(courseId, 10),
       });
@@ -242,7 +238,10 @@ const PaymentSuccess = () => {
             break;
           case 404:
             errorMessage =
-              "Payment confirmation service unavailable. Please contact support.";
+              "Payment confirmation endpoint not found. Please contact support.";
+            console.error(
+              "🔍 404 Error - Check if backend route is properly mounted"
+            );
             break;
           case 500:
             errorMessage = "Server error. Please try again later.";
@@ -252,13 +251,17 @@ const PaymentSuccess = () => {
               serverError.error ||
               `Server error (${err.response.status}). Please try again.`;
         }
+
+        console.error("🔧 Server error details:", serverError);
       } else if (err.request) {
         errorMessage =
           "Network error. Please check your internet connection and try again.";
         debugMessage = "Network error - no response received";
+        console.error("🔧 Network error details:", err.request);
       } else {
         errorMessage = err.message || "An unexpected error occurred.";
         debugMessage = `Client error: ${err.message}`;
+        console.error("🔧 Other error details:", err);
       }
 
       setError(errorMessage);
@@ -307,6 +310,34 @@ const PaymentSuccess = () => {
 
   const handleContactSupport = () => {
     navigate("/contact");
+  };
+
+  const handleManualCheck = async () => {
+    try {
+      setDebugInfo("Checking enrollment status manually...");
+      // Check if user is already enrolled despite the error
+      const myCoursesResponse = await axiosInstance.get(
+        "/enrollments/my-courses"
+      );
+      const enrolledCourses = myCoursesResponse.data.courses || [];
+      const isAlreadyEnrolled = enrolledCourses.some(
+        (course) => course.id === parseInt(courseId)
+      );
+
+      if (isAlreadyEnrolled) {
+        toast.success("✅ You are already enrolled in this course!");
+        setStatus("success");
+        updateLocalStorage();
+        setTimeout(() => navigate("/my-courses"), 2000);
+      } else {
+        toast.info(
+          "🔍 Enrollment not found. Please try the confirmation again."
+        );
+      }
+    } catch (checkError) {
+      console.error("Manual check error:", checkError);
+      toast.error("Could not verify enrollment status.");
+    }
   };
 
   if (loading) {
@@ -427,6 +458,10 @@ const PaymentSuccess = () => {
                 <span>Debug Info:</span>
                 <span className="code">{debugInfo}</span>
               </div>
+              <div className="detail-item">
+                <span>Full URL Attempted:</span>
+                <span className="code">/api/v1/payments/confirm</span>
+              </div>
             </div>
 
             <div className="troubleshooting-tips">
@@ -444,8 +479,8 @@ const PaymentSuccess = () => {
               <button className="btn-primary" onClick={handleRetry}>
                 Try Again
               </button>
-              <button className="btn-secondary" onClick={handleBackToCourses}>
-                Back to Courses
+              <button className="btn-secondary" onClick={handleManualCheck}>
+                Check Enrollment Status
               </button>
               <button className="btn-outline" onClick={handleContactSupport}>
                 Contact Support
