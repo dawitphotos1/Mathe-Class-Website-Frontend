@@ -43,7 +43,6 @@
 
 
 
-
 // src/utils/axiosInstance.js
 import axios from "axios";
 
@@ -58,7 +57,7 @@ console.log("🚀 API Base URL:", API_BASE_URL);
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
-  timeout: 30000, // 30 second timeout
+  timeout: 30000,
 });
 
 // Request interceptor
@@ -93,14 +92,11 @@ axiosInstance.interceptors.response.use(
     
     console.error(`❌ ${error.response?.status || 'No Status'} ${error.config?.url || 'No URL'}:`, errorMessage);
 
-    // Handle specific error cases
     if (error.response?.status === 401) {
-      // Token expired or invalid
       localStorage.removeItem("authToken");
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       console.warn("🔐 Authentication failed, redirecting to login...");
-      // Don't redirect automatically to avoid issues in payment flow
     }
 
     if (error.response?.status === 404) {

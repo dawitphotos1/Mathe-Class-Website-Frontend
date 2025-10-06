@@ -129,7 +129,6 @@
 
 
 
-
 // src/Pages/payment/PaymentSuccess.jsx
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
@@ -178,17 +177,17 @@ const PaymentSuccess = () => {
         console.warn("⚠️ Could not load course details, but continuing...", courseError);
       }
 
-      // Step 2: Confirm enrollment using the correct endpoint
-      console.log("📤 Sending enrollment confirmation...");
-      const response = await axiosInstance.post("/enrollments/confirm", {
-        session_id: sessionId,
+      // Step 2: Confirm enrollment using the CORRECT payments endpoint
+      console.log("📤 Sending payment confirmation...");
+      const response = await axiosInstance.post("/payments/confirm", {
+        sessionId: sessionId,
         courseId: parseInt(courseId, 10)
       });
 
-      console.log("✅ Enrollment confirmation response:", response.data);
+      console.log("✅ Payment confirmation response:", response.data);
 
       if (response.data.success) {
-        toast.success("🎉 Enrollment confirmed successfully!");
+        toast.success("🎉 Payment confirmed and enrollment completed successfully!");
         setStatus("success");
         
         // Update local storage with enrolled course
@@ -203,12 +202,12 @@ const PaymentSuccess = () => {
           navigate("/my-courses");
         }, 3000);
       } else {
-        throw new Error(response.data.error || "Enrollment confirmation failed");
+        throw new Error(response.data.error || "Payment confirmation failed");
       }
     } catch (err) {
-      console.error("❌ Enrollment confirmation error:", err);
+      console.error("❌ Payment confirmation error:", err);
       
-      let errorMessage = "We couldn't confirm your enrollment.";
+      let errorMessage = "We couldn't confirm your payment and enrollment.";
       
       if (err.response) {
         // Server responded with error
@@ -217,13 +216,10 @@ const PaymentSuccess = () => {
         
         switch (err.response.status) {
           case 400:
-            errorMessage = "Invalid payment session. Please try enrolling again.";
+            errorMessage = serverError.error || "Invalid payment session. Please try enrolling again.";
             break;
           case 404:
-            errorMessage = "Enrollment service unavailable. Please contact support.";
-            break;
-          case 409:
-            errorMessage = "You are already enrolled in this course.";
+            errorMessage = "Payment confirmation service unavailable. Please contact support.";
             break;
           case 500:
             errorMessage = "Server error. Please try again later.";
@@ -272,8 +268,8 @@ const PaymentSuccess = () => {
         <div className="payment-status-container">
           <div className="loading-section">
             <div className="spinner-large"></div>
-            <h2>Processing Your Enrollment...</h2>
-            <p>Please wait while we confirm your payment and enrollment.</p>
+            <h2>Processing Your Payment...</h2>
+            <p>Please wait while we confirm your payment and complete your enrollment.</p>
             <div className="processing-details">
               <p><strong>Session ID:</strong> <span className="code">{sessionId}</span></p>
               <p><strong>Course ID:</strong> {courseId}</p>
@@ -291,9 +287,9 @@ const PaymentSuccess = () => {
         {status === "success" ? (
           <div className="success-section">
             <div className="success-icon">🎉</div>
-            <h1>Enrollment Successful!</h1>
+            <h1>Payment Successful!</h1>
             <div className="success-message">
-              <p>Your payment has been processed and you're now enrolled in:</p>
+              <p>Your payment has been confirmed and you're now enrolled in:</p>
               <h3>{course?.title || "the course"}</h3>
               
               <div className="enrollment-details">
@@ -328,7 +324,7 @@ const PaymentSuccess = () => {
         ) : (
           <div className="error-section">
             <div className="error-icon">❌</div>
-            <h1>Enrollment Confirmation Failed</h1>
+            <h1>Payment Confirmation Failed</h1>
             <div className="error-message">
               <p>{error}</p>
             </div>
