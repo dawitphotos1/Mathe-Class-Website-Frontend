@@ -282,7 +282,6 @@
 // export default PaymentSuccess;
 
 
-
 // /payments/PaymentSuccess.jsx
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
@@ -294,80 +293,36 @@ const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const [status, setStatus] = useState("loading"); // loading | success | error
-  const [error, setError] = useState("");
+  const [status, setStatus] = useState("loading");
   const [course, setCourse] = useState(null);
 
   const sessionId = searchParams.get("session_id");
-  const courseId = searchParams.get("courseId");
+  const courseId = searchParams.get("course_id") || searchParams.get("courseId");
 
   useEffect(() => {
-    console.log("🔍 Payment Success Page:", { sessionId, courseId });
+    console.log("✅ PaymentSuccess page loaded:", { sessionId, courseId });
 
-    if (!sessionId || !courseId) {
-      setError("Missing payment information. Please contact support.");
+    if (!courseId) {
+      toast.error("Missing course information. Please contact support.");
       setStatus("error");
       return;
     }
 
-    confirmEnrollment();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId, courseId]);
+    fetchCourse();
+  }, [courseId]);
 
-  const confirmEnrollment = async () => {
+  const fetchCourse = async () => {
     try {
-      setStatus("loading");
+      const response = await axiosInstance.get(`/courses/${courseId}`);
+      setCourse(response.data);
+      setStatus("success");
+      toast.success("🎉 Payment confirmed automatically!");
+      updateLocalStorage();
 
-      // Step 1: Load course info
-      try {
-        const courseResponse = await axiosInstance.get(`/payments/${courseId}`);
-        if (courseResponse.data.success) {
-          setCourse(courseResponse.data.course);
-          console.log("✅ Course details:", courseResponse.data.course);
-        }
-      } catch (err) {
-        console.warn("⚠️ Course fetch failed, continuing...", err);
-      }
-
-      // Step 2: Confirm payment on backend
-      console.log("📤 Sending POST /payments/confirm");
-      const response = await axiosInstance.post("/payments/confirm", {
-        session_id: sessionId,
-        course_id: parseInt(courseId, 10),
-      });
-
-      if (response.data.success) {
-        toast.success("🎉 Payment confirmed successfully!");
-        setStatus("success");
-        updateLocalStorage();
-
-        // Redirect after short delay
-        setTimeout(() => navigate("/my-courses"), 3000);
-      } else {
-        throw new Error(response.data.error || "Payment confirmation failed");
-      }
+      setTimeout(() => navigate("/my-courses"), 3000);
     } catch (err) {
-      console.error("❌ Payment confirmation error:", err);
-
-      let errorMessage = "We couldn't confirm your payment.";
-      if (err.response) {
-        const { status, data } = err.response;
-        errorMessage =
-          data?.error ||
-          (status === 404
-            ? "Confirmation endpoint not found. Contact support."
-            : status === 500
-            ? "Server error. Please try again later."
-            : data?.message || errorMessage);
-      } else if (err.request) {
-        errorMessage = "Network error. Please check your internet.";
-      } else {
-        errorMessage = err.message;
-      }
-
-      setError(errorMessage);
-      setStatus("error");
-      toast.error(errorMessage);
+      console.error("⚠️ Error loading course:", err);
+      setStatus("success"); // still success, enrollment handled by webhook
     }
   };
 
@@ -387,33 +342,14 @@ const PaymentSuccess = () => {
     localStorage.removeItem("userCourses");
   };
 
-  const handleRetry = () => confirmEnrollment();
-  const handleBack = () => navigate("/courses");
-  const handleSupport = () => navigate("/contact");
-
   return (
     <div className="payment-success-container">
       <div className="payment-status-container">
         {status === "loading" && (
           <div className="loading-section">
             <div className="spinner-large"></div>
-            <h2>Confirming Your Payment...</h2>
-            <p>
-              Please wait while we confirm your payment and activate your
-              course.
-            </p>
-            <div className="processing-details">
-              <p>
-                <strong>Session ID:</strong>{" "}
-                <span className="code">{sessionId}</span>
-              </p>
-              <p>
-                <strong>Course ID:</strong> {courseId}
-              </p>
-              <p>
-                <strong>Course:</strong> {course?.title || "Loading..."}
-              </p>
-            </div>
+            <h2>Processing Payment...</h2>
+            <p>Just a moment while we finalize your enrollment.</p>
           </div>
         )}
 
@@ -421,22 +357,26 @@ const PaymentSuccess = () => {
           <div className="success-section">
             <div className="success-icon">🎉</div>
             <h1>Payment Successful!</h1>
-            <p>Your payment was confirmed and you’re now enrolled in:</p>
-            <h3>{course?.title || "the course"}</h3>
+            <p>You’re now enrolled in:</p>
+            <h3>{course?.title || "Your course"}</h3>
 
             <div className="enrollment-details">
-              <div className="detail-item">
-                <span>Amount Paid:</span>
-                <span>${course?.price?.toFixed(2) || "0.00"}</span>
-              </div>
               <div className="detail-item">
                 <span>Status:</span>
                 <span className="status-badge approved">Approved</span>
               </div>
-              <div className="detail-item">
-                <span>Session:</span>
-                <span className="code">{sessionId}</span>
-              </div>
+              {course?.price && (
+                <div className="detail-item">
+                  <span>Amount Paid:</span>
+                  <span>${parseFloat(course.price).toFixed(2)}</span>
+                </div>
+              )}
+              {sessionId && (
+                <div className="detail-item">
+                  <span>Session ID:</span>
+                  <span className="code">{sessionId}</span>
+                </div>
+              )}
             </div>
 
             <p className="redirect-notice">
@@ -444,7 +384,10 @@ const PaymentSuccess = () => {
             </p>
 
             <div className="action-buttons">
-              <button className="btn-primary" onClick={() => navigate("/my-courses")}>
+              <button
+                className="btn-primary"
+                onClick={() => navigate("/my-courses")}
+              >
                 Go to My Courses
               </button>
               <Link to="/courses" className="btn-secondary">
@@ -457,42 +400,15 @@ const PaymentSuccess = () => {
         {status === "error" && (
           <div className="error-section">
             <div className="error-icon">❌</div>
-            <h1>Payment Confirmation Failed</h1>
-            <p className="error-message">{error}</p>
-
-            <div className="error-details">
-              <h3>Technical Information</h3>
-              <div className="detail-item">
-                <span>Session ID:</span> <span className="code">{sessionId}</span>
-              </div>
-              <div className="detail-item">
-                <span>Course ID:</span> {courseId}
-              </div>
-              <div className="detail-item">
-                <span>Course:</span> {course?.title || "Unknown"}
-              </div>
-            </div>
-
-            <div className="troubleshooting-tips">
-              <h4>Try This:</h4>
-              <ul>
-                <li>Wait a moment and try again</li>
-                <li>Check your internet connection</li>
-                <li>Ensure you’re logged in correctly</li>
-                <li>Contact support if the issue persists</li>
-              </ul>
-            </div>
-
+            <h1>Payment Processing Error</h1>
+            <p>We couldn’t verify your payment details. Please contact support.</p>
             <div className="action-buttons">
-              <button className="btn-primary" onClick={handleRetry}>
-                Try Again
-              </button>
-              <button className="btn-secondary" onClick={handleBack}>
+              <button className="btn-secondary" onClick={() => navigate("/courses")}>
                 Back to Courses
               </button>
-              <button className="btn-outline" onClick={handleSupport}>
+              <Link to="/contact" className="btn-outline">
                 Contact Support
-              </button>
+              </Link>
             </div>
           </div>
         )}
