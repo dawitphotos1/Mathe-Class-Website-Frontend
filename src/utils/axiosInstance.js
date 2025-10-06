@@ -42,15 +42,14 @@
 // export default axiosInstance;
 
 
-
-// src/utils/axiosInstance.js
 import axios from "axios";
 
+// Remove /api/v1 from the base URL since we're including it in the routes
 const API_BASE_URL =
   process.env.REACT_APP_API_URL ||
   (process.env.NODE_ENV === "development"
-    ? "http://localhost:5000/api/v1"
-    : "https://mathe-class-website-backend-1.onrender.com/api/v1");
+    ? "http://localhost:5000" // Remove /api/v1 from here
+    : "https://mathe-class-website-backend-1.onrender.com"); // Remove /api/v1 from here
 
 console.log("🚀 API Base URL:", API_BASE_URL);
 
@@ -63,13 +62,15 @@ const axiosInstance = axios.create({
 // Request interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("authToken") || localStorage.getItem("token");
+    const token =
+      localStorage.getItem("authToken") || localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    console.log(`📤 ${config.method?.toUpperCase()} ${config.url}`, {
-      headers: config.headers,
+    // Log the full URL being called
+    const fullUrl = `${config.baseURL}${config.url}`;
+    console.log(`📤 ${config.method?.toUpperCase()} ${fullUrl}`, {
       data: config.data,
     });
 
@@ -88,19 +89,27 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
-    const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message;
-    
-    console.error(`❌ ${error.response?.status || 'No Status'} ${error.config?.url || 'No URL'}:`, errorMessage);
+    const errorMessage =
+      error.response?.data?.error ||
+      error.response?.data?.message ||
+      error.message;
+    const status = error.response?.status;
+    const url = error.config?.url;
 
-    if (error.response?.status === 401) {
+    console.error(
+      `❌ ${status || "No Status"} ${url || "No URL"}:`,
+      errorMessage
+    );
+
+    if (status === 401) {
       localStorage.removeItem("authToken");
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      console.warn("🔐 Authentication failed, redirecting to login...");
+      console.warn("🔐 Authentication failed");
     }
 
-    if (error.response?.status === 404) {
-      console.error("🔍 Endpoint not found. Check the route configuration.");
+    if (status === 404) {
+      console.error("🔍 Endpoint not found:", url);
     }
 
     return Promise.reject(error);
