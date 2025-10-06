@@ -1,14 +1,27 @@
 
 // import axios from "axios";
 
-// // Set base URL WITH /api/v1 included
-// const API_BASE_URL =
-//   process.env.REACT_APP_API_URL ||
-//   (process.env.NODE_ENV === "development"
-//     ? "http://localhost:5000/api/v1" // Include /api/v1 here
-//     : "https://mathe-class-website-backend-1.onrender.com/api/v1"); // Include /api/v1 here
+// // Use environment variables correctly
+// const getAPIBaseURL = () => {
+//   // If REACT_APP_API_URL is set, use it (for production)
+//   if (process.env.REACT_APP_API_URL) {
+//     return process.env.REACT_APP_API_URL;
+//   }
+
+//   // For development, use localhost
+//   if (process.env.NODE_ENV === "development") {
+//     return "http://localhost:5000/api/v1";
+//   }
+
+//   // Default to production backend
+//   return "https://mathe-class-website-backend-1.onrender.com/api/v1";
+// };
+
+// const API_BASE_URL = getAPIBaseURL();
 
 // console.log("🚀 API Base URL:", API_BASE_URL);
+// console.log("🌍 NODE_ENV:", process.env.NODE_ENV);
+// console.log("🔧 REACT_APP_API_URL:", process.env.REACT_APP_API_URL);
 
 // const axiosInstance = axios.create({
 //   baseURL: API_BASE_URL,
@@ -16,7 +29,7 @@
 //   timeout: 30000,
 // });
 
-// // Request interceptor - REMOVED the part that adds /api/v1
+// // Request interceptor
 // axiosInstance.interceptors.request.use(
 //   (config) => {
 //     const token =
@@ -25,7 +38,6 @@
 //       config.headers.Authorization = `Bearer ${token}`;
 //     }
 
-//     // Log the full URL being called
 //     const fullUrl = `${config.baseURL}${config.url}`;
 //     console.log(`📤 ${config.method?.toUpperCase()} ${fullUrl}`, {
 //       data: config.data,
