@@ -138,6 +138,9 @@
 
 
 
+
+//src/Pages/payments/PaymentSuccess.jsx
+
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -148,20 +151,58 @@ const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const [status, setStatus] = useState("loading"); // "loading" | "success" | "error"
+  const [status, setStatus] = useState("loading");
   const [course, setCourse] = useState(null);
-  const [enrollmentData, setEnrollmentData] = useState(null);
+  const [errorDetails, setErrorDetails] = useState("");
+  const [backendStatus, setBackendStatus] = useState("unknown");
 
   const sessionId = searchParams.get("session_id");
   const courseId =
     searchParams.get("course_id") || searchParams.get("courseId");
 
+  // Check backend health on component mount
   useEffect(() => {
-    console.log("💳 PaymentSuccess loaded:", { sessionId, courseId });
+    const checkBackendHealth = async () => {
+      try {
+        console.log("🔍 Checking backend health...");
+        const response = await fetch(
+          "https://mathe-class-website-backend-1.onrender.com/api/v1/health"
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setBackendStatus("healthy");
+          console.log("✅ Backend is healthy:", data);
+        } else {
+          setBackendStatus("unhealthy");
+          console.error("❌ Backend responded with error:", response.status);
+        }
+      } catch (error) {
+        setBackendStatus("down");
+        console.error("❌ Backend is down:", error);
+      }
+    };
+
+    checkBackendHealth();
+  }, []);
+
+  useEffect(() => {
+    console.log("💳 PaymentSuccess mounted:", {
+      sessionId,
+      courseId,
+      backendStatus,
+    });
 
     if (!sessionId || !courseId) {
-      toast.error("Missing payment information. Please contact support.");
+      const errorMsg = "Missing payment information. Please contact support.";
+      setErrorDetails(errorMsg);
+      toast.error(errorMsg);
       setStatus("error");
+      return;
+    }
+
+    // If backend is down, show appropriate message
+    if (backendStatus === "down") {
+      setStatus("backend-down");
       return;
     }
 
@@ -169,8 +210,20 @@ const PaymentSuccess = () => {
       try {
         setStatus("loading");
 
+        console.log("🔄 Step 1: Confirming payment with backend...");
+
+        // Test backend connection first with timeout
+        const healthCheck = await Promise.race([
+          axiosInstance.get("/payments/health/check"),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Backend timeout")), 10000)
+          ),
+        ]);
+
+        console.log("✅ Backend health check:", healthCheck.data);
+
         // Step 1: Confirm payment with backend
-        console.log("🔄 Confirming payment with backend...");
+        console.log("🔄 Step 2: Sending payment confirmation...");
         const confirmationResponse = await axiosInstance.post(
           "/payments/confirm",
           {
@@ -185,26 +238,8 @@ const PaymentSuccess = () => {
         );
 
         if (confirmationResponse.data.success) {
-          // Step 2: Fetch course details for display
-          try {
-            const courseResponse = await axiosInstance.get(
-              `/courses/id/${courseId}`
-            );
-            const courseData = courseResponse.data;
-            setCourse(courseData);
-          } catch (courseErr) {
-            console.warn("⚠️ Could not load course details:", courseErr);
-            // Continue even if course details fail
-          }
-
-          // Step 3: Update local state and storage
-          setEnrollmentData(confirmationResponse.data.enrollment);
-          updateLocalStorage(courseId);
-          setStatus("success");
-          toast.success("🎉 Payment confirmed! You are now enrolled.");
-
-          // Redirect after delay
-          setTimeout(() => navigate("/my-courses"), 4000);
+          // Success path
+          handleSuccess(confirmationResponse.data);
         } else {
           throw new Error(
             confirmationResponse.data.error || "Payment confirmation failed"
@@ -212,24 +247,64 @@ const PaymentSuccess = () => {
         }
       } catch (error) {
         console.error("❌ Payment confirmation error:", error);
-
-        // Check if it's a network error or server error
-        if (!error.response) {
-          toast.error("Network error. Please check your connection.");
-        } else if (error.response.status === 404) {
-          toast.error("Payment endpoint not found. Please contact support.");
-        } else {
-          toast.error(
-            error.response.data?.error || "Payment confirmation failed"
-          );
-        }
-
-        setStatus("error");
+        handleError(error);
       }
     };
 
-    confirmPaymentAndEnrollment();
-  }, [sessionId, courseId, navigate]);
+    const handleSuccess = (confirmationData) => {
+      // Fetch course details for display (non-critical)
+      fetchCourseDetails();
+
+      // Update local state and storage
+      updateLocalStorage(courseId);
+      setStatus("success");
+      toast.success("🎉 Payment confirmed! You are now enrolled.");
+
+      // Redirect after delay
+      setTimeout(() => navigate("/my-courses"), 4000);
+    };
+
+    const fetchCourseDetails = async () => {
+      try {
+        console.log("🔄 Fetching course details...");
+        const courseResponse = await axiosInstance.get(
+          `/courses/id/${courseId}`
+        );
+        setCourse(courseResponse.data);
+      } catch (courseErr) {
+        console.warn("⚠️ Could not load course details:", courseErr);
+        // Continue even if course details fail
+      }
+    };
+
+    const handleError = (error) => {
+      let userFriendlyError =
+        "Payment confirmation failed. Please try again or contact support.";
+
+      if (error.message === "Backend timeout") {
+        userFriendlyError =
+          "Backend is not responding. Please try again in a few minutes.";
+      } else if (!error.response) {
+        userFriendlyError =
+          "Network error. Please check your internet connection and try again.";
+      } else if (error.response.status === 404) {
+        userFriendlyError =
+          "Payment endpoint not found. Please contact support.";
+      } else if (error.response.status === 500) {
+        userFriendlyError = "Server error. Please try again in a few moments.";
+      } else if (error.response.data?.error) {
+        userFriendlyError = error.response.data.error;
+      }
+
+      setErrorDetails(userFriendlyError);
+      toast.error(userFriendlyError);
+      setStatus("error");
+    };
+
+    if (backendStatus === "healthy") {
+      confirmPaymentAndEnrollment();
+    }
+  }, [sessionId, courseId, navigate, backendStatus]);
 
   // 🧠 Update localStorage to reflect enrollment
   const updateLocalStorage = (courseId) => {
@@ -254,10 +329,64 @@ const PaymentSuccess = () => {
   const handleBack = () => navigate("/courses");
   const handleSupport = () => navigate("/contact");
   const handleRetry = () => window.location.reload();
+  const handleManualCheck = () => navigate("/my-courses");
 
   return (
     <div className="payment-success-container">
       <div className="payment-status-container">
+        {/* 🚨 Backend Down State */}
+        {status === "backend-down" && (
+          <div className="backend-down-section">
+            <div className="error-icon">🚨</div>
+            <h1>Backend Service Temporarily Unavailable</h1>
+            <p>
+              Our payment confirmation service is currently down for
+              maintenance.
+            </p>
+            <p>
+              <strong>Your payment was successful with Stripe!</strong> The
+              funds have been processed.
+            </p>
+
+            <div className="next-steps">
+              <h3>📋 What to do next:</h3>
+              <ol>
+                <li>Your payment with Stripe was completed successfully</li>
+                <li>
+                  We'll automatically enroll you when the service is restored
+                </li>
+                <li>Check your "My Courses" page in 10-15 minutes</li>
+                <li>You'll receive a confirmation email once enrolled</li>
+              </ol>
+            </div>
+
+            <div className="payment-proof">
+              <h4>Payment Proof:</h4>
+              <p>
+                <strong>Stripe Session ID:</strong> {sessionId}
+              </p>
+              <p>
+                <strong>Course ID:</strong> {courseId}
+              </p>
+              <p>
+                <strong>Timestamp:</strong> {new Date().toLocaleString()}
+              </p>
+            </div>
+
+            <div className="action-buttons">
+              <button className="btn-primary" onClick={handleManualCheck}>
+                Check My Courses Now
+              </button>
+              <button className="btn-secondary" onClick={handleRetry}>
+                Try Again
+              </button>
+              <button className="btn-outline" onClick={handleSupport}>
+                Contact Support
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* 🕒 Loading State */}
         {status === "loading" && (
           <div className="loading-section">
@@ -265,8 +394,15 @@ const PaymentSuccess = () => {
             <h2>Confirming Your Payment...</h2>
             <p>Please wait while we process your enrollment.</p>
             <div className="loading-details">
-              <p>Session: {sessionId}</p>
-              <p>Course: {courseId}</p>
+              <p>
+                <strong>Session:</strong> {sessionId}
+              </p>
+              <p>
+                <strong>Course:</strong> {courseId}
+              </p>
+              <p>
+                <strong>Backend Status:</strong> {backendStatus}
+              </p>
             </div>
           </div>
         )}
@@ -324,12 +460,21 @@ const PaymentSuccess = () => {
           <div className="error-section">
             <div className="error-icon">❌</div>
             <h1>Payment Confirmation Failed</h1>
-            <p>We couldn't confirm your enrollment automatically.</p>
-            <p>
-              Don't worry - your payment was likely successful. Please check
-              your email for confirmation or contact support if you don't see
-              the course in your account.
-            </p>
+            <p>{errorDetails}</p>
+
+            <div className="troubleshooting-tips">
+              <h4>💡 Troubleshooting Tips:</h4>
+              <ul>
+                <li>
+                  Try disabling browser extensions (Grammarly, ad blockers,
+                  etc.)
+                </li>
+                <li>Use Chrome Incognito mode or a different browser</li>
+                <li>Check your internet connection</li>
+                <li>Wait a few minutes and check your "My Courses" page</li>
+                <li>Contact support if the issue persists</li>
+              </ul>
+            </div>
 
             <div className="error-details">
               <p>
