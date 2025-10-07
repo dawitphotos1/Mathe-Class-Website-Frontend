@@ -1,4 +1,4 @@
- /* src/Pages/payment/PaymentSuccess.css */
+/* 
 .payment-success-container {
   min-height: 80vh;
   display: flex;
@@ -18,7 +18,7 @@
   text-align: center;
 }
 
-/* Loading State */
+
 .loading-section h2 {
   color: #2c3e50;
   margin-bottom: 1rem;
@@ -70,7 +70,7 @@
   word-break: break-all;
 }
 
-/* Success State */
+
 .success-section h1 {
   color: #27ae60;
   margin-bottom: 1.5rem;
@@ -162,7 +162,7 @@
   color: #155724;
 }
 
-/* Error State */
+
 .error-section h1 {
   color: #e74c3c;
   margin-bottom: 1.5rem;
@@ -228,7 +228,7 @@
   margin-bottom: 0.5rem;
 }
 
-/* Action Buttons */
+
 .action-buttons {
   display: flex;
   gap: 1rem;
@@ -283,13 +283,13 @@
   transform: translateY(-2px);
 }
 
-/* Animations */
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
-/* Responsive Design */
+
 @media (max-width: 768px) {
   .payment-success-container {
     padding: 1rem;
@@ -324,5 +324,222 @@
   .enrollment-details,
   .error-details {
     padding: 1rem;
+  }
+} */
+
+
+
+
+
+
+.payment-success-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.payment-status-container {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+/* Loading State */
+.loading-section .spinner-large {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+.loading-details {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 10px;
+  margin-top: 20px;
+  text-align: left;
+}
+
+.loading-details p {
+  margin: 5px 0;
+  font-family: monospace;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+/* Success State */
+.success-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+}
+
+.success-section h1 {
+  color: #28a745;
+  margin-bottom: 10px;
+}
+
+.course-card {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.course-card h3 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.course-description {
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.price {
+  font-weight: bold;
+  color: #28a745;
+  font-size: 18px;
+}
+
+.enrollment-details {
+  background: #e8f5e8;
+  padding: 15px;
+  border-radius: 10px;
+  margin: 20px 0;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.status-badge.approved {
+  background: #d4edda;
+  color: #155724;
+}
+
+.redirect-notice {
+  color: #666;
+  font-style: italic;
+  margin: 20px 0;
+}
+
+/* Error State */
+.error-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+}
+
+.error-section h1 {
+  color: #dc3545;
+  margin-bottom: 10px;
+}
+
+.error-details {
+  background: #f8d7da;
+  padding: 15px;
+  border-radius: 10px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.error-details p {
+  margin: 5px 0;
+  word-break: break-all;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn-primary:hover {
+  background: #5a6fd8;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+.btn-outline {
+  background: transparent;
+  color: #667eea;
+  border: 2px solid #667eea;
+  padding: 12px 25px;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-outline:hover {
+  background: #667eea;
+  color: white;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .payment-status-container {
+    padding: 20px;
+    margin: 10px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .loading-details, .error-details {
+    font-size: 11px;
   }
 }

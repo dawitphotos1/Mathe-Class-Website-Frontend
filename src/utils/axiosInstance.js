@@ -89,8 +89,6 @@
 
 
 
-
-// src/utils/axiosInstance.js
 import axios from "axios";
 
 // 🧩 Determine correct backend URL safely
@@ -100,17 +98,16 @@ const getAPIBaseURL = () => {
   // 🧠 If REACT_APP_API_URL isn't set, use sensible defaults
   if (!base) {
     if (process.env.NODE_ENV === "development") {
-      base = "http://localhost:5000/api/v1";
+      base = "http://localhost:5000";
     } else {
-      base = "https://mathe-class-website-backend-1.onrender.com/api/v1";
+      base = "https://mathe-class-website-backend-1.onrender.com";
     }
   }
 
-  // 🧹 Remove trailing slashes and duplicate /api/v1
+  // 🧹 Remove trailing slashes and ensure proper formatting
   base = base.replace(/\/+$/, ""); // trim trailing slashes
-  base = base.replace(/\/api\/v1\/api\/v1$/, "/api/v1"); // double safety
 
-  // ✅ Ensure final path ends with /api/v1 exactly once
+  // ✅ Ensure it ends with /api/v1 exactly once
   if (!base.endsWith("/api/v1")) {
     base = `${base}/api/v1`;
   }
@@ -143,8 +140,7 @@ axiosInstance.interceptors.request.use(
     }
 
     console.log(
-      `📤 [${config.method?.toUpperCase()}] ${config.baseURL}${config.url}`,
-      config.data || ""
+      `📤 [${config.method?.toUpperCase()}] ${config.baseURL}${config.url}`
     );
 
     return config;
@@ -158,7 +154,7 @@ axiosInstance.interceptors.request.use(
 // 🛰️ Response Interceptor
 axiosInstance.interceptors.response.use(
   (response) => {
-    console.log(`✅ [${response.status}] ${response.config.url}`, response.data);
+    console.log(`✅ [${response.status}] ${response.config.url}`);
     return response;
   },
   (error) => {
@@ -169,7 +165,10 @@ axiosInstance.interceptors.response.use(
       error.response?.data?.message ||
       error.message;
 
-    console.error(`❌ [${status || "No Status"}] ${url || "No URL"} →`, message);
+    console.error(
+      `❌ [${status || "No Status"}] ${url || "No URL"} →`,
+      message
+    );
 
     if (status === 401) {
       console.warn("🔐 Token expired or unauthorized. Clearing session...");
