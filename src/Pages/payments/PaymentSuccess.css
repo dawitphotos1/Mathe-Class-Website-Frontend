@@ -331,7 +331,6 @@
 
 
 
-
 .payment-success-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -345,7 +344,7 @@
   background: white;
   border-radius: 20px;
   padding: 40px;
-  max-width: 600px;
+  max-width: 800px;
   width: 100%;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   text-align: center;
@@ -375,6 +374,59 @@
   font-family: monospace;
   font-size: 12px;
   word-break: break-all;
+}
+
+/* Diagnostic Log */
+.diagnostic-log {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 20px 0;
+  text-align: left;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.diagnostic-log h4 {
+  margin-top: 0;
+  color: #495057;
+  font-size: 14px;
+}
+
+.log-entries {
+  font-family: monospace;
+  font-size: 11px;
+}
+
+.log-entry {
+  padding: 4px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.log-entry:last-child {
+  border-bottom: none;
+}
+
+.log-entry.success {
+  color: #28a745;
+}
+
+.log-entry.error {
+  color: #dc3545;
+}
+
+.log-entry.warning {
+  color: #ffc107;
+}
+
+.log-entry.info {
+  color: #17a2b8;
+}
+
+.log-time {
+  color: #6c757d;
+  margin-right: 10px;
 }
 
 /* Success State */
@@ -454,10 +506,34 @@
   margin-bottom: 10px;
 }
 
+.troubleshooting-tips {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.troubleshooting-tips h4 {
+  margin-top: 0;
+  color: #856404;
+}
+
+.troubleshooting-tips ul {
+  margin: 10px 0;
+  padding-left: 20px;
+}
+
+.troubleshooting-tips li {
+  margin: 5px 0;
+  color: #333;
+}
+
 .error-details {
   background: #f8d7da;
   padding: 15px;
-  border-radius: 10px;
+  border-radius: 8px;
   margin: 20px 0;
   text-align: left;
 }
@@ -523,97 +599,6 @@
   color: white;
 }
 
-
-/* Add to existing CSS */
-
-.browser-tip {
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
-  border-radius: 8px;
-  padding: 12px;
-  margin-top: 15px;
-  text-align: left;
-}
-
-.browser-tip small {
-  color: #856404;
-}
-
-.troubleshooting-tips {
-  background: #e3f2fd;
-  border: 1px solid #bbdefb;
-  border-radius: 8px;
-  padding: 15px;
-  margin: 20px 0;
-  text-align: left;
-}
-
-.troubleshooting-tips h4 {
-  margin-top: 0;
-  color: #1565c0;
-}
-
-.troubleshooting-tips ul {
-  margin: 10px 0;
-  padding-left: 20px;
-}
-
-.troubleshooting-tips li {
-  margin: 5px 0;
-  color: #333;
-}
-
-.backend-down-section {
-  text-align: center;
-}
-
-.backend-down-section .error-icon {
-  font-size: 80px;
-  margin-bottom: 20px;
-}
-
-.next-steps {
-  background: #e8f4fd;
-  border: 1px solid #b3d9f2;
-  border-radius: 10px;
-  padding: 20px;
-  margin: 20px 0;
-  text-align: left;
-}
-
-.next-steps h3 {
-  color: #1565c0;
-  margin-top: 0;
-}
-
-.next-steps ol {
-  margin: 10px 0;
-  padding-left: 20px;
-}
-
-.next-steps li {
-  margin: 8px 0;
-  color: #333;
-}
-
-.payment-proof {
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 15px;
-  margin: 20px 0;
-  text-align: left;
-}
-
-.payment-proof h4 {
-  margin-top: 0;
-  color: #495057;
-}
-
-.payment-proof p {
-  margin: 5px 0;
-  word-break: break-all;
-}
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -632,5 +617,9 @@
   
   .loading-details, .error-details {
     font-size: 11px;
+  }
+  
+  .diagnostic-log {
+    max-height: 150px;
   }
 }

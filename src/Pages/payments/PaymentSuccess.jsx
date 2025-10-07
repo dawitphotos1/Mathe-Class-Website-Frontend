@@ -140,7 +140,6 @@
 
 
 //src/Pages/payments/PaymentSuccess.jsx
-
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -154,157 +153,191 @@ const PaymentSuccess = () => {
   const [status, setStatus] = useState("loading");
   const [course, setCourse] = useState(null);
   const [errorDetails, setErrorDetails] = useState("");
-  const [backendStatus, setBackendStatus] = useState("unknown");
+  const [diagnosticLog, setDiagnosticLog] = useState([]);
 
   const sessionId = searchParams.get("session_id");
   const courseId =
     searchParams.get("course_id") || searchParams.get("courseId");
 
-  // Check backend health on component mount
-  useEffect(() => {
-    const checkBackendHealth = async () => {
-      try {
-        console.log("🔍 Checking backend health...");
-        const response = await fetch(
-          "https://mathe-class-website-backend-1.onrender.com/api/v1/health"
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setBackendStatus("healthy");
-          console.log("✅ Backend is healthy:", data);
-        } else {
-          setBackendStatus("unhealthy");
-          console.error("❌ Backend responded with error:", response.status);
-        }
-      } catch (error) {
-        setBackendStatus("down");
-        console.error("❌ Backend is down:", error);
-      }
-    };
-
-    checkBackendHealth();
-  }, []);
+  const addLog = (message, type = "info") => {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = `[${timestamp}] ${message}`;
+    console.log(`[${type.toUpperCase()}] ${logEntry}`);
+    setDiagnosticLog((prev) => [
+      ...prev,
+      { message: logEntry, type, timestamp },
+    ]);
+  };
 
   useEffect(() => {
-    console.log("💳 PaymentSuccess mounted:", {
-      sessionId,
-      courseId,
-      backendStatus,
-    });
+    addLog("PaymentSuccess component mounted");
+    addLog(`URL Parameters - Session: ${sessionId}, Course: ${courseId}`);
 
     if (!sessionId || !courseId) {
       const errorMsg = "Missing payment information. Please contact support.";
       setErrorDetails(errorMsg);
+      addLog(errorMsg, "error");
       toast.error(errorMsg);
       setStatus("error");
       return;
     }
 
-    // If backend is down, show appropriate message
-    if (backendStatus === "down") {
-      setStatus("backend-down");
-      return;
-    }
+    const runDiagnostics = async () => {
+      addLog("Starting diagnostic checks...");
 
-    const confirmPaymentAndEnrollment = async () => {
       try {
-        setStatus("loading");
+        // Test 1: Backend connectivity
+        addLog("Test 1: Checking backend connectivity");
+        const healthResponse = await fetch(
+          "https://mathe-class-website-backend-1.onrender.com/api/v1/health"
+        );
+        const healthData = await healthResponse.json();
+        addLog(
+          `Backend health: ${healthData.status}`,
+          healthData.status === "OK" ? "success" : "error"
+        );
 
-        console.log("🔄 Step 1: Confirming payment with backend...");
+        // Test 2: CORS test
+        addLog("Test 2: Checking CORS");
+        const corsResponse = await fetch(
+          "https://mathe-class-website-backend-1.onrender.com/api/v1/debug-cors"
+        );
+        const corsData = await corsResponse.json();
+        addLog(`CORS test: ${corsData.message}`, "success");
 
-        // Test backend connection first with timeout
-        const healthCheck = await Promise.race([
-          axiosInstance.get("/payments/health/check"),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Backend timeout")), 10000)
-          ),
-        ]);
+        // Test 3: Check authentication
+        addLog("Test 3: Checking authentication");
+        const token =
+          localStorage.getItem("token") || localStorage.getItem("authToken");
+        addLog(`Token exists: ${!!token}`, token ? "success" : "error");
 
-        console.log("✅ Backend health check:", healthCheck.data);
+        if (!token) {
+          throw new Error(
+            "No authentication token found. Please log in again."
+          );
+        }
 
-        // Step 1: Confirm payment with backend
-        console.log("🔄 Step 2: Sending payment confirmation...");
-        const confirmationResponse = await axiosInstance.post(
-          "/payments/confirm",
+        // Test 4: Payment endpoint accessibility
+        addLog("Test 4: Testing payment endpoint without auth");
+        const paymentTestResponse = await fetch(
+          `https://mathe-class-website-backend-1.onrender.com/api/v1/debug-payment-test?sessionId=${sessionId}&courseId=${courseId}`
+        );
+        const paymentTestData = await paymentTestResponse.json();
+        addLog(`Payment endpoint test: ${paymentTestData.message}`, "success");
+
+        // Test 5: Payment endpoint with auth
+        addLog("Test 5: Testing payment endpoint with auth");
+        const authTestResponse = await fetch(
+          "https://mathe-class-website-backend-1.onrender.com/api/v1/debug-payment-auth-test",
           {
-            sessionId,
-            courseId,
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
           }
         );
 
-        console.log(
-          "✅ Payment confirmation response:",
-          confirmationResponse.data
-        );
-
-        if (confirmationResponse.data.success) {
-          // Success path
-          handleSuccess(confirmationResponse.data);
-        } else {
-          throw new Error(
-            confirmationResponse.data.error || "Payment confirmation failed"
-          );
+        if (authTestResponse.status === 401) {
+          throw new Error("Authentication failed. Please log in again.");
         }
+
+        const authTestData = await authTestResponse.json();
+        addLog(`Payment auth test: ${authTestData.message}`, "success");
+
+        // All tests passed - proceed with actual payment confirmation
+        addLog("All diagnostics passed. Proceeding with payment confirmation.");
+        await confirmActualPayment();
       } catch (error) {
-        console.error("❌ Payment confirmation error:", error);
-        handleError(error);
+        addLog(`Diagnostic failed: ${error.message}`, "error");
+        handleDiagnosticError(error);
       }
     };
 
-    const handleSuccess = (confirmationData) => {
-      // Fetch course details for display (non-critical)
-      fetchCourseDetails();
+    const confirmActualPayment = async () => {
+      try {
+        setStatus("loading");
+        addLog("Starting actual payment confirmation...");
 
-      // Update local state and storage
-      updateLocalStorage(courseId);
-      setStatus("success");
-      toast.success("🎉 Payment confirmed! You are now enrolled.");
+        const response = await axiosInstance.post("/payments/confirm", {
+          sessionId,
+          courseId,
+        });
 
-      // Redirect after delay
-      setTimeout(() => navigate("/my-courses"), 4000);
+        addLog("Payment confirmation successful", "success");
+
+        // Fetch course details for display
+        await fetchCourseDetails();
+
+        // Update local storage
+        updateLocalStorage(courseId);
+
+        setStatus("success");
+        toast.success("🎉 Payment confirmed! You are now enrolled.");
+
+        // Redirect after delay
+        setTimeout(() => navigate("/my-courses"), 4000);
+      } catch (error) {
+        addLog(`Payment confirmation failed: ${error.message}`, "error");
+        handlePaymentError(error);
+      }
     };
 
     const fetchCourseDetails = async () => {
       try {
-        console.log("🔄 Fetching course details...");
+        addLog("Fetching course details...");
         const courseResponse = await axiosInstance.get(
           `/courses/id/${courseId}`
         );
         setCourse(courseResponse.data);
-      } catch (courseErr) {
-        console.warn("⚠️ Could not load course details:", courseErr);
-        // Continue even if course details fail
+        addLog("Course details fetched", "success");
+      } catch (err) {
+        addLog(`Could not load course details: ${err.message}`, "warning");
       }
     };
 
-    const handleError = (error) => {
-      let userFriendlyError =
-        "Payment confirmation failed. Please try again or contact support.";
+    const handleDiagnosticError = (error) => {
+      let userMessage = "System configuration issue. Please contact support.";
 
-      if (error.message === "Backend timeout") {
-        userFriendlyError =
-          "Backend is not responding. Please try again in a few minutes.";
+      if (error.message.includes("No authentication token")) {
+        userMessage = "Your session has expired. Please log in again.";
+        // Redirect to login
+        setTimeout(() => navigate("/login"), 2000);
+      } else if (error.message.includes("CORS")) {
+        userMessage =
+          "Network configuration issue. Please try a different browser or contact support.";
       } else if (!error.response) {
-        userFriendlyError =
-          "Network error. Please check your internet connection and try again.";
-      } else if (error.response.status === 404) {
-        userFriendlyError =
-          "Payment endpoint not found. Please contact support.";
-      } else if (error.response.status === 500) {
-        userFriendlyError = "Server error. Please try again in a few moments.";
-      } else if (error.response.data?.error) {
-        userFriendlyError = error.response.data.error;
+        userMessage =
+          "Cannot connect to server. Please check your internet connection.";
       }
 
-      setErrorDetails(userFriendlyError);
-      toast.error(userFriendlyError);
+      setErrorDetails(userMessage);
+      toast.error(userMessage);
       setStatus("error");
     };
 
-    if (backendStatus === "healthy") {
-      confirmPaymentAndEnrollment();
-    }
-  }, [sessionId, courseId, navigate, backendStatus]);
+    const handlePaymentError = (error) => {
+      let userMessage =
+        "Payment confirmation failed. Please try again or contact support.";
+
+      if (error.response?.status === 401) {
+        userMessage = "Your session has expired. Please log in again.";
+        setTimeout(() => navigate("/login"), 2000);
+      } else if (error.response?.status === 404) {
+        userMessage = "Payment endpoint not found. Please contact support.";
+      } else if (error.response?.status === 500) {
+        userMessage = "Server error. Please try again in a few moments.";
+      } else if (error.response?.data?.error) {
+        userMessage = error.response.data.error;
+      }
+
+      setErrorDetails(userMessage);
+      toast.error(userMessage);
+      setStatus("error");
+    };
+
+    runDiagnostics();
+  }, [sessionId, courseId, navigate]);
 
   // 🧠 Update localStorage to reflect enrollment
   const updateLocalStorage = (courseId) => {
@@ -329,64 +362,10 @@ const PaymentSuccess = () => {
   const handleBack = () => navigate("/courses");
   const handleSupport = () => navigate("/contact");
   const handleRetry = () => window.location.reload();
-  const handleManualCheck = () => navigate("/my-courses");
 
   return (
     <div className="payment-success-container">
       <div className="payment-status-container">
-        {/* 🚨 Backend Down State */}
-        {status === "backend-down" && (
-          <div className="backend-down-section">
-            <div className="error-icon">🚨</div>
-            <h1>Backend Service Temporarily Unavailable</h1>
-            <p>
-              Our payment confirmation service is currently down for
-              maintenance.
-            </p>
-            <p>
-              <strong>Your payment was successful with Stripe!</strong> The
-              funds have been processed.
-            </p>
-
-            <div className="next-steps">
-              <h3>📋 What to do next:</h3>
-              <ol>
-                <li>Your payment with Stripe was completed successfully</li>
-                <li>
-                  We'll automatically enroll you when the service is restored
-                </li>
-                <li>Check your "My Courses" page in 10-15 minutes</li>
-                <li>You'll receive a confirmation email once enrolled</li>
-              </ol>
-            </div>
-
-            <div className="payment-proof">
-              <h4>Payment Proof:</h4>
-              <p>
-                <strong>Stripe Session ID:</strong> {sessionId}
-              </p>
-              <p>
-                <strong>Course ID:</strong> {courseId}
-              </p>
-              <p>
-                <strong>Timestamp:</strong> {new Date().toLocaleString()}
-              </p>
-            </div>
-
-            <div className="action-buttons">
-              <button className="btn-primary" onClick={handleManualCheck}>
-                Check My Courses Now
-              </button>
-              <button className="btn-secondary" onClick={handleRetry}>
-                Try Again
-              </button>
-              <button className="btn-outline" onClick={handleSupport}>
-                Contact Support
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* 🕒 Loading State */}
         {status === "loading" && (
           <div className="loading-section">
@@ -400,9 +379,16 @@ const PaymentSuccess = () => {
               <p>
                 <strong>Course:</strong> {courseId}
               </p>
-              <p>
-                <strong>Backend Status:</strong> {backendStatus}
-              </p>
+            </div>
+            <div className="diagnostic-log">
+              <h4>Diagnostic Log:</h4>
+              <div className="log-entries">
+                {diagnosticLog.map((log, index) => (
+                  <div key={index} className={`log-entry ${log.type}`}>
+                    <span className="log-message">{log.message}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -461,6 +447,17 @@ const PaymentSuccess = () => {
             <div className="error-icon">❌</div>
             <h1>Payment Confirmation Failed</h1>
             <p>{errorDetails}</p>
+
+            <div className="diagnostic-log">
+              <h4>Diagnostic Log:</h4>
+              <div className="log-entries">
+                {diagnosticLog.map((log, index) => (
+                  <div key={index} className={`log-entry ${log.type}`}>
+                    <span className="log-message">{log.message}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
 
             <div className="troubleshooting-tips">
               <h4>💡 Troubleshooting Tips:</h4>
