@@ -188,7 +188,6 @@
 
 
 
-
 // src/App.jsx
 import React, { Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
@@ -214,7 +213,6 @@ import MyCoursesPage from "./Pages/courses/MyCourses";
 import TeacherCourseProgress from "./Pages/courses/TeacherCourseProgress";
 import AdminLessonLogs from "./Pages/AdminLessonLogs";
 import EditLesson from "./Pages/teachers/EditLesson";
-import EnrollmentSuccess from "./Pages/payments/EnrollmentSuccess";
 import AdminLayout from "./components/AdminLayout";
 import PendingStudents from "./components/PendingStudents";
 import PaymentPage from "./Pages/PaymentPage";
@@ -255,11 +253,6 @@ function App() {
                 <Route path="/payment/:courseId" element={<PaymentPage />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/payment-cancel" element={<PaymentCancel />} />
-
-                <Route
-                  path="/enrollment-success"
-                  element={<EnrollmentSuccess />}
-                />
                 <Route path="/cancel" element={<Cancel />} />
 
                 {/* Admin Routes */}
@@ -350,7 +343,7 @@ function App() {
                   }
                 />
 
-                {/* Shared */}
+                {/* Shared Routes */}
                 <Route
                   path="/profile"
                   element={
@@ -362,7 +355,7 @@ function App() {
                   }
                 />
 
-                {/* 404 */}
+                {/* 404 Fallback */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
