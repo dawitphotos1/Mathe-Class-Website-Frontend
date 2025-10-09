@@ -55,68 +55,59 @@
 // export default PaymentButton;
 
 
-
 // src/components/payments/PaymentButton.jsx
-import React from "react";
-import axiosInstance from "../utils/axiosInstance";
-import { loadStripe } from "@stripe/stripe-js";
-import { toast } from "react-toastify";
-
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
+import React, { useState } from "react";
+import axiosInstance from "../../utils/axiosInstance";
 
 const PaymentButton = ({ course }) => {
+  const [loading, setLoading] = useState(false);
+
   const handlePayment = async () => {
     try {
-      if (!course?.id) {
-        toast.error("Course ID missing. Cannot start payment.");
-        console.error("❌ No course ID provided:", course);
+      if (!course || !course.id) {
+        console.error("❌ No course or course.id found:", course);
+        alert("Missing course information. Please refresh and try again.");
         return;
       }
 
-      console.log("💳 Starting payment for course:", course.id);
+      console.log("💳 Starting payment for course:", course.id, course.title);
 
-      const stripe = await stripePromise;
-      if (!stripe) {
-        toast.error("Stripe failed to load. Please refresh and try again.");
-        return;
+      setLoading(true);
+
+      const payload = { courseId: course.id };
+      console.log("📦 Sending payload to backend:", payload);
+
+      const response = await axiosInstance.post(
+        "/payments/create-checkout-session",
+        payload
+      );
+
+      console.log("✅ Checkout session created:", response.data);
+
+      if (response.data?.url) {
+        window.location.href = response.data.url;
+      } else {
+        alert("Stripe session creation failed.");
       }
-
-      // ✅ Send courseId in body
-      const response = await axiosInstance.post("/payments/create-checkout-session", {
-        courseId: course.id,
-      });
-
-      if (!response.data || !response.data.url) {
-        toast.error("Payment session not created. Please try again.");
-        console.error("❌ Invalid response from backend:", response.data);
-        return;
-      }
-
-      // ✅ Redirect user to Stripe checkout
-      window.location.href = response.data.url;
     } catch (error) {
       console.error("❌ Payment creation error:", error);
-      const message =
-        error.response?.data?.error ||
-        "Failed to start payment. Please try again.";
-      toast.error(message);
+      const errMsg =
+        error.response?.data?.error || "Failed to start Stripe checkout";
+      alert(errMsg);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <button
-      className="btn-primary"
       onClick={handlePayment}
-      style={{
-        width: "100%",
-        padding: "12px 20px",
-        fontSize: "1rem",
-        fontWeight: "600",
-        borderRadius: "10px",
-        marginTop: "10px",
-      }}
+      disabled={loading}
+      className="stripe-pay-button"
     >
-      Enroll Now – ${course?.price || "0"}
+      {loading
+        ? "Processing..."
+        : `Pay $${parseFloat(course?.price || 0).toFixed(2)} with Stripe`}
     </button>
   );
 };
