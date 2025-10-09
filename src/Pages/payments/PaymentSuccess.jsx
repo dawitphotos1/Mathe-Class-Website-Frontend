@@ -1,165 +1,5 @@
 
-// // src/pages/payments/PaymentSuccess.jsx
-// import React, { useEffect, useState } from "react";
-// import { useSearchParams, useNavigate, Link } from "react-router-dom";
-// import { toast } from "react-toastify";
-// import axiosInstance from "../../utils/axiosInstance";
-// import "./PaymentSuccess.css";
-
-// const PaymentSuccess = () => {
-//   const [searchParams] = useSearchParams();
-//   const navigate = useNavigate();
-//   const [status, setStatus] = useState("loading");
-//   const [course, setCourse] = useState(null);
-
-//   const sessionId = searchParams.get("session_id");
-//   const courseId = searchParams.get("course_id");
-
-//   useEffect(() => {
-//     console.log("✅ PaymentSuccess page loaded:", { sessionId, courseId });
-
-//     if (!courseId) {
-//       toast.error("Missing course information. Please contact support.");
-//       setStatus("error");
-//       return;
-//     }
-
-//     fetchCourseInfo();
-//   }, [courseId, sessionId]);
-
-//   const fetchCourseInfo = async () => {
-//     try {
-//       // ✅ Use the correct endpoint: /api/v1/payments/:courseId
-//       const res = await axiosInstance.get(`/payments/${courseId}`);
-//       if (!res.data?.success || !res.data?.course) {
-//         throw new Error("Invalid server response");
-//       }
-
-//       const courseData = res.data.course;
-//       setCourse(courseData);
-//       setStatus("success");
-
-//       updateLocalStorage(courseId);
-
-//       toast.success("🎉 Payment confirmed successfully!");
-//       setTimeout(() => navigate("/my-courses"), 3000);
-//     } catch (err) {
-//       console.error("❌ Failed to fetch course info:", err);
-//       setStatus("error");
-//       toast.error("Failed to load course information. Please contact support.");
-//     }
-//   };
-
-//   const updateLocalStorage = (courseId) => {
-//     try {
-//       const enrolled =
-//         JSON.parse(localStorage.getItem("enrolledCourses")) || [];
-//       if (!enrolled.includes(courseId)) {
-//         enrolled.push(courseId);
-//         localStorage.setItem("enrolledCourses", JSON.stringify(enrolled));
-//       }
-
-//       const pending =
-//         JSON.parse(localStorage.getItem("pendingEnrollments")) || [];
-//       localStorage.setItem(
-//         "pendingEnrollments",
-//         JSON.stringify(pending.filter((id) => id !== courseId))
-//       );
-
-//       // Clear cached user courses to force refresh next time
-//       localStorage.removeItem("userCourses");
-//     } catch (err) {
-//       console.error("⚠️ localStorage update failed:", err);
-//     }
-//   };
-
-//   return (
-//     <div className="payment-success-container">
-//       <div className="payment-status-container">
-//         {status === "loading" && (
-//           <div className="loading-section">
-//             <div className="spinner-large"></div>
-//             <h2>Processing Payment...</h2>
-//             <p>Just a moment while we finalize your enrollment.</p>
-//           </div>
-//         )}
-
-//         {status === "success" && (
-//           <div className="success-section">
-//             <div className="success-icon">🎉</div>
-//             <h1>Payment Successful!</h1>
-//             <p>You’re now enrolled in:</p>
-//             <h3>{course?.title || "Your course"}</h3>
-
-//             <div className="enrollment-details">
-//               {course?.price && (
-//                 <div className="detail-item">
-//                   <span>Amount Paid:</span>
-//                   <span>${parseFloat(course.price).toFixed(2)}</span>
-//                 </div>
-//               )}
-//               <div className="detail-item">
-//                 <span>Status:</span>
-//                 <span className="status-badge approved">Approved</span>
-//               </div>
-//               {sessionId && (
-//                 <div className="detail-item">
-//                   <span>Session ID:</span>
-//                   <span className="code">{sessionId}</span>
-//                 </div>
-//               )}
-//             </div>
-
-//             <p className="redirect-notice">
-//               Redirecting to your courses in a few seconds...
-//             </p>
-
-//             <div className="action-buttons">
-//               <button
-//                 className="btn-primary"
-//                 onClick={() => navigate("/my-courses")}
-//               >
-//                 Go to My Courses
-//               </button>
-//               <Link to="/courses" className="btn-secondary">
-//                 Browse More Courses
-//               </Link>
-//             </div>
-//           </div>
-//         )}
-
-//         {status === "error" && (
-//           <div className="error-section">
-//             <div className="error-icon">❌</div>
-//             <h1>Payment Error</h1>
-//             <p>
-//               We couldn’t verify your payment details. Please contact support.
-//             </p>
-//             <div className="action-buttons">
-//               <button
-//                 className="btn-secondary"
-//                 onClick={() => navigate("/courses")}
-//               >
-//                 Back to Courses
-//               </button>
-//               <Link to="/contact" className="btn-outline">
-//                 Contact Support
-//               </Link>
-//             </div>
-//           </div>
-//         )}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default PaymentSuccess;
-
-
-
-
-
-// src/pages/payments/PaymentSuccess.jsx - ENHANCED VERSION
+// src/pages/payments/PaymentSuccess.jsx
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -171,105 +11,118 @@ const PaymentSuccess = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState("confirming");
   const [course, setCourse] = useState(null);
-  const [apiError, setApiError] = useState("");
+  const [debugInfo, setDebugInfo] = useState("");
 
   const sessionId = searchParams.get("session_id");
   const courseId = searchParams.get("course_id");
 
   useEffect(() => {
-    console.log("🎯 Payment Success Page Loaded", { sessionId, courseId });
+    console.log("🎯 Payment Success - Session:", sessionId, "Course:", courseId);
+    setDebugInfo(`Starting payment confirmation...\nSession: ${sessionId}\nCourse: ${courseId}`);
 
     if (!sessionId || !courseId) {
+      const errorMsg = "Missing payment information in URL";
+      setDebugInfo(prev => prev + `\n❌ ${errorMsg}`);
       toast.error("Missing payment information. Please contact support.");
       setStatus("error");
       return;
     }
 
-    // Start payment confirmation with retry logic
-    confirmPaymentWithRetry();
+    confirmPayment();
   }, [sessionId, courseId]);
 
-  const confirmPaymentWithRetry = async (retryCount = 0) => {
-    const maxRetries = 2;
+  const confirmPayment = async (retryCount = 0) => {
+    const MAX_RETRIES = 3;
     
     try {
       setStatus("confirming");
-      console.log(`🔄 Payment confirmation attempt ${retryCount + 1}`);
+      setDebugInfo(prev => prev + `\n🔄 Payment confirmation attempt ${retryCount + 1}...`);
 
+      // Call the payment confirmation endpoint
       const response = await axiosInstance.post("/payments/confirm", {
         sessionId: sessionId,
         courseId: courseId
-      }, {
-        timeout: 10000 // 10 second timeout
       });
 
-      console.log("✅ Payment confirmation successful:", response.data);
+      console.log("✅ Payment confirmation response:", response.data);
+      setDebugInfo(prev => prev + `\n✅ Backend response: ${JSON.stringify(response.data, null, 2)}`);
 
       if (response.data.success) {
-        // Success! Fetch course info and update UI
+        // Success - update UI and redirect
         await fetchCourseInfo();
         updateLocalStorage(courseId);
         setStatus("success");
         toast.success("🎉 Payment confirmed! You're now enrolled.");
         
-        setTimeout(() => navigate("/my-courses"), 3000);
+        // Redirect to courses after delay
+        setTimeout(() => {
+          navigate("/my-courses", { 
+            state: { message: "Enrollment successful!" } 
+          });
+        }, 3000);
       } else {
         throw new Error(response.data.error || "Payment confirmation failed");
       }
 
     } catch (error) {
-      console.error(`❌ Payment confirmation failed (attempt ${retryCount + 1}):`, error);
-
+      console.error("❌ Payment confirmation error:", error);
+      
       let errorMessage = "We couldn't confirm your enrollment.";
       let shouldRetry = false;
 
-      if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
-        errorMessage = "Network issue detected. This might be caused by a browser extension.";
-        shouldRetry = retryCount < maxRetries;
+      // Determine error type and whether to retry
+      if (error.code === 'NETWORK_ERROR' || error.message?.includes('Network Error')) {
+        errorMessage = "Network issue detected. This might be caused by a browser extension blocking the request.";
+        shouldRetry = retryCount < MAX_RETRIES;
       } else if (error.response) {
         // Server responded with error status
         errorMessage = error.response.data?.error || errorMessage;
-        setApiError(`Server Error: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
+        setDebugInfo(prev => prev + `\n❌ Server error: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
       } else if (error.request) {
-        // No response received
-        errorMessage = "No response from server. This might be blocked by a security extension.";
-        shouldRetry = retryCount < maxRetries;
+        // No response received (likely blocked by extension)
+        errorMessage = "No response from server. This is often caused by security extensions like McAfee WebAdvisor.";
+        shouldRetry = retryCount < MAX_RETRIES;
       } else {
         errorMessage = error.message || errorMessage;
       }
 
+      setDebugInfo(prev => prev + `\n❌ Error: ${errorMessage}`);
+
+      // Retry logic for network issues
       if (shouldRetry) {
-        console.log(`🔄 Retrying payment confirmation in 2 seconds... (${retryCount + 1}/${maxRetries})`);
-        setTimeout(() => confirmPaymentWithRetry(retryCount + 1), 2000);
+        const nextRetry = retryCount + 1;
+        setDebugInfo(prev => prev + `\n🔄 Retrying in 2 seconds... (${nextRetry}/${MAX_RETRIES})`);
+        setTimeout(() => confirmPayment(nextRetry), 2000);
         return;
       }
 
+      // Final error state - check if enrollment actually worked
       setStatus("error");
-      setApiError(errorMessage);
       toast.error(errorMessage);
-      
-      // Check if enrollment actually worked despite the error
       checkEnrollmentStatus();
     }
   };
 
   const checkEnrollmentStatus = async () => {
     try {
-      console.log("🔍 Checking enrollment status as fallback...");
+      setDebugInfo(prev => prev + `\n🔍 Checking enrollment status as fallback...`);
+      
       const response = await axiosInstance.get("/enrollments/my-courses");
       const enrolledCourses = response.data.courses || [];
       const isEnrolled = enrolledCourses.some(course => course.id == courseId);
       
       if (isEnrolled) {
-        console.log("✅ Enrollment actually worked! Updating UI...");
+        setDebugInfo(prev => prev + `\n✅ Enrollment actually succeeded! Updating UI...`);
         await fetchCourseInfo();
         updateLocalStorage(courseId);
         setStatus("success");
         toast.success("🎉 Your enrollment was successful!");
         setTimeout(() => navigate("/my-courses"), 3000);
+      } else {
+        setDebugInfo(prev => prev + `\n❌ Not enrolled in course ${courseId}`);
       }
     } catch (error) {
-      console.log("🔍 Could not verify enrollment status:", error.message);
+      setDebugInfo(prev => prev + `\n⚠️ Could not verify enrollment: ${error.message}`);
     }
   };
 
@@ -278,56 +131,73 @@ const PaymentSuccess = () => {
       const response = await axiosInstance.get(`/payments/${courseId}`);
       if (response.data?.success && response.data?.course) {
         setCourse(response.data.course);
+        setDebugInfo(prev => prev + `\n📚 Course info: ${response.data.course.title}`);
       }
     } catch (error) {
-      console.warn("⚠️ Could not fetch course details:", error.message);
+      setDebugInfo(prev => prev + `\n⚠️ Could not fetch course details: ${error.message}`);
     }
   };
 
   const updateLocalStorage = (courseId) => {
     try {
+      // Update enrolled courses
       const enrolled = JSON.parse(localStorage.getItem("enrolledCourses")) || [];
       if (!enrolled.includes(courseId)) {
         enrolled.push(courseId);
         localStorage.setItem("enrolledCourses", JSON.stringify(enrolled));
       }
 
+      // Remove from pending enrollments
       const pending = JSON.parse(localStorage.getItem("pendingEnrollments")) || [];
       localStorage.setItem(
         "pendingEnrollments",
         JSON.stringify(pending.filter((id) => id !== courseId))
       );
 
+      // Clear cached user courses to force refresh
       localStorage.removeItem("userCourses");
+      
+      setDebugInfo(prev => prev + `\n💾 Local storage updated for course ${courseId}`);
     } catch (error) {
-      console.warn("⚠️ Local storage update failed:", error.message);
+      setDebugInfo(prev => prev + `\n⚠️ Local storage update failed: ${error.message}`);
     }
   };
 
-  const handleManualCheck = async () => {
-    toast.info("🔍 Checking your enrollment status...");
-    await checkEnrollmentStatus();
-  };
-
   const handleTryAgain = () => {
-    // Clear any cached data and retry
+    // Clear cache and reload
     localStorage.removeItem("userCourses");
     window.location.reload();
+  };
+
+  const handleCheckEnrollment = () => {
+    toast.info("Checking your enrollment status...");
+    checkEnrollmentStatus();
   };
 
   return (
     <div className="payment-success-container">
       <div className="payment-status-container">
+        {/* Debug Panel - Remove in production */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="debug-panel">
+            <h4>Debug Information</h4>
+            <pre>{debugInfo}</pre>
+          </div>
+        )}
+
         {status === "confirming" && (
           <div className="loading-section">
             <div className="spinner-large"></div>
             <h2>Confirming Your Payment...</h2>
             <p>Please wait while we verify your payment and complete your enrollment.</p>
-            <div className="browser-tips">
-              <h4>⚠️ Having issues?</h4>
-              <p>• Try disabling browser extensions temporarily</p>
-              <p>• Ensure you have a stable internet connection</p>
-              <p>• This usually takes less than 10 seconds</p>
+            
+            <div className="extension-warning">
+              <h4>⚠️ If this takes more than 10 seconds:</h4>
+              <ul>
+                <li>Disable McAfee WebAdvisor extension temporarily</li>
+                <li>Try in Incognito/Private mode</li>
+                <li>Use a different browser without security extensions</li>
+              </ul>
             </div>
           </div>
         )}
@@ -381,29 +251,41 @@ const PaymentSuccess = () => {
           <div className="error-section">
             <div className="error-icon">❌</div>
             <h1>Payment Confirmation Issue</h1>
-            <p>{apiError || "We encountered an issue confirming your payment."}</p>
+            <p>
+              We encountered an issue confirming your payment. This is often caused by browser extensions.
+            </p>
             
-            <div className="troubleshooting-tips">
+            <div className="troubleshooting">
               <h4>🔧 Quick Solutions:</h4>
-              <div className="solution-steps">
-                <div className="solution-step">
-                  <strong>1. Disable Browser Extensions</strong>
-                  <p>Temporarily turn off McAfee or other security extensions and try again.</p>
+              
+              <div className="solution-card">
+                <div className="solution-number">1</div>
+                <div className="solution-content">
+                  <strong>Disable McAfee Extension</strong>
+                  <p>Go to chrome://extensions and toggle off "McAfee WebAdvisor"</p>
                 </div>
-                <div className="solution-step">
-                  <strong>2. Check Your Courses</strong>
-                  <p>Your payment might have worked - check "My Courses" to see if you're enrolled.</p>
+              </div>
+
+              <div className="solution-card">
+                <div className="solution-number">2</div>
+                <div className="solution-content">
+                  <strong>Try Incognito Mode</strong>
+                  <p>Open in private browsing (extensions are disabled)</p>
                 </div>
-                <div className="solution-step">
-                  <strong>3. Try Incognito Mode</strong>
-                  <p>Open the site in a private window where extensions are disabled.</p>
+              </div>
+
+              <div className="solution-card">
+                <div className="solution-number">3</div>
+                <div className="solution-content">
+                  <strong>Check Your Courses</strong>
+                  <p>Your payment might have worked - check "My Courses"</p>
                 </div>
               </div>
             </div>
 
             {sessionId && (
               <div className="session-info">
-                <p><strong>Reference for support:</strong></p>
+                <p><strong>Reference ID for support:</strong></p>
                 <code className="session-code">{sessionId}</code>
               </div>
             )}
@@ -417,7 +299,7 @@ const PaymentSuccess = () => {
               </button>
               <button
                 className="btn-secondary"
-                onClick={handleManualCheck}
+                onClick={handleCheckEnrollment}
               >
                 🔍 Check Enrollment Status
               </button>
