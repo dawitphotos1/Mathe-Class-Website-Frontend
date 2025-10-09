@@ -468,7 +468,119 @@ h3 {
   display: block;
   margin-top: 8px;
 }
+/* Add these styles to your PaymentSuccess.css */
 
+.browser-tips {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.browser-tips h4 {
+  color: #856404;
+  margin-bottom: 10px;
+}
+
+.browser-tips p {
+  margin: 5px 0;
+  color: #856404;
+  font-size: 0.9em;
+}
+
+.solution-steps {
+  text-align: left;
+  margin: 20px 0;
+}
+
+.solution-step {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 10px 0;
+  border-left: 4px solid #667eea;
+}
+
+.solution-step strong {
+  color: #2c3e50;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.solution-step p {
+  color: #666;
+  margin: 0;
+  font-size: 0.9em;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.btn-primary, .btn-secondary, .btn-outline {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #5a6fd8;
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+.btn-outline {
+  background: transparent;
+  color: #667eea;
+  border: 2px solid #667eea;
+}
+
+.btn-outline:hover {
+  background: #667eea;
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .solution-step {
+    padding: 12px;
+  }
+  
+  .action-buttons {
+    gap: 8px;
+  }
+  
+  .btn-primary, .btn-secondary, .btn-outline {
+    padding: 10px 20px;
+    font-size: 0.9em;
+  }
+}
 /* Responsive Design */
 @media (max-width: 768px) {
   .payment-status-container {

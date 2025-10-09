@@ -159,8 +159,7 @@
 
 
 
-
-// src/pages/payments/PaymentSuccess.jsx - DEBUG VERSION
+// src/pages/payments/PaymentSuccess.jsx - ENHANCED VERSION
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -172,154 +171,163 @@ const PaymentSuccess = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState("confirming");
   const [course, setCourse] = useState(null);
-  const [debugInfo, setDebugInfo] = useState("");
+  const [apiError, setApiError] = useState("");
 
   const sessionId = searchParams.get("session_id");
   const courseId = searchParams.get("course_id");
 
   useEffect(() => {
-    console.log("🔍 DEBUG: PaymentSuccess mounted", { sessionId, courseId });
-    setDebugInfo(`Session: ${sessionId}\nCourse: ${courseId}`);
+    console.log("🎯 Payment Success Page Loaded", { sessionId, courseId });
 
     if (!sessionId || !courseId) {
-      const errorMsg = "Missing session_id or course_id in URL";
-      console.error("❌", errorMsg);
-      setDebugInfo(prev => prev + `\n❌ ${errorMsg}`);
       toast.error("Missing payment information. Please contact support.");
       setStatus("error");
       return;
     }
 
-    confirmPayment();
+    // Start payment confirmation with retry logic
+    confirmPaymentWithRetry();
   }, [sessionId, courseId]);
 
-  const confirmPayment = async () => {
+  const confirmPaymentWithRetry = async (retryCount = 0) => {
+    const maxRetries = 2;
+    
     try {
       setStatus("confirming");
-      setDebugInfo(prev => prev + `\n🔄 Starting payment confirmation...`);
-      
-      console.log("🔄 Making API call to /payments/confirm", {
-        sessionId,
-        courseId
-      });
+      console.log(`🔄 Payment confirmation attempt ${retryCount + 1}`);
 
-      // Step 1: Confirm the payment with Stripe
-      const confirmationResponse = await axiosInstance.post("/payments/confirm", {
+      const response = await axiosInstance.post("/payments/confirm", {
         sessionId: sessionId,
         courseId: courseId
+      }, {
+        timeout: 10000 // 10 second timeout
       });
 
-      console.log("✅ Backend response:", confirmationResponse);
-      setDebugInfo(prev => prev + `\n✅ Backend response: ${JSON.stringify(confirmationResponse.data, null, 2)}`);
+      console.log("✅ Payment confirmation successful:", response.data);
 
-      if (!confirmationResponse.data.success) {
-        throw new Error(confirmationResponse.data.error || "Payment confirmation failed");
+      if (response.data.success) {
+        // Success! Fetch course info and update UI
+        await fetchCourseInfo();
+        updateLocalStorage(courseId);
+        setStatus("success");
+        toast.success("🎉 Payment confirmed! You're now enrolled.");
+        
+        setTimeout(() => navigate("/my-courses"), 3000);
+      } else {
+        throw new Error(response.data.error || "Payment confirmation failed");
       }
-
-      // Step 2: Fetch course details for display
-      await fetchCourseInfo();
-
-      // Step 3: Update local storage
-      updateLocalStorage(courseId);
-
-      setStatus("success");
-      setDebugInfo(prev => prev + `\n🎉 Payment confirmed successfully!`);
-      toast.success("🎉 Payment confirmed successfully! You're now enrolled.");
-
-      // Redirect after delay
-      setTimeout(() => navigate("/my-courses"), 4000);
 
     } catch (error) {
-      console.error("❌ Payment confirmation failed:", error);
-      
-      let errorMessage = "Failed to confirm payment. Please contact support.";
-      let errorDetails = "";
-      
-      if (error.response) {
+      console.error(`❌ Payment confirmation failed (attempt ${retryCount + 1}):`, error);
+
+      let errorMessage = "We couldn't confirm your enrollment.";
+      let shouldRetry = false;
+
+      if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
+        errorMessage = "Network issue detected. This might be caused by a browser extension.";
+        shouldRetry = retryCount < maxRetries;
+      } else if (error.response) {
         // Server responded with error status
-        errorDetails = `Status: ${error.response.status}\nData: ${JSON.stringify(error.response.data, null, 2)}`;
         errorMessage = error.response.data?.error || errorMessage;
+        setApiError(`Server Error: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
       } else if (error.request) {
-        // Request made but no response
-        errorDetails = "No response received from server";
-        errorMessage = "Network error. Please check your connection.";
+        // No response received
+        errorMessage = "No response from server. This might be blocked by a security extension.";
+        shouldRetry = retryCount < maxRetries;
       } else {
-        // Other error
-        errorDetails = error.message;
         errorMessage = error.message || errorMessage;
       }
-      
-      setDebugInfo(prev => prev + `\n❌ Error: ${errorDetails}`);
+
+      if (shouldRetry) {
+        console.log(`🔄 Retrying payment confirmation in 2 seconds... (${retryCount + 1}/${maxRetries})`);
+        setTimeout(() => confirmPaymentWithRetry(retryCount + 1), 2000);
+        return;
+      }
+
       setStatus("error");
+      setApiError(errorMessage);
       toast.error(errorMessage);
+      
+      // Check if enrollment actually worked despite the error
+      checkEnrollmentStatus();
+    }
+  };
+
+  const checkEnrollmentStatus = async () => {
+    try {
+      console.log("🔍 Checking enrollment status as fallback...");
+      const response = await axiosInstance.get("/enrollments/my-courses");
+      const enrolledCourses = response.data.courses || [];
+      const isEnrolled = enrolledCourses.some(course => course.id == courseId);
+      
+      if (isEnrolled) {
+        console.log("✅ Enrollment actually worked! Updating UI...");
+        await fetchCourseInfo();
+        updateLocalStorage(courseId);
+        setStatus("success");
+        toast.success("🎉 Your enrollment was successful!");
+        setTimeout(() => navigate("/my-courses"), 3000);
+      }
+    } catch (error) {
+      console.log("🔍 Could not verify enrollment status:", error.message);
     }
   };
 
   const fetchCourseInfo = async () => {
     try {
-      setDebugInfo(prev => prev + `\n📚 Fetching course info...`);
-      const res = await axiosInstance.get(`/payments/${courseId}`);
-      if (!res.data?.success || !res.data?.course) {
-        throw new Error("Invalid server response");
+      const response = await axiosInstance.get(`/payments/${courseId}`);
+      if (response.data?.success && response.data?.course) {
+        setCourse(response.data.course);
       }
-      setCourse(res.data.course);
-      setDebugInfo(prev => prev + `\n✅ Course info: ${res.data.course.title}`);
-    } catch (err) {
-      console.error("❌ Failed to fetch course info:", err);
-      setDebugInfo(prev => prev + `\n⚠️ Course info fetch failed: ${err.message}`);
-      // Don't set error status here - we still want to show success if payment worked
+    } catch (error) {
+      console.warn("⚠️ Could not fetch course details:", error.message);
     }
   };
 
   const updateLocalStorage = (courseId) => {
     try {
-      setDebugInfo(prev => prev + `\n💾 Updating localStorage...`);
-      // Update enrolled courses
       const enrolled = JSON.parse(localStorage.getItem("enrolledCourses")) || [];
       if (!enrolled.includes(courseId)) {
         enrolled.push(courseId);
         localStorage.setItem("enrolledCourses", JSON.stringify(enrolled));
       }
 
-      // Remove from pending enrollments
       const pending = JSON.parse(localStorage.getItem("pendingEnrollments")) || [];
       localStorage.setItem(
         "pendingEnrollments",
         JSON.stringify(pending.filter((id) => id !== courseId))
       );
 
-      // Clear cached user courses to force refresh
       localStorage.removeItem("userCourses");
-      
-      setDebugInfo(prev => prev + `\n✅ localStorage updated`);
-      console.log("✅ Local storage updated for course:", courseId);
-    } catch (err) {
-      console.error("⚠️ localStorage update failed:", err);
-      setDebugInfo(prev => prev + `\n⚠️ localStorage update failed: ${err.message}`);
+    } catch (error) {
+      console.warn("⚠️ Local storage update failed:", error.message);
     }
+  };
+
+  const handleManualCheck = async () => {
+    toast.info("🔍 Checking your enrollment status...");
+    await checkEnrollmentStatus();
+  };
+
+  const handleTryAgain = () => {
+    // Clear any cached data and retry
+    localStorage.removeItem("userCourses");
+    window.location.reload();
   };
 
   return (
     <div className="payment-success-container">
       <div className="payment-status-container">
-        {/* DEBUG PANEL - Remove in production */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="debug-panel">
-            <h4>Debug Information</h4>
-            <pre style={{ fontSize: '12px', background: '#f5f5f5', padding: '10px', borderRadius: '5px', maxHeight: '200px', overflow: 'auto' }}>
-              {debugInfo}
-            </pre>
-          </div>
-        )}
-
         {status === "confirming" && (
           <div className="loading-section">
             <div className="spinner-large"></div>
             <h2>Confirming Your Payment...</h2>
             <p>Please wait while we verify your payment and complete your enrollment.</p>
-            <div className="processing-details">
-              <p><small>Session: {sessionId}</small></p>
-              <p><small>Course: {courseId}</small></p>
+            <div className="browser-tips">
+              <h4>⚠️ Having issues?</h4>
+              <p>• Try disabling browser extensions temporarily</p>
+              <p>• Ensure you have a stable internet connection</p>
+              <p>• This usually takes less than 10 seconds</p>
             </div>
           </div>
         )}
@@ -372,21 +380,30 @@ const PaymentSuccess = () => {
         {status === "error" && (
           <div className="error-section">
             <div className="error-icon">❌</div>
-            <h1>Payment Confirmation Failed</h1>
-            <p>
-              We couldn't confirm your enrollment. Please try the following:
-            </p>
+            <h1>Payment Confirmation Issue</h1>
+            <p>{apiError || "We encountered an issue confirming your payment."}</p>
             
             <div className="troubleshooting-tips">
-              <h4>Quick Fixes:</h4>
-              <p>1. <strong>Check "My Courses"</strong> - Your enrollment might have worked</p>
-              <p>2. <strong>Wait 2 minutes</strong> - Sometimes payments take a moment to process</p>
-              <p>3. <strong>Refresh and try again</strong> - Click "Try Again" below</p>
+              <h4>🔧 Quick Solutions:</h4>
+              <div className="solution-steps">
+                <div className="solution-step">
+                  <strong>1. Disable Browser Extensions</strong>
+                  <p>Temporarily turn off McAfee or other security extensions and try again.</p>
+                </div>
+                <div className="solution-step">
+                  <strong>2. Check Your Courses</strong>
+                  <p>Your payment might have worked - check "My Courses" to see if you're enrolled.</p>
+                </div>
+                <div className="solution-step">
+                  <strong>3. Try Incognito Mode</strong>
+                  <p>Open the site in a private window where extensions are disabled.</p>
+                </div>
+              </div>
             </div>
 
             {sessionId && (
               <div className="session-info">
-                <p><strong>Session ID for support:</strong></p>
+                <p><strong>Reference for support:</strong></p>
                 <code className="session-code">{sessionId}</code>
               </div>
             )}
@@ -394,18 +411,24 @@ const PaymentSuccess = () => {
             <div className="action-buttons">
               <button
                 className="btn-primary"
-                onClick={() => window.location.reload()}
+                onClick={handleTryAgain}
               >
-                Try Again
+                🔄 Try Again
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={handleManualCheck}
+              >
+                🔍 Check Enrollment Status
               </button>
               <button
                 className="btn-secondary"
                 onClick={() => navigate("/my-courses")}
               >
-                Check My Courses
+                📚 Check My Courses
               </button>
               <Link to="/contact" className="btn-outline">
-                Contact Support
+                📞 Contact Support
               </Link>
             </div>
           </div>
