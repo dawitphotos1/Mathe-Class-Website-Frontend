@@ -159,7 +159,8 @@
 
 
 
-// src/pages/payments/PaymentSuccess.jsx
+
+// src/pages/payments/PaymentSuccess.jsx - DEBUG VERSION
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -171,14 +172,19 @@ const PaymentSuccess = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState("confirming");
   const [course, setCourse] = useState(null);
+  const [debugInfo, setDebugInfo] = useState("");
 
   const sessionId = searchParams.get("session_id");
   const courseId = searchParams.get("course_id");
 
   useEffect(() => {
-    console.log("✅ PaymentSuccess page loaded:", { sessionId, courseId });
+    console.log("🔍 DEBUG: PaymentSuccess mounted", { sessionId, courseId });
+    setDebugInfo(`Session: ${sessionId}\nCourse: ${courseId}`);
 
     if (!sessionId || !courseId) {
+      const errorMsg = "Missing session_id or course_id in URL";
+      console.error("❌", errorMsg);
+      setDebugInfo(prev => prev + `\n❌ ${errorMsg}`);
       toast.error("Missing payment information. Please contact support.");
       setStatus("error");
       return;
@@ -187,24 +193,28 @@ const PaymentSuccess = () => {
     confirmPayment();
   }, [sessionId, courseId]);
 
-  // ✅ ADD THIS FUNCTION - This confirms the payment with the backend
   const confirmPayment = async () => {
     try {
       setStatus("confirming");
+      setDebugInfo(prev => prev + `\n🔄 Starting payment confirmation...`);
       
-      console.log("🔄 Confirming payment with backend...");
-      
+      console.log("🔄 Making API call to /payments/confirm", {
+        sessionId,
+        courseId
+      });
+
       // Step 1: Confirm the payment with Stripe
       const confirmationResponse = await axiosInstance.post("/payments/confirm", {
         sessionId: sessionId,
         courseId: courseId
       });
 
+      console.log("✅ Backend response:", confirmationResponse);
+      setDebugInfo(prev => prev + `\n✅ Backend response: ${JSON.stringify(confirmationResponse.data, null, 2)}`);
+
       if (!confirmationResponse.data.success) {
         throw new Error(confirmationResponse.data.error || "Payment confirmation failed");
       }
-
-      console.log("✅ Payment confirmed with backend:", confirmationResponse.data);
 
       // Step 2: Fetch course details for display
       await fetchCourseInfo();
@@ -213,6 +223,7 @@ const PaymentSuccess = () => {
       updateLocalStorage(courseId);
 
       setStatus("success");
+      setDebugInfo(prev => prev + `\n🎉 Payment confirmed successfully!`);
       toast.success("🎉 Payment confirmed successfully! You're now enrolled.");
 
       // Redirect after delay
@@ -222,13 +233,23 @@ const PaymentSuccess = () => {
       console.error("❌ Payment confirmation failed:", error);
       
       let errorMessage = "Failed to confirm payment. Please contact support.";
+      let errorDetails = "";
       
-      if (error.response?.data?.error) {
-        errorMessage = error.response.data.error;
-      } else if (error.message) {
-        errorMessage = error.message;
+      if (error.response) {
+        // Server responded with error status
+        errorDetails = `Status: ${error.response.status}\nData: ${JSON.stringify(error.response.data, null, 2)}`;
+        errorMessage = error.response.data?.error || errorMessage;
+      } else if (error.request) {
+        // Request made but no response
+        errorDetails = "No response received from server";
+        errorMessage = "Network error. Please check your connection.";
+      } else {
+        // Other error
+        errorDetails = error.message;
+        errorMessage = error.message || errorMessage;
       }
       
+      setDebugInfo(prev => prev + `\n❌ Error: ${errorDetails}`);
       setStatus("error");
       toast.error(errorMessage);
     }
@@ -236,19 +257,23 @@ const PaymentSuccess = () => {
 
   const fetchCourseInfo = async () => {
     try {
+      setDebugInfo(prev => prev + `\n📚 Fetching course info...`);
       const res = await axiosInstance.get(`/payments/${courseId}`);
       if (!res.data?.success || !res.data?.course) {
         throw new Error("Invalid server response");
       }
       setCourse(res.data.course);
+      setDebugInfo(prev => prev + `\n✅ Course info: ${res.data.course.title}`);
     } catch (err) {
       console.error("❌ Failed to fetch course info:", err);
+      setDebugInfo(prev => prev + `\n⚠️ Course info fetch failed: ${err.message}`);
       // Don't set error status here - we still want to show success if payment worked
     }
   };
 
   const updateLocalStorage = (courseId) => {
     try {
+      setDebugInfo(prev => prev + `\n💾 Updating localStorage...`);
       // Update enrolled courses
       const enrolled = JSON.parse(localStorage.getItem("enrolledCourses")) || [];
       if (!enrolled.includes(courseId)) {
@@ -266,15 +291,27 @@ const PaymentSuccess = () => {
       // Clear cached user courses to force refresh
       localStorage.removeItem("userCourses");
       
+      setDebugInfo(prev => prev + `\n✅ localStorage updated`);
       console.log("✅ Local storage updated for course:", courseId);
     } catch (err) {
       console.error("⚠️ localStorage update failed:", err);
+      setDebugInfo(prev => prev + `\n⚠️ localStorage update failed: ${err.message}`);
     }
   };
 
   return (
     <div className="payment-success-container">
       <div className="payment-status-container">
+        {/* DEBUG PANEL - Remove in production */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="debug-panel">
+            <h4>Debug Information</h4>
+            <pre style={{ fontSize: '12px', background: '#f5f5f5', padding: '10px', borderRadius: '5px', maxHeight: '200px', overflow: 'auto' }}>
+              {debugInfo}
+            </pre>
+          </div>
+        )}
+
         {status === "confirming" && (
           <div className="loading-section">
             <div className="spinner-large"></div>
@@ -337,19 +374,14 @@ const PaymentSuccess = () => {
             <div className="error-icon">❌</div>
             <h1>Payment Confirmation Failed</h1>
             <p>
-              We couldn't confirm your enrollment. This could be due to:
+              We couldn't confirm your enrollment. Please try the following:
             </p>
-            <ul className="error-list">
-              <li>Network connectivity issues</li>
-              <li>Payment processing delay</li>
-              <li>System temporary unavailability</li>
-            </ul>
             
             <div className="troubleshooting-tips">
-              <h4>What to do next:</h4>
-              <p>1. Check your email for payment confirmation</p>
-              <p>2. Wait a few minutes and check "My Courses"</p>
-              <p>3. If the issue persists, contact support with your Session ID</p>
+              <h4>Quick Fixes:</h4>
+              <p>1. <strong>Check "My Courses"</strong> - Your enrollment might have worked</p>
+              <p>2. <strong>Wait 2 minutes</strong> - Sometimes payments take a moment to process</p>
+              <p>3. <strong>Refresh and try again</strong> - Click "Try Again" below</p>
             </div>
 
             {sessionId && (
