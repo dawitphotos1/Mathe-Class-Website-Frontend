@@ -1,54 +1,41 @@
 
+// src/components/PaymentButton.jsx
 import React, { useState } from "react";
+import { toast } from "react-toastify";
+import axiosInstance from "../utils/axiosInstance";
 import { loadStripe } from "@stripe/stripe-js";
-import axios from "../utils/axiosInstance";
 
-// Use your existing environment variable name
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
 
-const PaymentButton = ({ course, onPaymentSuccess, onPaymentError }) => {
+const PaymentButton = ({ course }) => {
   const [loading, setLoading] = useState(false);
 
   const handlePayment = async () => {
     if (!course || !course.id) {
-      onPaymentError?.("Course information is missing");
+      toast.error("Missing course ID");
       return;
     }
 
     setLoading(true);
-
     try {
-      console.log("Starting payment for course:", course.id);
+      console.log("💳 Starting payment for course:", course.id);
 
-      // Create checkout session
-      const response = await axios.post("/payments/create-checkout-session", {
-        courseId: course.id,
-      });
+      const response = await axiosInstance.post(
+        "/payments/create-checkout-session",
+        { courseId: course.id }
+      );
 
-      console.log("Checkout session created:", response.data);
-
-      const { sessionId } = response.data;
-
-      if (!sessionId) {
-        throw new Error("No session ID received from server");
-      }
-
-      // Redirect to Stripe Checkout
-      const stripe = await stripePromise;
-
-      const { error } = await stripe.redirectToCheckout({
-        sessionId: sessionId,
-      });
-
-      if (error) {
-        console.error("Stripe redirect error:", error);
-        onPaymentError?.(error.message || "Payment redirect failed");
+      if (response.data?.sessionId) {
+        const stripe = await stripePromise;
+        await stripe.redirectToCheckout({ sessionId: response.data.sessionId });
+      } else {
+        toast.error("Could not start payment session");
       }
     } catch (error) {
-      console.error("Payment error:", error);
-      const errorMessage =
-        error.response?.data?.error || error.message || "Payment failed";
-      onPaymentError?.(errorMessage);
+      console.error("❌ Payment error:", error);
+      toast.error(
+        error.response?.data?.error || "Failed to start checkout session"
+      );
     } finally {
       setLoading(false);
     }
@@ -56,22 +43,11 @@ const PaymentButton = ({ course, onPaymentSuccess, onPaymentError }) => {
 
   return (
     <button
+      className="btn-primary"
+      disabled={loading}
       onClick={handlePayment}
-      disabled={loading || !course}
-      className={`payment-button ${loading ? "loading" : ""}`}
-      style={{
-        padding: "12px 24px",
-        backgroundColor: loading ? "#6c757d" : "#28a745",
-        color: "white",
-        border: "none",
-        borderRadius: "5px",
-        fontSize: "16px",
-        cursor: loading ? "not-allowed" : "pointer",
-        width: "100%",
-        fontWeight: "bold",
-      }}
     >
-      {loading ? "Processing..." : `Pay $${course?.price || "0"} with Stripe`}
+      {loading ? "Processing..." : `Pay $${course.price} with Stripe`}
     </button>
   );
 };
