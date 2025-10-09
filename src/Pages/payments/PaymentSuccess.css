@@ -1,338 +1,5 @@
 /* 
 .payment-success-container {
-  min-height: 80vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.payment-status-container {
-  background: white;
-  border-radius: 12px;
-  padding: 3rem;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  max-width: 600px;
-  width: 100%;
-  text-align: center;
-}
-
-.loading-section h2 {
-  color: #2c3e50;
-  margin-bottom: 1rem;
-  font-size: 1.8rem;
-}
-
-.loading-section p {
-  color: #7f8c8d;
-  margin-bottom: 2rem;
-  font-size: 1.1rem;
-}
-
-.spinner-large {
-  width: 60px;
-  height: 60px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 2rem;
-}
-
-.processing-details {
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-top: 2rem;
-  text-align: left;
-}
-
-.processing-details p {
-  margin: 0.75rem 0;
-  font-size: 0.95rem;
-  color: #6c757d;
-}
-
-.processing-details strong {
-  color: #2c3e50;
-  display: inline-block;
-  width: 100px;
-}
-
-.code {
-  font-family: 'Courier New', monospace;
-  background: #e9ecef;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  word-break: break-all;
-}
-
-
-.success-section h1 {
-  color: #27ae60;
-  margin-bottom: 1.5rem;
-  font-size: 2.5rem;
-}
-
-.success-icon {
-  font-size: 4rem;
-  margin-bottom: 1.5rem;
-}
-
-.success-message {
-  margin: 2rem 0;
-  text-align: center;
-}
-
-.success-message p {
-  color: #2c3e50;
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
-}
-
-.success-message h3 {
-  color: #3498db;
-  font-size: 1.5rem;
-  margin: 1rem 0;
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border-left: 4px solid #3498db;
-}
-
-.enrollment-details {
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin: 2rem 0;
-  text-align: left;
-}
-
-.enrollment-details h3 {
-  color: #2c3e50;
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.detail-item:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-}
-
-.detail-item span:first-child {
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.detail-item span:last-child {
-  color: #6c757d;
-}
-
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: bold;
-  text-transform: uppercase;
-}
-
-.status-badge.approved {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.redirect-notice {
-  margin: 2rem 0;
-  padding: 1rem;
-  background: #d4edda;
-  border: 1px solid #c3e6cb;
-  border-radius: 6px;
-  color: #155724;
-}
-
-
-.error-section h1 {
-  color: #e74c3c;
-  margin-bottom: 1.5rem;
-  font-size: 2.5rem;
-}
-
-.error-icon {
-  font-size: 4rem;
-  margin-bottom: 1.5rem;
-}
-
-.error-message {
-  background: #fee;
-  border: 1px solid #f5c6cb;
-  border-radius: 6px;
-  padding: 1.5rem;
-  margin: 2rem 0;
-  color: #721c24;
-}
-
-.error-message p {
-  margin: 0;
-  font-size: 1.1rem;
-  line-height: 1.6;
-}
-
-.error-details {
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin: 2rem 0;
-  text-align: left;
-}
-
-.error-details h3 {
-  color: #2c3e50;
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-.troubleshooting-tips {
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
-  border-radius: 6px;
-  padding: 1.5rem;
-  margin: 2rem 0;
-  text-align: left;
-}
-
-.troubleshooting-tips h4 {
-  color: #856404;
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-.troubleshooting-tips ul {
-  margin: 0;
-  padding-left: 1.5rem;
-  color: #856404;
-}
-
-.troubleshooting-tips li {
-  margin-bottom: 0.5rem;
-}
-
-
-.action-buttons {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  margin-top: 2rem;
-  flex-wrap: wrap;
-}
-
-.btn-primary,
-.btn-secondary,
-.btn-outline {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 1rem;
-}
-
-.btn-primary {
-  background: #3498db;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #2980b9;
-  transform: translateY(-2px);
-}
-
-.btn-secondary {
-  background: #95a5a6;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background: #7f8c8d;
-  transform: translateY(-2px);
-}
-
-.btn-outline {
-  background: white;
-  color: #3498db;
-  border: 2px solid #3498db;
-}
-
-.btn-outline:hover {
-  background: #3498db;
-  color: white;
-  transform: translateY(-2px);
-}
-
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@media (max-width: 768px) {
-  .payment-success-container {
-    padding: 1rem;
-  }
-  
-  .payment-status-container {
-    padding: 2rem 1.5rem;
-  }
-  
-  .success-section h1,
-  .error-section h1 {
-    font-size: 2rem;
-  }
-  
-  .action-buttons {
-    flex-direction: column;
-  }
-  
-  .btn-primary,
-  .btn-secondary,
-  .btn-outline {
-    width: 100%;
-    text-align: center;
-  }
-  
-  .detail-item {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .processing-details,
-  .enrollment-details,
-  .error-details {
-    padding: 1rem;
-  }
-} */
-
-
-
-
-/* ==============================
-   PaymentSuccess.css
-   ============================== */
-
-.payment-success-container {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -354,9 +21,7 @@
   transition: all 0.3s ease-in-out;
 }
 
-/* ==============================
-   Loading Section
-   ============================== */
+
 .loading-section {
   display: flex;
   flex-direction: column;
@@ -383,9 +48,6 @@
   }
 }
 
-/* ==============================
-   Success Section
-   ============================== */
 .success-section {
   display: flex;
   flex-direction: column;
@@ -473,9 +135,7 @@ h3 {
   margin-top: 0.5rem;
 }
 
-/* ==============================
-   Buttons
-   ============================== */
+
 .action-buttons {
   display: flex;
   flex-direction: column;
@@ -525,9 +185,7 @@ h3 {
   color: #fff;
 }
 
-/* ==============================
-   Error Section
-   ============================== */
+
 .error-section {
   display: flex;
   flex-direction: column;
@@ -550,9 +208,7 @@ h3 {
   margin-bottom: 1rem;
 }
 
-/* ==============================
-   Responsive Design
-   ============================== */
+
 @media (max-width: 600px) {
   .payment-status-container {
     padding: 2rem 1.5rem;
@@ -568,5 +224,265 @@ h3 {
 
   h3 {
     font-size: 1.1rem;
+  }
+} */
+
+
+
+.payment-success-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.payment-status-container {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+}
+
+.loading-section {
+  padding: 40px 20px;
+}
+
+.spinner-large {
+  width: 60px;
+  height: 60px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-section h2 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.loading-section p {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.processing-details {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 10px;
+  margin-top: 20px;
+}
+
+.processing-details p {
+  margin: 5px 0;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.success-section {
+  padding: 20px;
+}
+
+.success-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+.success-section h1 {
+  color: #27ae60;
+  margin-bottom: 10px;
+}
+
+.success-section h3 {
+  color: #2c3e50;
+  margin: 20px 0;
+  font-size: 1.5em;
+}
+
+.enrollment-details {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  margin: 25px 0;
+  text-align: left;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85em;
+  font-weight: bold;
+}
+
+.status-badge.approved {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.access {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.redirect-notice {
+  color: #666;
+  font-style: italic;
+  margin: 20px 0;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: #5a6fd8;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+.btn-outline {
+  background: transparent;
+  color: #667eea;
+  padding: 12px 24px;
+  border: 2px solid #667eea;
+  border-radius: 8px;
+  font-size: 1em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+  background: #667eea;
+  color: white;
+}
+
+.error-section {
+  padding: 20px;
+}
+
+.error-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+.error-section h1 {
+  color: #dc3545;
+  margin-bottom: 15px;
+}
+
+.error-list {
+  text-align: left;
+  margin: 20px 0;
+  color: #666;
+}
+
+.error-list li {
+  margin: 8px 0;
+}
+
+.troubleshooting-tips {
+  background: #fff3cd;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.troubleshooting-tips h4 {
+  color: #856404;
+  margin-bottom: 10px;
+}
+
+.troubleshooting-tips p {
+  margin: 5px 0;
+  color: #856404;
+  font-size: 0.9em;
+}
+
+.session-info {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.session-code {
+  background: #e9ecef;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-family: monospace;
+  word-break: break-all;
+  display: block;
+  margin-top: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .payment-status-container {
+    padding: 20px;
+    margin: 10px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
   }
 }
