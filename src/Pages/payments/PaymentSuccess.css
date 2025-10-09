@@ -1,4 +1,4 @@
-/* src/pages/payments/PaymentSuccess.css */
+/* 
 .payment-success-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -19,7 +19,7 @@
   text-align: center;
 }
 
-/* Debug Panel */
+
 .debug-panel {
   background: #f8f9fa;
   border: 1px solid #e9ecef;
@@ -45,7 +45,7 @@
   margin: 0;
 }
 
-/* Loading State */
+
 .loading-section {
   padding: 20px;
 }
@@ -101,6 +101,448 @@
 .extension-warning li {
   margin-bottom: 8px;
   line-height: 1.4;
+}
+
+
+.success-section {
+  padding: 10px;
+}
+
+.success-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  animation: bounce 1s infinite alternate;
+}
+
+@keyframes bounce {
+  from { transform: translateY(0px); }
+  to { transform: translateY(-10px); }
+}
+
+.success-section h1 {
+  color: #27ae60;
+  margin-bottom: 15px;
+  font-size: 2.2em;
+}
+
+.success-section h3 {
+  color: #2c3e50;
+  margin: 20px 0;
+  font-size: 1.5em;
+  font-weight: 600;
+}
+
+.enrollment-details {
+  background: #f8f9fa;
+  padding: 25px;
+  border-radius: 12px;
+  margin: 30px 0;
+  text-align: left;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-item span:first-child {
+  font-weight: 600;
+  color: #495057;
+}
+
+.detail-item span:last-child {
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.status-badge {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.85em;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.approved {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.status-badge.access {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+.redirect-notice {
+  color: #6c757d;
+  font-style: italic;
+  margin: 25px 0;
+  font-size: 1em;
+}
+
+
+.error-section {
+  padding: 20px;
+}
+
+.error-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.error-section h1 {
+  color: #dc3545;
+  margin-bottom: 15px;
+  font-size: 2em;
+}
+
+.error-section p {
+  color: #6c757d;
+  margin-bottom: 25px;
+  font-size: 1.1em;
+  line-height: 1.5;
+}
+
+.troubleshooting {
+  text-align: left;
+  margin: 30px 0;
+}
+
+.troubleshooting h4 {
+  color: #2c3e50;
+  margin-bottom: 20px;
+  font-size: 1.2em;
+}
+
+.solution-card {
+  display: flex;
+  align-items: flex-start;
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  margin: 15px 0;
+  border-left: 4px solid #667eea;
+}
+
+.solution-number {
+  background: #667eea;
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+
+.solution-content strong {
+  color: #2c3e50;
+  display: block;
+  margin-bottom: 5px;
+  font-size: 1.1em;
+}
+
+.solution-content p {
+  color: #6c757d;
+  margin: 0;
+  font-size: 0.95em;
+  line-height: 1.4;
+}
+
+.session-info {
+  background: #e9ecef;
+  padding: 20px;
+  border-radius: 10px;
+  margin: 25px 0;
+  text-align: center;
+}
+
+.session-info p {
+  margin: 0 0 10px 0;
+  color: #495057;
+  font-weight: 600;
+}
+
+.session-code {
+  background: #dee2e6;
+  padding: 12px;
+  border-radius: 6px;
+  font-family: 'Courier New', monospace;
+  word-break: break-all;
+  color: #495057;
+  font-size: 0.9em;
+  display: block;
+}
+
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.btn-primary, .btn-secondary, .btn-outline {
+  padding: 14px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:hover {
+  background: #5a6fd8;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+.btn-outline {
+  background: transparent;
+  color: #667eea;
+  border: 2px solid #667eea;
+}
+
+.btn-outline:hover {
+  background: #667eea;
+  color: white;
+  transform: translateY(-2px);
+}
+
+
+@media (max-width: 768px) {
+  .payment-status-container {
+    padding: 25px 20px;
+    margin: 10px;
+  }
+
+  .loading-section h2,
+  .success-section h1,
+  .error-section h1 {
+    font-size: 1.6em;
+  }
+
+  .enrollment-details {
+    padding: 20px 15px;
+  }
+
+  .detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .solution-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .solution-number {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+
+  .action-buttons {
+    gap: 10px;
+  }
+
+  .btn-primary, .btn-secondary, .btn-outline {
+    padding: 12px 20px;
+    font-size: 0.95em;
+  }
+}
+
+@media (max-width: 480px) {
+  .payment-success-container {
+    padding: 10px;
+  }
+
+  .payment-status-container {
+    padding: 20px 15px;
+  }
+
+  .success-icon,
+  .error-icon {
+    font-size: 3rem;
+  }
+
+  .extension-warning,
+  .troubleshooting,
+  .session-info {
+    padding: 15px;
+  }
+} */
+
+
+
+
+
+/* src/pages/payments/PaymentSuccess.css - FINAL */
+.payment-success-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.payment-status-container {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  max-width: 700px;
+  width: 100%;
+  text-align: center;
+}
+
+/* Debug Panel */
+.debug-panel {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+  text-align: left;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.debug-panel h4 {
+  margin: 0 0 10px 0;
+  color: #00ff88;
+  font-size: 14px;
+  font-family: 'Courier New', monospace;
+}
+
+.debug-panel pre {
+  font-size: 12px;
+  color: #00ff88;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  font-family: 'Courier New', monospace;
+}
+
+/* Loading State */
+.loading-section {
+  padding: 20px;
+}
+
+.spinner-large {
+  width: 60px;
+  height: 60px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-section h2 {
+  color: #2c3e50;
+  margin-bottom: 10px;
+  font-size: 1.8em;
+}
+
+.loading-section p {
+  color: #6c757d;
+  margin-bottom: 25px;
+  font-size: 1.1em;
+}
+
+.bypass-notice {
+  background: #e3f2fd;
+  border: 2px solid #2196f3;
+  border-radius: 12px;
+  padding: 25px;
+  margin-top: 25px;
+  text-align: center;
+}
+
+.bypass-notice h4 {
+  color: #1976d2;
+  margin-bottom: 15px;
+  font-size: 1.2em;
+}
+
+.bypass-notice p {
+  color: #1976d2;
+  margin-bottom: 20px;
+}
+
+.bypass-steps {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.bypass-step {
+  flex: 1;
+  padding: 10px;
+  background: #bbdefb;
+  color: #0d47a1;
+  border-radius: 8px;
+  margin: 0 5px;
+  font-weight: bold;
+  font-size: 0.9em;
+  transition: all 0.3s ease;
+}
+
+.bypass-step.active {
+  background: #2196f3;
+  color: white;
+  transform: scale(1.05);
 }
 
 /* Success State */
@@ -220,53 +662,81 @@
   line-height: 1.5;
 }
 
-.troubleshooting {
+.emergency-solutions {
   text-align: left;
   margin: 30px 0;
 }
 
-.troubleshooting h4 {
-  color: #2c3e50;
+.emergency-solutions h4 {
+  color: #dc3545;
   margin-bottom: 20px;
-  font-size: 1.2em;
+  font-size: 1.3em;
+  text-align: center;
 }
 
-.solution-card {
+.solution-card.emergency {
   display: flex;
   align-items: flex-start;
-  background: #f8f9fa;
+  background: #fff3f3;
   padding: 20px;
   border-radius: 10px;
   margin: 15px 0;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #dc3545;
+  border: 2px solid #ffcccc;
 }
 
-.solution-number {
-  background: #667eea;
-  color: white;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
+.solution-icon {
+  font-size: 2em;
   margin-right: 15px;
   flex-shrink: 0;
 }
 
 .solution-content strong {
-  color: #2c3e50;
+  color: #dc3545;
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
   font-size: 1.1em;
 }
 
 .solution-content p {
-  color: #6c757d;
-  margin: 0;
+  color: #666;
+  margin: 0 0 12px 0;
   font-size: 0.95em;
   line-height: 1.4;
+}
+
+.btn-small {
+  background: #dc3545;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-small:hover {
+  background: #c82333;
+}
+
+.bypass-attempt {
+  background: #fff3cd;
+  border: 2px solid #ffc107;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 25px 0;
+  text-align: center;
+}
+
+.bypass-attempt h4 {
+  color: #856404;
+  margin-bottom: 10px;
+}
+
+.bypass-attempt p {
+  color: #856404;
+  margin-bottom: 15px;
 }
 
 .session-info {
@@ -359,28 +829,21 @@
     margin: 10px;
   }
 
-  .loading-section h2,
-  .success-section h1,
-  .error-section h1 {
-    font-size: 1.6em;
-  }
-
-  .enrollment-details {
-    padding: 20px 15px;
-  }
-
-  .detail-item {
+  .bypass-steps {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
+    gap: 10px;
   }
 
-  .solution-card {
+  .bypass-step {
+    margin: 0;
+  }
+
+  .solution-card.emergency {
     flex-direction: column;
     text-align: center;
   }
 
-  .solution-number {
+  .solution-icon {
     margin-right: 0;
     margin-bottom: 10px;
   }
@@ -409,8 +872,8 @@
     font-size: 3rem;
   }
 
-  .extension-warning,
-  .troubleshooting,
+  .emergency-solutions,
+  .bypass-attempt,
   .session-info {
     padding: 15px;
   }
