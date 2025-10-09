@@ -1,4 +1,4 @@
- /* src/Pages/payment/PaymentSuccess.css */
+/* 
 .payment-success-container {
   min-height: 80vh;
   display: flex;
@@ -18,7 +18,6 @@
   text-align: center;
 }
 
-/* Loading State */
 .loading-section h2 {
   color: #2c3e50;
   margin-bottom: 1rem;
@@ -70,7 +69,7 @@
   word-break: break-all;
 }
 
-/* Success State */
+
 .success-section h1 {
   color: #27ae60;
   margin-bottom: 1.5rem;
@@ -162,7 +161,7 @@
   color: #155724;
 }
 
-/* Error State */
+
 .error-section h1 {
   color: #e74c3c;
   margin-bottom: 1.5rem;
@@ -228,7 +227,7 @@
   margin-bottom: 0.5rem;
 }
 
-/* Action Buttons */
+
 .action-buttons {
   display: flex;
   gap: 1rem;
@@ -283,13 +282,12 @@
   transform: translateY(-2px);
 }
 
-/* Animations */
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .payment-success-container {
     padding: 1rem;
@@ -324,5 +322,251 @@
   .enrollment-details,
   .error-details {
     padding: 1rem;
+  }
+} */
+
+
+
+
+/* ==============================
+   PaymentSuccess.css
+   ============================== */
+
+.payment-success-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f9fafb, #eef2ff);
+  font-family: "Inter", "Segoe UI", sans-serif;
+  color: #1e293b;
+  padding: 2rem;
+}
+
+.payment-status-container {
+  background: #fff;
+  border-radius: 1.5rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  padding: 3rem 2rem;
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  transition: all 0.3s ease-in-out;
+}
+
+/* ==============================
+   Loading Section
+   ============================== */
+.loading-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner-large {
+  width: 60px;
+  height: 60px;
+  border: 5px solid #d1d5db;
+  border-top: 5px solid #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1.5rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==============================
+   Success Section
+   ============================== */
+.success-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.success-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: pop 0.4s ease-in-out;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+h1 {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  color: #16a34a;
+}
+
+h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #334155;
+  margin-top: 0.25rem;
+}
+
+.enrollment-details {
+  background: #f8fafc;
+  border-radius: 1rem;
+  padding: 1.2rem;
+  margin: 1.5rem 0;
+  width: 100%;
+  text-align: left;
+  font-size: 0.95rem;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+}
+
+.detail-item span:first-child {
+  color: #64748b;
+}
+
+.status-badge {
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.status-badge.approved {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.status-badge.pending {
+  background-color: #fef9c3;
+  color: #ca8a04;
+}
+
+.code {
+  font-family: monospace;
+  color: #334155;
+  background: #f1f5f9;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.redirect-notice {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-top: 0.5rem;
+}
+
+/* ==============================
+   Buttons
+   ============================== */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-outline {
+  border: none;
+  outline: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  padding: 0.8rem 1.2rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-primary {
+  background-color: #6366f1;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background-color: #4f46e5;
+}
+
+.btn-secondary {
+  background-color: #f3f4f6;
+  color: #1e293b;
+}
+
+.btn-secondary:hover {
+  background-color: #e5e7eb;
+}
+
+.btn-outline {
+  border: 2px solid #6366f1;
+  color: #6366f1;
+  background: transparent;
+}
+
+.btn-outline:hover {
+  background-color: #6366f1;
+  color: #fff;
+}
+
+/* ==============================
+   Error Section
+   ============================== */
+.error-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #dc2626;
+}
+
+.error-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.error-section h1 {
+  color: #dc2626;
+  margin-bottom: 0.5rem;
+}
+
+.error-section p {
+  color: #475569;
+  margin-bottom: 1rem;
+}
+
+/* ==============================
+   Responsive Design
+   ============================== */
+@media (max-width: 600px) {
+  .payment-status-container {
+    padding: 2rem 1.5rem;
+  }
+
+  .enrollment-details {
+    font-size: 0.9rem;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
   }
 }
