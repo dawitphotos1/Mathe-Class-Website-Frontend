@@ -241,7 +241,7 @@
   padding: 3rem;
   text-align: center;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  max-width: 500px;
+  max-width: 600px;
   width: 100%;
 }
 
@@ -275,6 +275,57 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+.browser-warning {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  text-align: left;
+}
+
+.browser-warning h4 {
+  color: #856404;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.browser-warning p {
+  color: #856404;
+  margin-bottom: 1rem;
+}
+
+.browser-warning ul {
+  color: #856404;
+  padding-left: 1.5rem;
+  margin: 0;
+}
+
+.browser-warning li {
+  margin-bottom: 0.5rem;
+}
+
+.debug-info {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+  text-align: left;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.debug-info p {
+  margin: 0.25rem 0;
+  word-break: break-all;
+}
+
+.retry-count {
+  color: #666;
+  font-style: italic;
+  margin-top: 1rem;
 }
 
 .enrollment-details {
@@ -324,6 +375,8 @@
   border: none;
   cursor: pointer;
   display: inline-block;
+  text-align: center;
+  min-width: 140px;
 }
 
 .btn-primary {

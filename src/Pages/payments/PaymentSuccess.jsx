@@ -194,7 +194,7 @@
 
 
 
-
+//src/pages/payment/PaymentSuccess.jsx
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import axios from "../../utils/axiosInstance";
@@ -213,59 +213,130 @@ const PaymentSuccess = () => {
   const [error, setError] = useState("");
   const [enrollment, setEnrollment] = useState(null);
   const [course, setCourse] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
-  useEffect(() => {
-    const confirmPayment = async () => {
-      if (!sessionId || !courseId) {
-        setError("Missing payment information");
-        setStatus("error");
-        return;
-      }
+  // Function to confirm payment with retry logic
+  const confirmPayment = async () => {
+    console.log("🔍 PaymentSuccess - Starting confirmation:", {
+      sessionId,
+      courseId,
+      user: user?.email,
+      retryCount,
+    });
 
-      try {
-        setStatus("confirming");
+    if (!sessionId || !courseId) {
+      setError("Missing payment information: session_id or course_id");
+      setStatus("error");
+      return;
+    }
 
-        // Confirm payment with backend
-        const response = await axios.post("/payments/confirm", {
+    if (!user) {
+      setError("User not authenticated. Please log in again.");
+      setStatus("error");
+      return;
+    }
+
+    try {
+      setStatus("confirming");
+
+      console.log("🔄 Sending confirmation request to backend...");
+
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+      // Confirm payment with backend
+      const response = await axios.post(
+        "/payments/confirm",
+        {
           sessionId,
           courseId,
-        });
+        },
+        {
+          signal: controller.signal,
+        }
+      );
 
-        if (response.data.success) {
-          setStatus("success");
-          setEnrollment(response.data.enrollment);
+      clearTimeout(timeoutId);
 
-          // Fetch course details
+      console.log("✅ Backend response:", response.data);
+
+      if (response.data.success) {
+        setStatus("success");
+        setEnrollment(response.data.enrollment);
+
+        // Fetch course details
+        try {
           const courseResponse = await axios.get(`/courses/id/${courseId}`);
           setCourse(courseResponse.data);
-        } else {
-          throw new Error(response.data.error || "Payment confirmation failed");
+        } catch (courseErr) {
+          console.warn(
+            "Could not fetch course details, but enrollment was successful:",
+            courseErr
+          );
+          // Continue even if course fetch fails
         }
-      } catch (err) {
-        console.error("Payment confirmation error:", err);
+      } else {
+        throw new Error(response.data.error || "Payment confirmation failed");
+      }
+    } catch (err) {
+      console.error("❌ Payment confirmation error:", err);
+
+      if (err.name === "AbortError") {
         setError(
-          err.response?.data?.error ||
-            err.message ||
-            "Payment confirmation failed"
+          "Request timeout. Please check your internet connection and try again."
         );
+      } else {
+        const errorMessage =
+          err.response?.data?.error ||
+          err.response?.data?.message ||
+          err.message ||
+          "Payment confirmation failed. Please contact support.";
+
+        setError(errorMessage);
+      }
+
+      setStatus("error");
+    }
+  };
+
+  useEffect(() => {
+    // Wait a bit for Stripe to complete processing
+    const initializeConfirmation = async () => {
+      // Add a small delay to ensure Stripe has processed the payment
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      if (user && sessionId && courseId) {
+        confirmPayment();
+      } else {
+        console.error("Missing required data:", { user, sessionId, courseId });
+        setError("Missing required payment information");
         setStatus("error");
       }
     };
 
-    if (user && sessionId && courseId) {
-      confirmPayment();
-    }
+    initializeConfirmation();
   }, [sessionId, courseId, user]);
 
-  const handleRetry = () => {
+  const handleRetry = async () => {
+    if (retryCount >= 3) {
+      setError("Maximum retry attempts reached. Please contact support.");
+      return;
+    }
+
     setError("");
     setStatus("confirming");
-    // Retry logic or redirect
-    if (courseId) {
-      navigate(`/courses/${courseId}`);
-    } else {
-      navigate("/courses");
-    }
+    setRetryCount((prev) => prev + 1);
+
+    // Wait before retry
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    await confirmPayment();
+  };
+
+  const handleManualCheck = () => {
+    // Redirect to my-courses page to check if enrollment actually worked
+    navigate("/my-courses");
   };
 
   if (status === "confirming") {
@@ -275,6 +346,13 @@ const PaymentSuccess = () => {
           <div className="spinner"></div>
           <h2>Confirming Your Payment...</h2>
           <p>Please wait while we process your enrollment.</p>
+          <p className="debug-info">
+            <strong>Note:</strong> If this takes more than 30 seconds, your
+            browser extensions might be interfering.
+          </p>
+          {retryCount > 0 && (
+            <p className="retry-count">Retry attempt: {retryCount}/3</p>
+          )}
         </div>
       </div>
     );
@@ -287,9 +365,45 @@ const PaymentSuccess = () => {
           <div className="error-icon">❌</div>
           <h2>Confirmation Failed</h2>
           <p>{error}</p>
+
+          <div className="browser-warning">
+            <h4>⚠️ Browser Extension Detected</h4>
+            <p>
+              We've detected that a browser extension (McAfee WebAdvisor) might
+              be interfering with payment confirmation.
+            </p>
+            <ul>
+              <li>
+                Try in <strong>Incognito/Private Mode</strong>
+              </li>
+              <li>Disable the McAfee extension temporarily</li>
+              <li>Or try a different browser</li>
+            </ul>
+          </div>
+
+          <div className="debug-info">
+            <p>
+              <strong>Session ID:</strong> {sessionId}
+            </p>
+            <p>
+              <strong>Course ID:</strong> {courseId}
+            </p>
+            <p>
+              <strong>User:</strong> {user?.email}
+            </p>
+            <p>
+              <strong>Retry Attempt:</strong> {retryCount}/3
+            </p>
+          </div>
+
           <div className="action-buttons">
-            <button onClick={handleRetry} className="btn-retry">
-              Try Again
+            {retryCount < 3 ? (
+              <button onClick={handleRetry} className="btn-retry">
+                Try Again ({3 - retryCount} left)
+              </button>
+            ) : null}
+            <button onClick={handleManualCheck} className="btn-secondary">
+              Check My Courses Anyway
             </button>
             <Link to="/contact" className="btn-support">
               Contact Support
@@ -300,45 +414,52 @@ const PaymentSuccess = () => {
     );
   }
 
-  if (status === "success" && enrollment && course) {
+  if (status === "success") {
     return (
       <div className="payment-success-container">
         <div className="payment-status success">
           <div className="success-icon">🎉</div>
           <h2>Payment Successful!</h2>
           <p>
-            You are now enrolled in <strong>{course.title}</strong>
+            You are now enrolled in{" "}
+            <strong>{course?.title || "the course"}</strong>
           </p>
 
-          <div className="enrollment-details">
-            <div className="detail-item">
-              <span className="label">Course:</span>
-              <span className="value">{course.title}</span>
+          {enrollment && (
+            <div className="enrollment-details">
+              <div className="detail-item">
+                <span className="label">Course:</span>
+                <span className="value">{course?.title || "N/A"}</span>
+              </div>
+              <div className="detail-item">
+                <span className="label">Amount Paid:</span>
+                <span className="value">
+                  $
+                  {parseFloat(course?.price || enrollment.price || 0).toFixed(
+                    2
+                  )}
+                </span>
+              </div>
+              <div className="detail-item">
+                <span className="label">Enrollment Date:</span>
+                <span className="value">
+                  {new Date(
+                    enrollment.enrollmentDate || new Date()
+                  ).toLocaleDateString()}
+                </span>
+              </div>
             </div>
-            <div className="detail-item">
-              <span className="label">Amount Paid:</span>
-              <span className="value">
-                ${parseFloat(course.price).toFixed(2)}
-              </span>
-            </div>
-            <div className="detail-item">
-              <span className="label">Enrollment Date:</span>
-              <span className="value">
-                {new Date(enrollment.enrollmentDate).toLocaleDateString()}
-              </span>
-            </div>
-          </div>
+          )}
 
           <div className="action-buttons">
-            <Link to={`/my-courses`} className="btn-primary">
+            <Link to="/my-courses" className="btn-primary">
               Go to My Courses
             </Link>
-            <Link
-              to={`/courses/${course.slug || course.id}`}
-              className="btn-secondary"
-            >
-              View Course
-            </Link>
+            {course?.slug && (
+              <Link to={`/courses/${course.slug}`} className="btn-secondary">
+                View Course
+              </Link>
+            )}
           </div>
         </div>
       </div>
