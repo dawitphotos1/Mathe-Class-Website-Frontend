@@ -1,6 +1,4 @@
-/* ===========================
-   General Layout
-   =========================== */
+/* 
 .payment-success-container {
   display: flex;
   justify-content: center;
@@ -35,9 +33,7 @@
   color: var(--text-muted, #555);
 }
 
-/* ===========================
-   Spinner & Loading
-   =========================== */
+
 .spinner-large {
   width: 80px;
   height: 80px;
@@ -59,9 +55,7 @@
   color: var(--text-color, #333);
 }
 
-/* ===========================
-   Success Section
-   =========================== */
+
 .success-section {
   animation: fadeIn 0.6s ease;
 }
@@ -78,9 +72,7 @@
   color: var(--text-muted, #777);
 }
 
-/* ===========================
-   Error Section
-   =========================== */
+
 .error-section {
   animation: fadeIn 0.6s ease;
 }
@@ -92,11 +84,8 @@
   animation: shake 0.5s ease;
 }
 
-/* ===========================
-   Buttons
-   =========================== */
-.action-buttons {
-  display: flex;
+
+  display: flex;{
   flex-direction: column;
   gap: 10px;
   margin-top: 15px;
@@ -148,9 +137,7 @@
   color: #007bff;
 }
 
-/* ===========================
-   Animations
-   =========================== */
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -188,9 +175,7 @@
   }
 }
 
-/* ===========================
-   Dark Mode Support
-   =========================== */
+
 @media (prefers-color-scheme: dark) {
   .payment-success-container {
     background-color: #0d1117;
@@ -236,5 +221,162 @@
 
   .btn-outline:hover {
     color: #3a7fff;
+  }
+} */
+
+
+
+
+.payment-success-container {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.payment-status {
+  background: white;
+  border-radius: 12px;
+  padding: 3rem;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 100%;
+}
+
+.payment-status.confirming {
+  border-left: 4px solid #3498db;
+}
+
+.payment-status.success {
+  border-left: 4px solid #2ecc71;
+}
+
+.payment-status.error {
+  border-left: 4px solid #e74c3c;
+}
+
+.success-icon, .error-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.enrollment-details {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 2rem 0;
+  text-align: left;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.detail-item:last-child {
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.label {
+  font-weight: 600;
+  color: #495057;
+}
+
+.value {
+  color: #212529;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.btn-primary, .btn-secondary, .btn-retry, .btn-support {
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.btn-primary {
+  background: #3498db;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #2980b9;
+}
+
+.btn-secondary {
+  background: #95a5a6;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #7f8c8d;
+}
+
+.btn-retry {
+  background: #e74c3c;
+  color: white;
+}
+
+.btn-retry:hover {
+  background: #c0392b;
+}
+
+.btn-support {
+  background: #34495e;
+  color: white;
+}
+
+.btn-support:hover {
+  background: #2c3e50;
+}
+
+@media (max-width: 768px) {
+  .payment-success-container {
+    padding: 1rem;
+  }
+  
+  .payment-status {
+    padding: 2rem 1.5rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .btn-primary, .btn-secondary, .btn-retry, .btn-support {
+    width: 100%;
+    text-align: center;
   }
 }
