@@ -193,236 +193,117 @@
 
 
 
-
 // src/pages/payment/PaymentSuccess.jsx
 import React, { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "./PaymentSuccess.css";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const { user } = useAuth();
 
   const sessionId = searchParams.get("session_id");
   const courseId = searchParams.get("course_id");
 
-  const [status, setStatus] = useState("checking");
-  const [error, setError] = useState("");
-  const [course, setCourse] = useState(null);
-  const [enrollment, setEnrollment] = useState(null);
-
-  // Check if user is already enrolled (webhook might have processed it)
-  const checkExistingEnrollment = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`https://mathe-class-website-backend.onrender.com/api/v1/users/me/enrollments`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const enrollments = await response.json();
-        const currentEnrollment = enrollments.find(e => e.courseId === courseId);
-        
-        if (currentEnrollment) {
-          setStatus("success");
-          setEnrollment(currentEnrollment);
-          await fetchCourseDetails();
-          return true;
-        }
-      }
-      return false;
-    } catch (err) {
-      console.error("Error checking enrollment:", err);
-      return false;
-    }
-  };
-
-  const fetchCourseDetails = async () => {
-    try {
-      const response = await fetch(`https://mathe-class-website-backend.onrender.com/api/v1/courses/id/${courseId}`);
-      if (response.ok) {
-        const courseData = await response.json();
-        setCourse(courseData);
-      }
-    } catch (err) {
-      console.error("Error fetching course:", err);
-    }
-  };
-
-  // Simple enrollment check without complex confirmation
-  const verifyEnrollment = async () => {
-    // First, check if already enrolled
-    const isEnrolled = await checkExistingEnrollment();
-    if (isEnrolled) return;
-
-    // If not enrolled yet, wait and check again (webhook might be processing)
-    let attempts = 0;
-    const maxAttempts = 10;
-    
-    const checkInterval = setInterval(async () => {
-      attempts++;
-      console.log(`Checking enrollment (attempt ${attempts}/${maxAttempts})...`);
-      
-      const isEnrolled = await checkExistingEnrollment();
-      
-      if (isEnrolled) {
-        clearInterval(checkInterval);
-        return;
-      }
-      
-      if (attempts >= maxAttempts) {
-        clearInterval(checkInterval);
-        setError("Enrollment is taking longer than expected. Your payment was successful, but we're still processing your enrollment. Please check 'My Courses' in a few minutes.");
-        setStatus("delayed");
-      }
-    }, 2000); // Check every 2 seconds
-  };
+  const [status, setStatus] = useState("processing");
+  const [countdown, setCountdown] = useState(10);
 
   useEffect(() => {
-    // Add this to prevent extension interference
-    const originalError = console.error;
-    console.error = function(...args) {
-      if (typeof args[0] === 'string' && args[0].includes('features')) {
-        // Suppress the extension error
-        return;
-      }
-      originalError.apply(console, args);
-    };
+    console.log("🎯 Payment Success page loaded");
+    console.log("Session ID:", sessionId);
+    console.log("Course ID:", courseId);
+    console.log("User:", user?.email);
 
-    if (user && sessionId && courseId) {
-      verifyEnrollment();
-    } else {
-      setError("Missing payment information. Please contact support with your session ID.");
-      setStatus("error");
-    }
+    // No API calls - just show success message
+    // Webhook will handle enrollment in background
+    
+    // Countdown timer for redirect
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
-    // Restore console.error
-    return () => {
-      console.error = originalError;
-    };
+    return () => clearInterval(timer);
   }, [sessionId, courseId, user]);
 
-  const handleGoToCourses = () => {
-    navigate("/my-courses");
-  };
-
-  const handleRetryCheck = () => {
-    setStatus("checking");
-    setError("");
-    verifyEnrollment();
-  };
-
-  if (status === "checking") {
-    return (
-      <div className="payment-success-container">
-        <div className="payment-status checking">
-          <div className="spinner"></div>
-          <h2>Verifying Your Enrollment...</h2>
-          <p>Please wait while we confirm your course access.</p>
-          <div className="processing-info">
-            <p>✅ Payment received successfully</p>
-            <p>🔄 Setting up your course access...</p>
-          </div>
+  // Simple success page with no API calls
+  return (
+    <div className="payment-success-container">
+      <div className="payment-status success">
+        <div className="success-icon">✅</div>
+        <h2>Payment Successful!</h2>
+        
+        <div className="payment-info">
+          <p><strong>Thank you for your purchase!</strong></p>
+          <p>Your payment has been processed successfully.</p>
         </div>
-      </div>
-    );
-  }
 
-  if (status === "delayed") {
-    return (
-      <div className="payment-success-container">
-        <div className="payment-status delayed">
-          <div className="delayed-icon">⏳</div>
-          <h2>Enrollment Processing</h2>
-          <p>{error}</p>
-          
-          <div className="next-steps">
-            <h4>What to do next:</h4>
-            <ol>
-              <li>Your payment was successful and secure</li>
-              <li>Course access is being set up automatically</li>
-              <li>This usually takes 1-5 minutes</li>
-              <li>You'll receive email confirmation</li>
-            </ol>
-          </div>
-
-          <div className="action-buttons">
-            <button onClick={handleRetryCheck} className="btn-retry">
-              Check Again
-            </button>
-            <button onClick={handleGoToCourses} className="btn-primary">
-              Check My Courses
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (status === "error") {
-    return (
-      <div className="payment-success-container">
-        <div className="payment-status error">
-          <div className="error-icon">⚠️</div>
-          <h2>Verification Needed</h2>
-          <p>{error}</p>
-          
-          <div className="support-info">
-            <p><strong>Session ID:</strong> {sessionId}</p>
-            <p><strong>Course ID:</strong> {courseId}</p>
-            <p>Please save this information for support.</p>
-          </div>
-
-          <div className="action-buttons">
-            <button onClick={handleGoToCourses} className="btn-primary">
-              Check My Courses
-            </button>
-            <a 
-              href={`mailto:support@matheclass.com?subject=Payment Verification Needed&body=Session ID: ${sessionId}%0ACourse ID: ${courseId}%0AUser: ${user?.email}`}
-              className="btn-support"
-            >
-              Email Support
-            </a>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (status === "success") {
-    return (
-      <div className="payment-success-container">
-        <div className="payment-status success">
-          <div className="success-icon">🎉</div>
-          <h2>Welcome to Your Course!</h2>
-          <p>You're now enrolled in <strong>{course?.title || "the course"}</strong></p>
-          
-          <div className="enrollment-details">
-            <div className="detail-item">
-              <span className="label">Course:</span>
-              <span className="value">{course?.title || "N/A"}</span>
+        <div className="processing-message">
+          <h3>What happens next?</h3>
+          <div className="steps">
+            <div className="step">
+              <span className="step-number">1</span>
+              <div className="step-content">
+                <strong>Payment Processed</strong>
+                <p>Your payment has been securely processed by Stripe.</p>
+              </div>
             </div>
-            <div className="detail-item">
-              <span className="label">Access Granted:</span>
-              <span className="value">Immediate</span>
+            <div className="step">
+              <span className="step-number">2</span>
+              <div className="step-content">
+                <strong>Automatic Enrollment</strong>
+                <p>You're being enrolled in the course automatically.</p>
+              </div>
+            </div>
+            <div className="step">
+              <span className="step-number">3</span>
+              <div className="step-content">
+                <strong>Access Granted</strong>
+                <p>You'll have immediate access to the course content.</p>
+              </div>
             </div>
           </div>
+        </div>
 
-          <div className="action-buttons">
-            <button onClick={handleGoToCourses} className="btn-primary">
-              Start Learning Now
-            </button>
-          </div>
+        <div className="important-notes">
+          <h4>📝 Important Notes:</h4>
+          <ul>
+            <li>Enrollment may take 1-2 minutes to process</li>
+            <li>You'll receive a confirmation email</li>
+            <li>Check "My Courses" if you don't see the course immediately</li>
+            <li>Contact support if you don't have access within 5 minutes</li>
+          </ul>
+        </div>
+
+        <div className="support-info">
+          <p><strong>Reference ID:</strong> {sessionId}</p>
+          <p><strong>Course ID:</strong> {courseId}</p>
+          <p>Save this information for support if needed.</p>
+        </div>
+
+        <div className="action-buttons">
+          <Link to="/my-courses" className="btn-primary">
+            {countdown > 0 ? `Go to My Courses (${countdown})` : 'Go to My Courses'}
+          </Link>
+          <Link to="/courses" className="btn-secondary">
+            Browse More Courses
+          </Link>
+          <a 
+            href={`mailto:support@matheclass.com?subject=Payment Confirmation&body=Session ID: ${sessionId}%0ACourse ID: ${courseId}%0AUser: ${user?.email}`}
+            className="btn-support"
+          >
+            Contact Support
+          </a>
         </div>
       </div>
-    );
-  }
-
-  return null;
+    </div>
+  );
 };
 
 export default PaymentSuccess;
