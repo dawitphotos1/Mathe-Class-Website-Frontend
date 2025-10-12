@@ -1,5 +1,4 @@
 
-// src/Pages/auth/Login.jsx
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -18,12 +17,20 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
+
     setIsSubmitting(true);
     setError(null);
 
     try {
       const user = await loginUser({ email, password });
 
+      // ✅ Save token & user to localStorage
+      if (user?.token) {
+        localStorage.setItem("token", user.token);
+        localStorage.setItem("user", JSON.stringify(user));
+      }
+
+      // ✅ Navigate based on role
       if (user?.role === "admin") {
         navigate("/admin");
       } else if (user?.role === "teacher") {

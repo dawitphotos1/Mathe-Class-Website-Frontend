@@ -1,5 +1,4 @@
 
-// src/Pages/auth/Register.jsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -86,15 +85,28 @@ const Register = () => {
     };
 
     console.log("Submitting registration data:", payload);
-
     setLoading(true);
+
     try {
-      await registerUser(payload);
-      toast.success("Registration successful! Redirecting...");
-      navigate("/login"); // or navigate("/dashboard") if you auto-login
+      const user = await registerUser(payload);
+
+      // ✅ If backend returns token, auto-login user
+      if (user?.token) {
+        localStorage.setItem("token", user.token);
+        localStorage.setItem("user", JSON.stringify(user));
+        toast.success("Registration successful! Welcome!");
+        navigate("/my-courses");
+      } else {
+        toast.success("Registration successful! Please log in.");
+        navigate("/login");
+      }
     } catch (error) {
-      console.error("Registration failed:", error.response?.data || error.message);
-      const errorMsg = error.response?.data?.error || "Registration failed. Please try again.";
+      console.error(
+        "Registration failed:",
+        error.response?.data || error.message
+      );
+      const errorMsg =
+        error.response?.data?.error || "Registration failed. Please try again.";
       toast.error(errorMsg);
     } finally {
       setLoading(false);
