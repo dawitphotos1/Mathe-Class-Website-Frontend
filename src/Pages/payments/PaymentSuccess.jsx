@@ -192,11 +192,9 @@
 // export default PaymentSuccess;
 
 
-
 // src/pages/payment/PaymentSuccess.jsx
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
-import axios from "../../utils/axiosInstance";
 import { useAuth } from "../../context/AuthContext";
 import "./PaymentSuccess.css";
 
@@ -212,122 +210,76 @@ const PaymentSuccess = () => {
   const [error, setError] = useState("");
   const [enrollment, setEnrollment] = useState(null);
   const [course, setCourse] = useState(null);
-  const [retryCount, setRetryCount] = useState(0);
 
-  // Debug mount
-  useEffect(() => {
-    console.log("🔍 PaymentSuccess mounted with:", {
-      sessionId,
-      courseId,
-      user: user ? `${user.email} (id: ${user.id})` : 'No user',
-      hasToken: !!localStorage.getItem('token')
-    });
-  }, []);
-
-  // Function to confirm payment with retry logic
-  const confirmPayment = async () => {
-    console.log("🔍 confirmPayment function called");
-    console.log("📦 Request data:", { sessionId, courseId, userId: user?.id });
-
-    if (!sessionId || !courseId) {
-      console.log("❌ Missing sessionId or courseId");
-      setError("Missing payment information: session_id or course_id");
-      setStatus("error");
-      return;
-    }
-
-    if (!user) {
-      console.log("❌ No user found");
-      setError("User not authenticated. Please log in again.");
+  // Direct API call that bypasses axios and potential extension interference
+  const confirmPaymentDirect = async () => {
+    console.log("🚀 Starting direct payment confirmation...");
+    
+    if (!sessionId || !courseId || !user) {
+      setError("Missing required information. Please contact support.");
       setStatus("error");
       return;
     }
 
     try {
-      setStatus("confirming");
-      console.log("🔄 Starting payment confirmation...");
-
-      // Test if axios is working by making a simple request first
-      try {
-        console.log("🧪 Testing API connection...");
-        const healthResponse = await axios.get('/health');
-        console.log("✅ API health check passed:", healthResponse.data);
-      } catch (healthError) {
-        console.error("❌ API health check failed:", healthError);
-        throw new Error(`Cannot connect to server: ${healthError.message}`);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error("No authentication token found");
       }
 
-      // Add timeout to prevent hanging requests
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-      console.log("📤 Sending confirmation request to /payments/confirm...");
+      console.log("📤 Making direct fetch request...");
       
-      // Confirm payment with backend
-      const response = await axios.post(
-        "/payments/confirm",
-        {
-          sessionId,
-          courseId,
+      const response = await fetch("https://mathe-class-website-backend.onrender.com/api/v1/payments/confirm", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
-        {
-          signal: controller.signal,
-        }
-      );
-
-      clearTimeout(timeoutId);
-
-      console.log("✅ Backend response received:", response.data);
-
-      if (response.data.success) {
-        console.log("🎉 Payment confirmation successful!");
-        setStatus("success");
-        setEnrollment(response.data.enrollment);
-
-        // Fetch course details
-        try {
-          console.log("📚 Fetching course details...");
-          const courseResponse = await axios.get(`/courses/id/${courseId}`);
-          setCourse(courseResponse.data);
-          console.log("✅ Course details fetched");
-        } catch (courseErr) {
-          console.warn("⚠️ Could not fetch course details:", courseErr);
-        }
-      } else {
-        console.log("❌ Backend returned success: false");
-        throw new Error(response.data.error || "Payment confirmation failed");
-      }
-    } catch (err) {
-      console.error("❌ Payment confirmation error:", err);
-      console.error("❌ Error details:", {
-        name: err.name,
-        message: err.message,
-        code: err.code,
-        response: err.response?.data,
-        status: err.response?.status
+        body: JSON.stringify({
+          sessionId,
+          courseId
+        })
       });
 
-      let errorMessage = "Payment confirmation failed. Please contact support.";
-      
-      if (err.name === 'AbortError') {
-        errorMessage = "Request timeout. Please check your internet connection and try again.";
-      } else if (err.response) {
-        // Server responded with error status
-        const status = err.response.status;
-        if (status === 401) {
-          errorMessage = "Authentication failed. Please log in again.";
-        } else if (status === 404) {
-          errorMessage = "Payment confirmation endpoint not found (404). Please contact support.";
-        } else if (status === 500) {
-          errorMessage = "Server error. Please try again or contact support.";
-        } else {
-          errorMessage = err.response.data?.error || `Server error (${status}). Please try again.`;
+      console.log("📥 Response received, status:", response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("✅ Payment confirmation success:", data);
+
+      if (data.success) {
+        setStatus("success");
+        setEnrollment(data.enrollment);
+        
+        // Fetch course details
+        try {
+          const courseResponse = await fetch(`https://mathe-class-website-backend.onrender.com/api/v1/courses/id/${courseId}`);
+          if (courseResponse.ok) {
+            const courseData = await courseResponse.json();
+            setCourse(courseData);
+          }
+        } catch (courseErr) {
+          console.warn("Could not fetch course details:", courseErr);
         }
-      } else if (err.request) {
-        // Request was made but no response received
-        errorMessage = "No response from server. Please check your internet connection.";
       } else {
-        errorMessage = err.message || "Payment confirmation failed.";
+        throw new Error(data.error || "Payment confirmation failed");
+      }
+
+    } catch (err) {
+      console.error("❌ Direct payment confirmation failed:", err);
+      
+      let errorMessage = "Payment confirmation failed. ";
+      
+      if (err.message.includes("Failed to fetch")) {
+        errorMessage += "Network error. Please check your internet connection.";
+      } else if (err.message.includes("token")) {
+        errorMessage += "Authentication issue. Please log in again.";
+      } else {
+        errorMessage += err.message;
       }
 
       setError(errorMessage);
@@ -336,79 +288,42 @@ const PaymentSuccess = () => {
   };
 
   useEffect(() => {
-    console.log("🎯 useEffect triggered");
-    
-    // Wait a bit for Stripe to complete processing
-    const initializeConfirmation = async () => {
-      console.log("⏳ Waiting for Stripe processing...");
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+    console.log("🎯 PaymentSuccess mounted");
 
-      console.log("🚀 Starting payment confirmation process...");
+    const initialize = async () => {
+      // Wait for Stripe to complete processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
       if (user && sessionId && courseId) {
-        console.log("✅ All required data present, calling confirmPayment...");
-        confirmPayment();
+        await confirmPaymentDirect();
       } else {
-        console.error("❌ Missing required data:", { 
-          user: !!user, 
-          sessionId: !!sessionId, 
-          courseId: !!courseId 
-        });
         setError("Missing required payment information");
         setStatus("error");
       }
     };
 
-    initializeConfirmation();
+    initialize();
   }, [sessionId, courseId, user]);
 
   const handleRetry = async () => {
-    if (retryCount >= 3) {
-      setError("Maximum retry attempts reached. Please contact support.");
-      return;
-    }
-
     setError("");
     setStatus("confirming");
-    setRetryCount((prev) => prev + 1);
-
-    // Wait before retry
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    await confirmPayment();
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    await confirmPaymentDirect();
   };
 
-  const handleManualCheck = () => {
-    // Redirect to my-courses page to check if enrollment actually worked
+  const handleGoToCourses = () => {
     navigate("/my-courses");
   };
 
-  const handleAbsoluteUrlTest = async () => {
-    console.log("🔧 Testing with absolute URL...");
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch("https://mathe-class-website-backend.onrender.com/api/v1/payments/confirm", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ sessionId, courseId })
-      });
-      
-      const data = await response.json();
-      console.log("🔧 Absolute URL test response:", data);
-      
-      if (data.success) {
-        setStatus("success");
-        setEnrollment(data.enrollment);
-      } else {
-        setError(data.error || "Absolute URL test failed");
-      }
-    } catch (err) {
-      console.error("🔧 Absolute URL test error:", err);
-      setError("Absolute URL test failed: " + err.message);
-    }
+  const handleContactSupport = () => {
+    // You can pre-fill support form with session details
+    const supportMessage = `Payment Confirmation Issue - Session: ${sessionId}, Course: ${courseId}, User: ${user?.email}`;
+    navigate("/contact", { 
+      state: { 
+        presetMessage: supportMessage 
+      } 
+    });
   };
 
   if (status === "confirming") {
@@ -418,13 +333,14 @@ const PaymentSuccess = () => {
           <div className="spinner"></div>
           <h2>Confirming Your Payment...</h2>
           <p>Please wait while we process your enrollment.</p>
-          <p className="debug-info">
-            <strong>Note:</strong> If this takes more than 30 seconds, your
-            browser extensions might be interfering.
-          </p>
-          {retryCount > 0 && (
-            <p className="retry-count">Retry attempt: {retryCount}/3</p>
-          )}
+          <div className="browser-tips">
+            <h4>💡 If this takes too long:</h4>
+            <ul>
+              <li>Try in <strong>Incognito Mode</strong></li>
+              <li>Disable browser extensions temporarily</li>
+              <li>Use a different browser</li>
+            </ul>
+          </div>
         </div>
       </div>
     );
@@ -435,54 +351,43 @@ const PaymentSuccess = () => {
       <div className="payment-success-container">
         <div className="payment-status error">
           <div className="error-icon">❌</div>
-          <h2>Confirmation Failed</h2>
+          <h2>Confirmation Incomplete</h2>
           <p>{error}</p>
 
-          <div className="browser-warning">
-            <h4>⚠️ Browser Extension Detected</h4>
-            <p>
-              We've detected that a browser extension (McAfee WebAdvisor) might
-              be interfering with payment confirmation.
-            </p>
-            <ul>
-              <li>
-                Try in <strong>Incognito/Private Mode</strong>
-              </li>
-              <li>Disable the McAfee extension temporarily</li>
-              <li>Or try a different browser</li>
-            </ul>
+          <div className="troubleshooting">
+            <h4>🛠️ Quick Solutions:</h4>
+            <div className="solution-cards">
+              <div className="solution-card">
+                <h5>Try Incognito Mode</h5>
+                <p>Open this page in a private/incognito window to bypass extensions.</p>
+              </div>
+              <div className="solution-card">
+                <h5>Check My Courses</h5>
+                <p>Your payment may have succeeded even if confirmation failed.</p>
+              </div>
+              <div className="solution-card">
+                <h5>Contact Support</h5>
+                <p>We'll manually verify your payment and enroll you.</p>
+              </div>
+            </div>
           </div>
 
           <div className="debug-info">
-            <p>
-              <strong>Session ID:</strong> {sessionId}
-            </p>
-            <p>
-              <strong>Course ID:</strong> {courseId}
-            </p>
-            <p>
-              <strong>User:</strong> {user?.email}
-            </p>
-            <p>
-              <strong>Retry Attempt:</strong> {retryCount}/3
-            </p>
+            <p><strong>Session ID:</strong> {sessionId}</p>
+            <p><strong>Course ID:</strong> {courseId}</p>
+            <p><strong>User:</strong> {user?.email}</p>
           </div>
 
           <div className="action-buttons">
-            {retryCount < 3 ? (
-              <button onClick={handleRetry} className="btn-retry">
-                Try Again ({3 - retryCount} left)
-              </button>
-            ) : null}
-            <button onClick={handleManualCheck} className="btn-secondary">
-              Check My Courses Anyway
+            <button onClick={handleRetry} className="btn-retry">
+              Try Confirmation Again
             </button>
-            <button onClick={handleAbsoluteUrlTest} className="btn-test">
-              Test Absolute URL
+            <button onClick={handleGoToCourses} className="btn-secondary">
+              Check My Courses
             </button>
-            <Link to="/contact" className="btn-support">
+            <button onClick={handleContactSupport} className="btn-support">
               Contact Support
-            </Link>
+            </button>
           </div>
         </div>
       </div>
@@ -494,33 +399,19 @@ const PaymentSuccess = () => {
       <div className="payment-success-container">
         <div className="payment-status success">
           <div className="success-icon">🎉</div>
-          <h2>Payment Successful!</h2>
-          <p>
-            You are now enrolled in{" "}
-            <strong>{course?.title || "the course"}</strong>
-          </p>
-
+          <h2>Enrollment Successful!</h2>
+          <p>Welcome to <strong>{course?.title || "your new course"}</strong></p>
+          
           {enrollment && (
             <div className="enrollment-details">
               <div className="detail-item">
-                <span className="label">Course:</span>
+                <span className="label">Enrolled in:</span>
                 <span className="value">{course?.title || "N/A"}</span>
-              </div>
-              <div className="detail-item">
-                <span className="label">Amount Paid:</span>
-                <span className="value">
-                  $
-                  {parseFloat(course?.price || enrollment.price || 0).toFixed(
-                    2
-                  )}
-                </span>
               </div>
               <div className="detail-item">
                 <span className="label">Enrollment Date:</span>
                 <span className="value">
-                  {new Date(
-                    enrollment.enrollmentDate || new Date()
-                  ).toLocaleDateString()}
+                  {new Date(enrollment.enrollmentDate || new Date()).toLocaleDateString()}
                 </span>
               </div>
             </div>
@@ -528,11 +419,11 @@ const PaymentSuccess = () => {
 
           <div className="action-buttons">
             <Link to="/my-courses" className="btn-primary">
-              Go to My Courses
+              Start Learning
             </Link>
             {course?.slug && (
               <Link to={`/courses/${course.slug}`} className="btn-secondary">
-                View Course
+                View Course Details
               </Link>
             )}
           </div>
