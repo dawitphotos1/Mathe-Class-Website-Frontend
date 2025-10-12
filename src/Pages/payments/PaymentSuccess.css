@@ -480,6 +480,69 @@
   font-size: 0.9rem;
   margin: 0;
 }
+
+/* Add these styles to PaymentSuccess.css */
+.payment-status.checking {
+  border-left: 4px solid #3498db;
+}
+
+.payment-status.delayed {
+  border-left: 4px solid #f39c12;
+}
+
+.delayed-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.processing-info {
+  background: #e8f4fd;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  text-align: left;
+}
+
+.processing-info p {
+  margin: 0.5rem 0;
+  color: #2c3e50;
+}
+
+.next-steps {
+  background: #fff3cd;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  text-align: left;
+}
+
+.next-steps h4 {
+  color: #856404;
+  margin-top: 0;
+}
+
+.next-steps ol {
+  color: #856404;
+  padding-left: 1.5rem;
+  margin: 0;
+}
+
+.next-steps li {
+  margin-bottom: 0.5rem;
+}
+
+.support-info {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  text-align: left;
+}
+
+.support-info p {
+  margin: 0.5rem 0;
+  word-break: break-all;
+}
 @media (max-width: 768px) {
   .payment-success-container {
     padding: 1rem;

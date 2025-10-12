@@ -192,9 +192,11 @@
 // export default PaymentSuccess;
 
 
+
+
 // src/pages/payment/PaymentSuccess.jsx
 import React, { useState, useEffect } from "react";
-import { useSearchParams, useNavigate, Link } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "./PaymentSuccess.css";
 
@@ -206,140 +208,155 @@ const PaymentSuccess = () => {
   const sessionId = searchParams.get("session_id");
   const courseId = searchParams.get("course_id");
 
-  const [status, setStatus] = useState("confirming");
+  const [status, setStatus] = useState("checking");
   const [error, setError] = useState("");
-  const [enrollment, setEnrollment] = useState(null);
   const [course, setCourse] = useState(null);
+  const [enrollment, setEnrollment] = useState(null);
 
-  // Direct API call that bypasses axios and potential extension interference
-  const confirmPaymentDirect = async () => {
-    console.log("🚀 Starting direct payment confirmation...");
-    
-    if (!sessionId || !courseId || !user) {
-      setError("Missing required information. Please contact support.");
-      setStatus("error");
-      return;
-    }
-
+  // Check if user is already enrolled (webhook might have processed it)
+  const checkExistingEnrollment = async () => {
     try {
       const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
-
-      console.log("📤 Making direct fetch request...");
-      
-      const response = await fetch("https://mathe-class-website-backend.onrender.com/api/v1/payments/confirm", {
-        method: "POST",
+      const response = await fetch(`https://mathe-class-website-backend.onrender.com/api/v1/users/me/enrollments`, {
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          sessionId,
-          courseId
-        })
+          'Authorization': `Bearer ${token}`
+        }
       });
 
-      console.log("📥 Response received, status:", response.status);
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log("✅ Payment confirmation success:", data);
-
-      if (data.success) {
-        setStatus("success");
-        setEnrollment(data.enrollment);
+      if (response.ok) {
+        const enrollments = await response.json();
+        const currentEnrollment = enrollments.find(e => e.courseId === courseId);
         
-        // Fetch course details
-        try {
-          const courseResponse = await fetch(`https://mathe-class-website-backend.onrender.com/api/v1/courses/id/${courseId}`);
-          if (courseResponse.ok) {
-            const courseData = await courseResponse.json();
-            setCourse(courseData);
-          }
-        } catch (courseErr) {
-          console.warn("Could not fetch course details:", courseErr);
+        if (currentEnrollment) {
+          setStatus("success");
+          setEnrollment(currentEnrollment);
+          await fetchCourseDetails();
+          return true;
         }
-      } else {
-        throw new Error(data.error || "Payment confirmation failed");
       }
-
+      return false;
     } catch (err) {
-      console.error("❌ Direct payment confirmation failed:", err);
-      
-      let errorMessage = "Payment confirmation failed. ";
-      
-      if (err.message.includes("Failed to fetch")) {
-        errorMessage += "Network error. Please check your internet connection.";
-      } else if (err.message.includes("token")) {
-        errorMessage += "Authentication issue. Please log in again.";
-      } else {
-        errorMessage += err.message;
-      }
-
-      setError(errorMessage);
-      setStatus("error");
+      console.error("Error checking enrollment:", err);
+      return false;
     }
+  };
+
+  const fetchCourseDetails = async () => {
+    try {
+      const response = await fetch(`https://mathe-class-website-backend.onrender.com/api/v1/courses/id/${courseId}`);
+      if (response.ok) {
+        const courseData = await response.json();
+        setCourse(courseData);
+      }
+    } catch (err) {
+      console.error("Error fetching course:", err);
+    }
+  };
+
+  // Simple enrollment check without complex confirmation
+  const verifyEnrollment = async () => {
+    // First, check if already enrolled
+    const isEnrolled = await checkExistingEnrollment();
+    if (isEnrolled) return;
+
+    // If not enrolled yet, wait and check again (webhook might be processing)
+    let attempts = 0;
+    const maxAttempts = 10;
+    
+    const checkInterval = setInterval(async () => {
+      attempts++;
+      console.log(`Checking enrollment (attempt ${attempts}/${maxAttempts})...`);
+      
+      const isEnrolled = await checkExistingEnrollment();
+      
+      if (isEnrolled) {
+        clearInterval(checkInterval);
+        return;
+      }
+      
+      if (attempts >= maxAttempts) {
+        clearInterval(checkInterval);
+        setError("Enrollment is taking longer than expected. Your payment was successful, but we're still processing your enrollment. Please check 'My Courses' in a few minutes.");
+        setStatus("delayed");
+      }
+    }, 2000); // Check every 2 seconds
   };
 
   useEffect(() => {
-    console.log("🎯 PaymentSuccess mounted");
-
-    const initialize = async () => {
-      // Wait for Stripe to complete processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      if (user && sessionId && courseId) {
-        await confirmPaymentDirect();
-      } else {
-        setError("Missing required payment information");
-        setStatus("error");
+    // Add this to prevent extension interference
+    const originalError = console.error;
+    console.error = function(...args) {
+      if (typeof args[0] === 'string' && args[0].includes('features')) {
+        // Suppress the extension error
+        return;
       }
+      originalError.apply(console, args);
     };
 
-    initialize();
-  }, [sessionId, courseId, user]);
+    if (user && sessionId && courseId) {
+      verifyEnrollment();
+    } else {
+      setError("Missing payment information. Please contact support with your session ID.");
+      setStatus("error");
+    }
 
-  const handleRetry = async () => {
-    setError("");
-    setStatus("confirming");
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    await confirmPaymentDirect();
-  };
+    // Restore console.error
+    return () => {
+      console.error = originalError;
+    };
+  }, [sessionId, courseId, user]);
 
   const handleGoToCourses = () => {
     navigate("/my-courses");
   };
 
-  const handleContactSupport = () => {
-    // You can pre-fill support form with session details
-    const supportMessage = `Payment Confirmation Issue - Session: ${sessionId}, Course: ${courseId}, User: ${user?.email}`;
-    navigate("/contact", { 
-      state: { 
-        presetMessage: supportMessage 
-      } 
-    });
+  const handleRetryCheck = () => {
+    setStatus("checking");
+    setError("");
+    verifyEnrollment();
   };
 
-  if (status === "confirming") {
+  if (status === "checking") {
     return (
       <div className="payment-success-container">
-        <div className="payment-status confirming">
+        <div className="payment-status checking">
           <div className="spinner"></div>
-          <h2>Confirming Your Payment...</h2>
-          <p>Please wait while we process your enrollment.</p>
-          <div className="browser-tips">
-            <h4>💡 If this takes too long:</h4>
-            <ul>
-              <li>Try in <strong>Incognito Mode</strong></li>
-              <li>Disable browser extensions temporarily</li>
-              <li>Use a different browser</li>
-            </ul>
+          <h2>Verifying Your Enrollment...</h2>
+          <p>Please wait while we confirm your course access.</p>
+          <div className="processing-info">
+            <p>✅ Payment received successfully</p>
+            <p>🔄 Setting up your course access...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "delayed") {
+    return (
+      <div className="payment-success-container">
+        <div className="payment-status delayed">
+          <div className="delayed-icon">⏳</div>
+          <h2>Enrollment Processing</h2>
+          <p>{error}</p>
+          
+          <div className="next-steps">
+            <h4>What to do next:</h4>
+            <ol>
+              <li>Your payment was successful and secure</li>
+              <li>Course access is being set up automatically</li>
+              <li>This usually takes 1-5 minutes</li>
+              <li>You'll receive email confirmation</li>
+            </ol>
+          </div>
+
+          <div className="action-buttons">
+            <button onClick={handleRetryCheck} className="btn-retry">
+              Check Again
+            </button>
+            <button onClick={handleGoToCourses} className="btn-primary">
+              Check My Courses
+            </button>
           </div>
         </div>
       </div>
@@ -350,44 +367,26 @@ const PaymentSuccess = () => {
     return (
       <div className="payment-success-container">
         <div className="payment-status error">
-          <div className="error-icon">❌</div>
-          <h2>Confirmation Incomplete</h2>
+          <div className="error-icon">⚠️</div>
+          <h2>Verification Needed</h2>
           <p>{error}</p>
-
-          <div className="troubleshooting">
-            <h4>🛠️ Quick Solutions:</h4>
-            <div className="solution-cards">
-              <div className="solution-card">
-                <h5>Try Incognito Mode</h5>
-                <p>Open this page in a private/incognito window to bypass extensions.</p>
-              </div>
-              <div className="solution-card">
-                <h5>Check My Courses</h5>
-                <p>Your payment may have succeeded even if confirmation failed.</p>
-              </div>
-              <div className="solution-card">
-                <h5>Contact Support</h5>
-                <p>We'll manually verify your payment and enroll you.</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="debug-info">
+          
+          <div className="support-info">
             <p><strong>Session ID:</strong> {sessionId}</p>
             <p><strong>Course ID:</strong> {courseId}</p>
-            <p><strong>User:</strong> {user?.email}</p>
+            <p>Please save this information for support.</p>
           </div>
 
           <div className="action-buttons">
-            <button onClick={handleRetry} className="btn-retry">
-              Try Confirmation Again
-            </button>
-            <button onClick={handleGoToCourses} className="btn-secondary">
+            <button onClick={handleGoToCourses} className="btn-primary">
               Check My Courses
             </button>
-            <button onClick={handleContactSupport} className="btn-support">
-              Contact Support
-            </button>
+            <a 
+              href={`mailto:support@matheclass.com?subject=Payment Verification Needed&body=Session ID: ${sessionId}%0ACourse ID: ${courseId}%0AUser: ${user?.email}`}
+              className="btn-support"
+            >
+              Email Support
+            </a>
           </div>
         </div>
       </div>
@@ -399,33 +398,24 @@ const PaymentSuccess = () => {
       <div className="payment-success-container">
         <div className="payment-status success">
           <div className="success-icon">🎉</div>
-          <h2>Enrollment Successful!</h2>
-          <p>Welcome to <strong>{course?.title || "your new course"}</strong></p>
+          <h2>Welcome to Your Course!</h2>
+          <p>You're now enrolled in <strong>{course?.title || "the course"}</strong></p>
           
-          {enrollment && (
-            <div className="enrollment-details">
-              <div className="detail-item">
-                <span className="label">Enrolled in:</span>
-                <span className="value">{course?.title || "N/A"}</span>
-              </div>
-              <div className="detail-item">
-                <span className="label">Enrollment Date:</span>
-                <span className="value">
-                  {new Date(enrollment.enrollmentDate || new Date()).toLocaleDateString()}
-                </span>
-              </div>
+          <div className="enrollment-details">
+            <div className="detail-item">
+              <span className="label">Course:</span>
+              <span className="value">{course?.title || "N/A"}</span>
             </div>
-          )}
+            <div className="detail-item">
+              <span className="label">Access Granted:</span>
+              <span className="value">Immediate</span>
+            </div>
+          </div>
 
           <div className="action-buttons">
-            <Link to="/my-courses" className="btn-primary">
-              Start Learning
-            </Link>
-            {course?.slug && (
-              <Link to={`/courses/${course.slug}`} className="btn-secondary">
-                View Course Details
-              </Link>
-            )}
+            <button onClick={handleGoToCourses} className="btn-primary">
+              Start Learning Now
+            </button>
           </div>
         </div>
       </div>
