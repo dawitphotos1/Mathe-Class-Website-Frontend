@@ -193,8 +193,7 @@
 
 
 
-
-//src/pages/payment/PaymentSuccess.jsx
+// src/pages/payment/PaymentSuccess.jsx
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import axios from "../../utils/axiosInstance";
@@ -215,22 +214,30 @@ const PaymentSuccess = () => {
   const [course, setCourse] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
 
-  // Function to confirm payment with retry logic
-  const confirmPayment = async () => {
-    console.log("🔍 PaymentSuccess - Starting confirmation:", {
+  // Debug mount
+  useEffect(() => {
+    console.log("🔍 PaymentSuccess mounted with:", {
       sessionId,
       courseId,
-      user: user?.email,
-      retryCount,
+      user: user ? `${user.email} (id: ${user.id})` : 'No user',
+      hasToken: !!localStorage.getItem('token')
     });
+  }, []);
+
+  // Function to confirm payment with retry logic
+  const confirmPayment = async () => {
+    console.log("🔍 confirmPayment function called");
+    console.log("📦 Request data:", { sessionId, courseId, userId: user?.id });
 
     if (!sessionId || !courseId) {
+      console.log("❌ Missing sessionId or courseId");
       setError("Missing payment information: session_id or course_id");
       setStatus("error");
       return;
     }
 
     if (!user) {
+      console.log("❌ No user found");
       setError("User not authenticated. Please log in again.");
       setStatus("error");
       return;
@@ -238,13 +245,24 @@ const PaymentSuccess = () => {
 
     try {
       setStatus("confirming");
+      console.log("🔄 Starting payment confirmation...");
 
-      console.log("🔄 Sending confirmation request to backend...");
+      // Test if axios is working by making a simple request first
+      try {
+        console.log("🧪 Testing API connection...");
+        const healthResponse = await axios.get('/health');
+        console.log("✅ API health check passed:", healthResponse.data);
+      } catch (healthError) {
+        console.error("❌ API health check failed:", healthError);
+        throw new Error(`Cannot connect to server: ${healthError.message}`);
+      }
 
       // Add timeout to prevent hanging requests
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
+      console.log("📤 Sending confirmation request to /payments/confirm...");
+      
       // Confirm payment with backend
       const response = await axios.post(
         "/payments/confirm",
@@ -259,57 +277,83 @@ const PaymentSuccess = () => {
 
       clearTimeout(timeoutId);
 
-      console.log("✅ Backend response:", response.data);
+      console.log("✅ Backend response received:", response.data);
 
       if (response.data.success) {
+        console.log("🎉 Payment confirmation successful!");
         setStatus("success");
         setEnrollment(response.data.enrollment);
 
         // Fetch course details
         try {
+          console.log("📚 Fetching course details...");
           const courseResponse = await axios.get(`/courses/id/${courseId}`);
           setCourse(courseResponse.data);
+          console.log("✅ Course details fetched");
         } catch (courseErr) {
-          console.warn(
-            "Could not fetch course details, but enrollment was successful:",
-            courseErr
-          );
-          // Continue even if course fetch fails
+          console.warn("⚠️ Could not fetch course details:", courseErr);
         }
       } else {
+        console.log("❌ Backend returned success: false");
         throw new Error(response.data.error || "Payment confirmation failed");
       }
     } catch (err) {
       console.error("❌ Payment confirmation error:", err);
+      console.error("❌ Error details:", {
+        name: err.name,
+        message: err.message,
+        code: err.code,
+        response: err.response?.data,
+        status: err.response?.status
+      });
 
-      if (err.name === "AbortError") {
-        setError(
-          "Request timeout. Please check your internet connection and try again."
-        );
+      let errorMessage = "Payment confirmation failed. Please contact support.";
+      
+      if (err.name === 'AbortError') {
+        errorMessage = "Request timeout. Please check your internet connection and try again.";
+      } else if (err.response) {
+        // Server responded with error status
+        const status = err.response.status;
+        if (status === 401) {
+          errorMessage = "Authentication failed. Please log in again.";
+        } else if (status === 404) {
+          errorMessage = "Payment confirmation endpoint not found (404). Please contact support.";
+        } else if (status === 500) {
+          errorMessage = "Server error. Please try again or contact support.";
+        } else {
+          errorMessage = err.response.data?.error || `Server error (${status}). Please try again.`;
+        }
+      } else if (err.request) {
+        // Request was made but no response received
+        errorMessage = "No response from server. Please check your internet connection.";
       } else {
-        const errorMessage =
-          err.response?.data?.error ||
-          err.response?.data?.message ||
-          err.message ||
-          "Payment confirmation failed. Please contact support.";
-
-        setError(errorMessage);
+        errorMessage = err.message || "Payment confirmation failed.";
       }
 
+      setError(errorMessage);
       setStatus("error");
     }
   };
 
   useEffect(() => {
+    console.log("🎯 useEffect triggered");
+    
     // Wait a bit for Stripe to complete processing
     const initializeConfirmation = async () => {
-      // Add a small delay to ensure Stripe has processed the payment
+      console.log("⏳ Waiting for Stripe processing...");
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
+      console.log("🚀 Starting payment confirmation process...");
+      
       if (user && sessionId && courseId) {
+        console.log("✅ All required data present, calling confirmPayment...");
         confirmPayment();
       } else {
-        console.error("Missing required data:", { user, sessionId, courseId });
+        console.error("❌ Missing required data:", { 
+          user: !!user, 
+          sessionId: !!sessionId, 
+          courseId: !!courseId 
+        });
         setError("Missing required payment information");
         setStatus("error");
       }
@@ -337,6 +381,34 @@ const PaymentSuccess = () => {
   const handleManualCheck = () => {
     // Redirect to my-courses page to check if enrollment actually worked
     navigate("/my-courses");
+  };
+
+  const handleAbsoluteUrlTest = async () => {
+    console.log("🔧 Testing with absolute URL...");
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch("https://mathe-class-website-backend.onrender.com/api/v1/payments/confirm", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ sessionId, courseId })
+      });
+      
+      const data = await response.json();
+      console.log("🔧 Absolute URL test response:", data);
+      
+      if (data.success) {
+        setStatus("success");
+        setEnrollment(data.enrollment);
+      } else {
+        setError(data.error || "Absolute URL test failed");
+      }
+    } catch (err) {
+      console.error("🔧 Absolute URL test error:", err);
+      setError("Absolute URL test failed: " + err.message);
+    }
   };
 
   if (status === "confirming") {
@@ -404,6 +476,9 @@ const PaymentSuccess = () => {
             ) : null}
             <button onClick={handleManualCheck} className="btn-secondary">
               Check My Courses Anyway
+            </button>
+            <button onClick={handleAbsoluteUrlTest} className="btn-test">
+              Test Absolute URL
             </button>
             <Link to="/contact" className="btn-support">
               Contact Support

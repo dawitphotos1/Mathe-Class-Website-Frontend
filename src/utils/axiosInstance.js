@@ -1,87 +1,135 @@
-//src / utils / axiosInstance.js;
+// //src / utils / axiosInstance.js;
 
-import axios from "axios";
+// import axios from "axios";
 
-// Use environment variables correctly
-const getAPIBaseURL = () => {
-  // If REACT_APP_API_URL is set, use it (for production)
-  if (process.env.REACT_APP_API_URL) {
-    return process.env.REACT_APP_API_URL;
-  }
+// // Use environment variables correctly
+// const getAPIBaseURL = () => {
+//   // If REACT_APP_API_URL is set, use it (for production)
+//   if (process.env.REACT_APP_API_URL) {
+//     return process.env.REACT_APP_API_URL;
+//   }
 
-  // For development, use localhost
-  if (process.env.NODE_ENV === "development") {
-    return "http://localhost:5000/api/v1";
-  }
+//   // For development, use localhost
+//   if (process.env.NODE_ENV === "development") {
+//     return "http://localhost:5000/api/v1";
+//   }
 
-  // Default to production backend
-  return "https://mathe-class-website-backend-1.onrender.com/api/v1";
-};
+//   // Default to production backend
+//   return "https://mathe-class-website-backend-1.onrender.com/api/v1";
+// };
 
-const API_BASE_URL = getAPIBaseURL();
+// const API_BASE_URL = getAPIBaseURL();
 
-console.log("🚀 API Base URL:", API_BASE_URL);
-console.log("🌍 NODE_ENV:", process.env.NODE_ENV);
-console.log("🔧 REACT_APP_API_URL:", process.env.REACT_APP_API_URL);
+// console.log("🚀 API Base URL:", API_BASE_URL);
+// console.log("🌍 NODE_ENV:", process.env.NODE_ENV);
+// console.log("🔧 REACT_APP_API_URL:", process.env.REACT_APP_API_URL);
 
+// const axiosInstance = axios.create({
+//   baseURL: API_BASE_URL,
+//   withCredentials: true,
+//   timeout: 30000,
+// });
+
+// // Request interceptor
+// axiosInstance.interceptors.request.use(
+//   (config) => {
+//     const token =
+//       localStorage.getItem("authToken") || localStorage.getItem("token");
+//     if (token) {
+//       config.headers.Authorization = `Bearer ${token}`;
+//     }
+
+//     const fullUrl = `${config.baseURL}${config.url}`;
+//     console.log(`📤 ${config.method?.toUpperCase()} ${fullUrl}`, {
+//       data: config.data,
+//     });
+
+//     return config;
+//   },
+//   (error) => {
+//     console.error("❌ Request interceptor error:", error);
+//     return Promise.reject(error);
+//   }
+// );
+
+// // Response interceptor
+// axiosInstance.interceptors.response.use(
+//   (response) => {
+//     console.log(`✅ ${response.status} ${response.config.url}`, response.data);
+//     return response;
+//   },
+//   (error) => {
+//     const errorMessage =
+//       error.response?.data?.error ||
+//       error.response?.data?.message ||
+//       error.message;
+//     const status = error.response?.status;
+//     const url = error.config?.url;
+
+//     console.error(
+//       `❌ ${status || "No Status"} ${url || "No URL"}:`,
+//       errorMessage
+//     );
+
+//     if (status === 401) {
+//       localStorage.removeItem("authToken");
+//       localStorage.removeItem("token");
+//       localStorage.removeItem("user");
+//       console.warn("🔐 Authentication failed");
+//     }
+
+//     if (status === 404) {
+//       console.error("🔍 Endpoint not found:", url);
+//     }
+
+//     return Promise.reject(error);
+//   }
+// );
+
+// export default axiosInstance;
+
+
+
+
+
+// src/utils/axiosInstance.js
+import axios from 'axios';
+
+// Make sure this points to your actual backend URL
 const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  withCredentials: true,
+  baseURL: process.env.REACT_APP_API_URL || 'https://mathe-class-website-backend.onrender.com/api/v1',
   timeout: 30000,
+  withCredentials: true,
 });
 
-// Request interceptor
+// Add request interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token =
-      localStorage.getItem("authToken") || localStorage.getItem("token");
+    const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-
-    const fullUrl = `${config.baseURL}${config.url}`;
-    console.log(`📤 ${config.method?.toUpperCase()} ${fullUrl}`, {
-      data: config.data,
-    });
-
+    console.log('🚀 Making API request:', config.method?.toUpperCase(), config.url);
     return config;
   },
   (error) => {
-    console.error("❌ Request interceptor error:", error);
+    console.error('❌ Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
 
-// Response interceptor
+// Add response interceptor
 axiosInstance.interceptors.response.use(
   (response) => {
-    console.log(`✅ ${response.status} ${response.config.url}`, response.data);
+    console.log('✅ API response received:', response.status, response.config.url);
     return response;
   },
   (error) => {
-    const errorMessage =
-      error.response?.data?.error ||
-      error.response?.data?.message ||
-      error.message;
-    const status = error.response?.status;
-    const url = error.config?.url;
-
-    console.error(
-      `❌ ${status || "No Status"} ${url || "No URL"}:`,
-      errorMessage
-    );
-
-    if (status === 401) {
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      console.warn("🔐 Authentication failed");
-    }
-
-    if (status === 404) {
-      console.error("🔍 Endpoint not found:", url);
-    }
-
+    console.error('❌ API response error:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      message: error.message
+    });
     return Promise.reject(error);
   }
 );
