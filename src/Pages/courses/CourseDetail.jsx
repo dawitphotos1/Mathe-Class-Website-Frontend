@@ -195,8 +195,6 @@
 
 
 
-
-// src/Pages/courses/CourseDetail.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -213,11 +211,11 @@ const CourseDetail = () => {
   const [expandedUnit, setExpandedUnit] = useState(null);
   const [checking, setChecking] = useState(false);
 
-  // ✅ Fetch course from backend using slug
+  // ✅ Fetch course from backend using PUBLIC slug route
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const res = await axiosInstance.get(`/courses/slug/${slug}`);
+        const res = await axiosInstance.get(`/courses/public/slug/${slug}`);
         if (res.data?.course) {
           console.log("✅ Loaded course from backend:", res.data.course);
           setCourse(res.data.course);
@@ -312,14 +310,16 @@ const CourseDetail = () => {
         </div>
       </div>
 
-      {/* Course Curriculum */}
+      {/* Course Curriculum (Optional if exists) */}
       {course.contents && (
         <div className="course-content">
           <h2 className="curriculum-title">Course Curriculum</h2>
           {course.contents.map((section, index) => (
             <div
               key={index}
-              className={`unit-card ${expandedUnit === index ? "expanded" : ""}`}
+              className={`unit-card ${
+                expandedUnit === index ? "expanded" : ""
+              }`}
             >
               <div className="unit-header" onClick={() => toggleUnit(index)}>
                 <h3 className="unit-title">
@@ -354,13 +354,17 @@ const CourseDetail = () => {
           >
             {checking
               ? "Checking..."
-              : `Enroll Now - $${course.price ? course.price.toLocaleString() : "N/A"}`}
+              : `Enroll Now - $${
+                  course.price ? course.price.toLocaleString() : "N/A"
+                }`}
           </button>
         ) : isAuthenticated ? (
           <div className="non-student-access">
             <div className="access-info">
               <h4>
-                {user.role === "teacher" ? "👨‍🏫 Teacher Access" : "👑 Admin Access"}
+                {user.role === "teacher"
+                  ? "👨‍🏫 Teacher Access"
+                  : "👑 Admin Access"}
               </h4>
               <p>
                 {user.role === "teacher"
@@ -368,7 +372,9 @@ const CourseDetail = () => {
                   : "You have administrative access to all courses."}
               </p>
               <button className="btn-view-content" onClick={handleViewContent}>
-                {user.role === "teacher" ? "Manage Courses" : "View All Courses"}
+                {user.role === "teacher"
+                  ? "Manage Courses"
+                  : "View All Courses"}
               </button>
             </div>
           </div>
