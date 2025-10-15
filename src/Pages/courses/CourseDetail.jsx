@@ -196,14 +196,12 @@
 
 
 
-
 // src/Pages/courses/CourseDetail.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "react-toastify";
-import axiosInstance from "../../utils/axiosInstance"; // ✅ import Axios
-import { courseData, slugToIdMap } from "./courseData";
+import axiosInstance from "../../utils/axiosInstance";
 import "./CourseDetail.css";
 
 const CourseDetail = () => {
@@ -215,29 +213,25 @@ const CourseDetail = () => {
   const [expandedUnit, setExpandedUnit] = useState(null);
   const [checking, setChecking] = useState(false);
 
+  // ✅ Fetch course from backend using slug
   useEffect(() => {
-    const selectedCourse = courseData[slug];
-
-    if (!selectedCourse) {
-      toast.error("Course not found.");
-      navigate("/courses");
-      return;
-    }
-
-    const courseId = slugToIdMap[slug];
-    if (!courseId) {
-      console.error("❌ No course ID mapping found for slug:", slug);
-      toast.error("Course configuration error. Please contact support.");
-      return;
-    }
-
-    const courseWithId = {
-      ...selectedCourse,
-      id: courseId,
+    const fetchCourse = async () => {
+      try {
+        const res = await axiosInstance.get(`/courses/slug/${slug}`);
+        if (res.data?.course) {
+          console.log("✅ Loaded course from backend:", res.data.course);
+          setCourse(res.data.course);
+        } else {
+          toast.error("Course not found.");
+          navigate("/courses");
+        }
+      } catch (err) {
+        console.error("❌ Error loading course:", err);
+        toast.error("Failed to load course.");
+        navigate("/courses");
+      }
     };
-
-    console.log("✅ Course with ID:", courseWithId);
-    setCourse(courseWithId);
+    fetchCourse();
   }, [slug, navigate]);
 
   const isStudent = user && user.role === "student";
@@ -246,6 +240,7 @@ const CourseDetail = () => {
     setExpandedUnit(expandedUnit === index ? null : index);
   };
 
+  // ✅ Handle Enroll
   const handleEnroll = async () => {
     if (!course?.id) {
       toast.error("Course ID is missing. Cannot proceed with enrollment.");
@@ -264,15 +259,14 @@ const CourseDetail = () => {
 
     try {
       setChecking(true);
-
-      // ✅ Check enrollment status before payment
+      // 🛡️ Prevent duplicate enrollments
       const res = await axiosInstance.get(`/enrollments/check/${course.id}`);
       if (res.data?.alreadyEnrolled) {
-        toast.warning("You are already enrolled in this course.");
+        toast.warning("⚠️ You are already enrolled in this course.");
         return;
       }
 
-      // ✅ Not enrolled yet → navigate to payment page
+      // ✅ Navigate to payment page
       console.log("🚀 Navigating to payment with course ID:", course.id);
       navigate(`/payment/${course.id}`);
     } catch (error) {
@@ -307,7 +301,9 @@ const CourseDetail = () => {
         <h1>{course.title}</h1>
         <p className="course-description">{course.description}</p>
         <div className="course-meta">
-          <span className="course-price">${course.price}</span>
+          <span className="course-price">
+            ${course.price ? course.price.toLocaleString() : "N/A"}
+          </span>
           {isAuthenticated && (
             <span className={`user-badge role-${user.role}`}>
               {user.role.toUpperCase()}
@@ -316,36 +312,39 @@ const CourseDetail = () => {
         </div>
       </div>
 
-      <div className="course-content">
-        <h2 className="curriculum-title">Course Curriculum</h2>
-        {course.contents.map((section, index) => (
-          <div
-            key={index}
-            className={`unit-card ${expandedUnit === index ? "expanded" : ""}`}
-          >
-            <div className="unit-header" onClick={() => toggleUnit(index)}>
-              <h3 className="unit-title">
-                {section.unit}
-                <span className="unit-toggle">
-                  {expandedUnit === index ? "−" : "+"}
-                </span>
-              </h3>
+      {/* Course Curriculum */}
+      {course.contents && (
+        <div className="course-content">
+          <h2 className="curriculum-title">Course Curriculum</h2>
+          {course.contents.map((section, index) => (
+            <div
+              key={index}
+              className={`unit-card ${expandedUnit === index ? "expanded" : ""}`}
+            >
+              <div className="unit-header" onClick={() => toggleUnit(index)}>
+                <h3 className="unit-title">
+                  {section.unit}
+                  <span className="unit-toggle">
+                    {expandedUnit === index ? "−" : "+"}
+                  </span>
+                </h3>
+              </div>
+              {expandedUnit === index && (
+                <ul className="lesson-list">
+                  {section.lessons.map((lesson, idx) => (
+                    <li key={idx} className="lesson-item">
+                      <span className="lesson-icon">📘</span>
+                      <span className="lesson-text">{lesson}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
+          ))}
+        </div>
+      )}
 
-            {expandedUnit === index && (
-              <ul className="lesson-list">
-                {section.lessons.map((lesson, idx) => (
-                  <li key={idx} className="lesson-item">
-                    <span className="lesson-icon">📘</span>
-                    <span className="lesson-text">{lesson}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        ))}
-      </div>
-
+      {/* Enrollment Section */}
       <div className="course-actions">
         {isStudent ? (
           <button
@@ -353,7 +352,9 @@ const CourseDetail = () => {
             onClick={handleEnroll}
             disabled={checking}
           >
-            {checking ? "Checking..." : `Enroll Now - $${course.price}`}
+            {checking
+              ? "Checking..."
+              : `Enroll Now - $${course.price ? course.price.toLocaleString() : "N/A"}`}
           </button>
         ) : isAuthenticated ? (
           <div className="non-student-access">
@@ -366,10 +367,7 @@ const CourseDetail = () => {
                   ? "You have full access to course content as a teacher."
                   : "You have administrative access to all courses."}
               </p>
-              <button
-                className="btn-view-content"
-                onClick={handleViewContent}
-              >
+              <button className="btn-view-content" onClick={handleViewContent}>
                 {user.role === "teacher" ? "Manage Courses" : "View All Courses"}
               </button>
             </div>
@@ -377,7 +375,8 @@ const CourseDetail = () => {
         ) : (
           <>
             <button className="btn-enroll-now" onClick={handleEnroll}>
-              Enroll Now - ${course.price}
+              Enroll Now - $
+              {course.price ? course.price.toLocaleString() : "N/A"}
             </button>
             <button
               className="btn-login-text"
