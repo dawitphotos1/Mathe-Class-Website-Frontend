@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Payment Successful - Math Class Platform</title>
   <style>
-    /* Your existing CSS remains the same */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -36,40 +35,15 @@
       60% { transform: translateY(-5px); }
     }
     h1 { color: #2ecc71; margin-bottom: 15px; font-size: 2.5rem; }
-    .subtitle { color: #666; font-size: 1.2rem; margin-bottom: 30px; }
-    .info-box { background: #f8f9fa; border-radius: 10px; padding: 25px; margin: 25px 0; text-align: left; }
-    .info-box h3 { color: #333; margin-bottom: 15px; text-align: center; }
-    .steps { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
-    .step { display: flex; align-items: flex-start; gap: 15px; }
-    .step-number {
-      background: #3498db; color: white; width: 30px; height: 30px;
-      border-radius: 50%; display: flex; align-items: center;
-      justify-content: center; font-weight: bold; flex-shrink: 0; margin-top: 2px;
-    }
-    .step-content { flex: 1; }
-    .step-content strong { color: #2c3e50; display: block; margin-bottom: 5px; }
-    .step-content p { color: #7f8c8d; margin: 0; line-height: 1.5; }
-    .important-notes {
-      background: #fff3cd; border: 1px solid #ffeaa7;
-      border-radius: 10px; padding: 20px; margin: 20px 0; text-align: left;
-    }
-    .important-notes h4 { color: #856404; margin-bottom: 10px; text-align: center; }
-    .important-notes ul { color: #856404; padding-left: 20px; }
-    .important-notes li { margin-bottom: 8px; line-height: 1.4; }
-    .support-info {
-      background: #e3f2fd; border-radius: 10px;
-      padding: 20px; margin: 20px 0; text-align: left;
-    }
-    .support-info p {
-      margin: 5px 0; word-break: break-all;
-      font-family: monospace; font-size: 0.9rem;
-    }
     .status-message {
-      margin-top: 15px;
+      margin: 20px 0;
+      padding: 15px;
+      border-radius: 10px;
       font-weight: bold;
-      font-size: 1rem;
-      min-height: 24px;
     }
+    .status-processing { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+    .status-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .status-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     .buttons { display: flex; gap: 15px; justify-content: center; margin-top: 30px; flex-wrap: wrap; }
     .btn {
       padding: 15px 25px; border-radius: 10px; text-decoration: none;
@@ -81,31 +55,12 @@
     .btn-primary:hover { background: #2980b9; transform: translateY(-2px); }
     .btn-secondary { background: #95a5a6; color: white; }
     .btn-secondary:hover { background: #7f8c8d; transform: translateY(-2px); }
-    .btn-support { background: #34495e; color: white; }
-    .btn-support:hover { background: #2c3e50; transform: translateY(-2px); }
-    .login-prompt {
-      background: #e8f5e8;
-      border: 1px solid #2ecc71;
-      border-radius: 10px;
-      padding: 15px;
-      margin: 15px 0;
-      text-align: center;
-    }
-    .login-prompt a {
-      color: #2ecc71;
-      font-weight: bold;
-      text-decoration: none;
-    }
-    .login-prompt a:hover {
-      text-decoration: underline;
-    }
+    .hidden { display: none; }
     @media (max-width: 768px) {
       .success-container { padding: 25px 20px; }
       h1 { font-size: 2rem; }
       .buttons { flex-direction: column; }
       .btn { width: 100%; }
-      .step { flex-direction: column; text-align: center; }
-      .step-number { align-self: center; }
     }
   </style>
 </head>
@@ -113,134 +68,101 @@
   <div class="success-container">
     <div class="success-icon">🎉</div>
     <h1>Payment Successful!</h1>
-    <p class="subtitle">Thank you for your purchase!</p>
-
-    <div class="info-box">
-      <h3>What happens next?</h3>
-      <div class="steps">
-        <div class="step"><div class="step-number">1</div><div class="step-content"><strong>Payment Processed</strong><p>Your payment has been securely processed by Stripe.</p></div></div>
-        <div class="step"><div class="step-number">2</div><div class="step-content"><strong>Enrollment Processing</strong><p>We're automatically enrolling you in the course.</p></div></div>
-        <div class="step"><div class="step-number">3</div><div class="step-content"><strong>Admin Approval</strong><p>Your enrollment will be reviewed and approved by an administrator.</p></div></div>
-        <div class="step"><div class="step-number">4</div><div class="step-content"><strong>Access Granted</strong><p>Once approved, you'll have full access to the course materials.</p></div></div>
-      </div>
+    
+    <div id="statusProcessing" class="status-message status-processing">
+      ⏳ Processing your enrollment...
     </div>
-
-    <div class="important-notes">
-      <h4>📝 Important Notes:</h4>
-      <ul>
-        <li>Enrollment is processed automatically via Stripe webhooks.</li>
-        <li>You'll receive a confirmation email after admin approval.</li>
-        <li>Check "My Courses" to view your enrollment status.</li>
-        <li>Admin approval typically takes 1–2 business hours.</li>
-        <li>Contact support if you don't see your course within 24 hours.</li>
-      </ul>
+    
+    <div id="statusSuccess" class="status-message status-success hidden">
+      ✅ Enrollment confirmed! You can now access your course.
     </div>
-
-    <div class="support-info">
-      <p><strong>Reference ID:</strong> <span id="sessionId">Loading...</span></p>
-      <p><strong>Course ID:</strong> <span id="courseId">Loading...</span></p>
-      <p style="text-align: center; margin-top: 10px; font-style: italic;">Save this information for support if needed.</p>
+    
+    <div id="statusError" class="status-message status-error hidden">
+      ❌ There was an issue processing your enrollment. Please contact support.
     </div>
-
-    <div class="login-prompt" id="loginPrompt" style="display: none;">
-      <p>🔐 <strong>Attention:</strong> Please <a href="/login">log in</a> to access your courses and track enrollment status.</p>
-    </div>
-
-    <div class="status-message" id="statusMessage">⏳ Processing your enrollment...</div>
 
     <div class="buttons">
-      <a href="/my-courses" class="btn btn-primary">Go to My Courses</a>
+      <a href="/my-courses" id="successBtn" class="btn btn-primary hidden">Go to My Courses</a>
       <a href="/courses" class="btn btn-secondary">Browse More Courses</a>
-      <a href="#" id="supportLink" class="btn btn-support">Contact Support</a>
+      <a href="mailto:support@matheclass.com" class="btn btn-secondary">Contact Support</a>
     </div>
   </div>
 
   <script>
-    // Parse query params
-    function getParameterByName(name) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(name);
-    }
+    // Get URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
+    const courseId = urlParams.get('course_id');
 
-    const sessionId = getParameterByName('session_id');
-    const courseId = getParameterByName('course_id');
-    
-    document.getElementById('sessionId').textContent = sessionId || 'Not available';
-    document.getElementById('courseId').textContent = courseId || 'Not available';
-    
-    document.getElementById('supportLink').href =
-      `mailto:support@matheclass.com?subject=Payment Confirmation Support&body=Session ID: ${sessionId}%0ACourse ID: ${courseId}`;
-
-    const statusMessage = document.getElementById('statusMessage');
-    const loginPrompt = document.getElementById('loginPrompt');
-
-    async function confirmEnrollment() {
+    async function confirmPayment() {
       try {
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        console.log('🔁 Confirming payment with:', { sessionId, courseId });
         
-        if (!token) {
-          statusMessage.textContent = '✅ Payment successful! Please log in to track your enrollment.';
-          statusMessage.style.color = '#2ecc71';
-          loginPrompt.style.display = 'block';
-          return;
+        if (!sessionId || !courseId) {
+          throw new Error('Missing session ID or course ID');
         }
 
-        statusMessage.textContent = '⏳ Confirming your enrollment...';
+        // Get the token from cookies
+        const getCookie = (name) => {
+          const value = `; ${document.cookie}`;
+          const parts = value.split(`; ${name}=`);
+          if (parts.length === 2) return parts.pop().split(';').shift();
+        };
 
-        // ✅ Use the correct endpoint with full URL for static page
-        const API_BASE_URL = window.location.hostname === 'localhost' 
-          ? 'http://localhost:5000/api/v1' 
-          : 'https://mathe-class-website-backend-1.onrender.com/api/v1';
+        const token = getCookie('token');
+        
+        if (!token) {
+          throw new Error('Not authenticated. Please log in again.');
+        }
 
-        const response = await fetch(`${API_BASE_URL}/payments/confirm`, {
+        const response = await fetch('/api/v1/payments/confirm', {
           method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json', 
-            'Authorization': `Bearer ${token}` 
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ sessionId, courseId }),
+          body: JSON.stringify({
+            sessionId: sessionId,
+            courseId: courseId
+          })
         });
 
         const data = await response.json();
-        console.log('✅ Enrollment confirmation response:', data);
 
-        if (data.success) {
-          statusMessage.textContent = '✅ Enrollment confirmed! Waiting for admin approval.';
-          statusMessage.style.color = '#2ecc71';
-          
-          // Show enrollment details if available
-          if (data.enrollment) {
-            console.log('🎓 Enrollment created:', data.enrollment);
-          }
-        } else {
-          statusMessage.textContent = '✅ Payment received! Enrollment will be processed automatically.';
-          statusMessage.style.color = '#2ecc71';
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to confirm payment');
         }
+
+        console.log('✅ Payment confirmed successfully:', data);
+        return data;
       } catch (error) {
-        console.error('❌ Enrollment confirmation error:', error);
-        statusMessage.textContent = '✅ Payment successful! Enrollment will be confirmed via webhook.';
-        statusMessage.style.color = '#2ecc71';
+        console.error('❌ Payment confirmation failed:', error);
+        throw error;
       }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      console.log('✅ Payment Success Page Loaded', { sessionId, courseId });
-      
-      if (sessionId && courseId) {
-        statusMessage.textContent = '✅ Payment successful! Processing your enrollment...';
-        statusMessage.style.color = '#2ecc71';
-        confirmEnrollment();
-      } else {
-        statusMessage.textContent = '⚠️ Missing payment information. Please contact support.';
-        statusMessage.style.color = '#e67e22';
+    // Process payment when page loads
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const result = await confirmPayment();
+        
+        // Show success state
+        document.getElementById('statusProcessing').classList.add('hidden');
+        document.getElementById('statusSuccess').classList.remove('hidden');
+        document.getElementById('successBtn').classList.remove('hidden');
+        
+        console.log('🎉 Enrollment processed successfully');
+      } catch (error) {
+        console.error('💥 Enrollment processing failed:', error);
+        
+        // Show error state
+        document.getElementById('statusProcessing').classList.add('hidden');
+        document.getElementById('statusError').classList.remove('hidden');
+        
+        // Update error message with details
+        document.getElementById('statusError').innerHTML = 
+          `❌ There was an issue: ${error.message}. Please contact support.`;
       }
-
-      // Safety reassurance
-      setTimeout(() => {
-        if (statusMessage.textContent.includes('Processing')) {
-          statusMessage.textContent = '✅ Enrollment completed! Check "My Courses".';
-        }
-      }, 5000);
     });
   </script>
 </body>

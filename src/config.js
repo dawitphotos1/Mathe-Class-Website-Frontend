@@ -3,7 +3,7 @@
 // 🌍 API base URL
 export const API_BASE_URL =
   process.env.REACT_APP_API_URL?.replace(/\/+$/, "") || // remove trailing slashes if any
-  "https://mathe-class-website-backend-1.onrender.com";
+  "F";
 
 // 💳 Stripe Public Key
 export const STRIPE_PUBLIC_KEY =
