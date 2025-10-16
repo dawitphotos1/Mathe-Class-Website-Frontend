@@ -53,7 +53,7 @@ const getBaseURL = () => {
 
   // For production (Netlify deployment)
   if (process.env.NODE_ENV === "production") {
-    return "https://mathe-class-website-backend.onrender.com/api/v1";
+    return "https://mathe-class-website-backend-1.onrender.com/api/v1";
   }
 
   // For local development

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Payment Successful - Math Class Platform</title>
   <style>
+    /* Your existing CSS remains the same */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -157,16 +158,16 @@
   <script>
     // Parse query params
     function getParameterByName(name) {
-      const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
-      const results = regex.exec(window.location.href);
-      if (!results) return null;
-      return decodeURIComponent(results[2]?.replace(/\+/g, ' ') || '');
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
     }
 
     const sessionId = getParameterByName('session_id');
     const courseId = getParameterByName('course_id');
+    
     document.getElementById('sessionId').textContent = sessionId || 'Not available';
     document.getElementById('courseId').textContent = courseId || 'Not available';
+    
     document.getElementById('supportLink').href =
       `mailto:support@matheclass.com?subject=Payment Confirmation Support&body=Session ID: ${sessionId}%0ACourse ID: ${courseId}`;
 
@@ -176,8 +177,9 @@
     async function confirmEnrollment() {
       try {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        
         if (!token) {
-          statusMessage.textContent = '✅ Payment successful! Enrollment will be confirmed soon.';
+          statusMessage.textContent = '✅ Payment successful! Please log in to track your enrollment.';
           statusMessage.style.color = '#2ecc71';
           loginPrompt.style.display = 'block';
           return;
@@ -185,43 +187,59 @@
 
         statusMessage.textContent = '⏳ Confirming your enrollment...';
 
-        const response = await fetch('/api/v1/payments/confirm-payment', {
+        // ✅ Use the correct endpoint with full URL for static page
+        const API_BASE_URL = window.location.hostname === 'localhost' 
+          ? 'http://localhost:5000/api/v1' 
+          : 'https://mathe-class-website-backend-1.onrender.com/api/v1';
+
+        const response = await fetch(`${API_BASE_URL}/payments/confirm`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          headers: { 
+            'Content-Type': 'application/json', 
+            'Authorization': `Bearer ${token}` 
+          },
           body: JSON.stringify({ sessionId, courseId }),
         });
 
         const data = await response.json();
+        console.log('✅ Enrollment confirmation response:', data);
 
         if (data.success) {
           statusMessage.textContent = '✅ Enrollment confirmed! Waiting for admin approval.';
           statusMessage.style.color = '#2ecc71';
+          
+          // Show enrollment details if available
+          if (data.enrollment) {
+            console.log('🎓 Enrollment created:', data.enrollment);
+          }
         } else {
           statusMessage.textContent = '✅ Payment received! Enrollment will be processed automatically.';
           statusMessage.style.color = '#2ecc71';
         }
       } catch (error) {
         console.error('❌ Enrollment confirmation error:', error);
-        statusMessage.textContent = '✅ Payment successful! Enrollment will be confirmed shortly.';
+        statusMessage.textContent = '✅ Payment successful! Enrollment will be confirmed via webhook.';
         statusMessage.style.color = '#2ecc71';
       }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
       console.log('✅ Payment Success Page Loaded', { sessionId, courseId });
-      statusMessage.textContent = '✅ Payment successful! Processing your enrollment...';
-      statusMessage.style.color = '#2ecc71';
-
-      if (sessionId && courseId) confirmEnrollment();
-      else {
+      
+      if (sessionId && courseId) {
+        statusMessage.textContent = '✅ Payment successful! Processing your enrollment...';
+        statusMessage.style.color = '#2ecc71';
+        confirmEnrollment();
+      } else {
         statusMessage.textContent = '⚠️ Missing payment information. Please contact support.';
         statusMessage.style.color = '#e67e22';
       }
 
       // Safety reassurance
       setTimeout(() => {
-        if (statusMessage.textContent.includes('Processing'))
+        if (statusMessage.textContent.includes('Processing')) {
           statusMessage.textContent = '✅ Enrollment completed! Check "My Courses".';
+        }
       }, 5000);
     });
   </script>
