@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Email Template Preview - Math Class Platform</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 40px 0;
+    }
+
+    .email-container {
+      max-width: 650px;
+      margin: auto;
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 30px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      color: #333;
+    }
+
+    .header small {
+      color: #888;
+    }
+
+    .status-success {
+      color: #2ecc71;
+    }
+
+    .status-pending {
+      color: #f39c12;
+    }
+
+    .status-failed {
+      color: #e74c3c;
+    }
+
+    .content {
+      color: #333;
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    h2 {
+      color: #222;
+      margin-top: 0;
+    }
+
+    a.button {
+      display: inline-block;
+      background: #4f46e5;
+      color: white !important;
+      text-decoration: none;
+      padding: 12px 22px;
+      border-radius: 8px;
+      margin-top: 20px;
+      transition: 0.3s;
+      font-weight: 600;
+    }
+
+    a.button:hover {
+      background: #3730a3;
+    }
+
+    .footer {
+      margin-top: 30px;
+      border-top: 1px solid #eee;
+      padding-top: 15px;
+      text-align: center;
+      font-size: 14px;
+      color: #888;
+    }
+
+    .footer a {
+      color: #4f46e5;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h1 class="status-success">✅ Payment Confirmed</h1>
+      <small>Math Class Platform</small>
+    </div>
+
+    <div class="content">
+      <p>Hi <strong>Student Name</strong>,</p>
+      <p>
+        We’ve successfully received your payment for the course:
+        <strong>Algebra Foundations</strong>.
+      </p>
+      <p>
+        Your enrollment is now <strong>pending admin approval</strong>. You’ll receive another email once access is granted.
+      </p>
+
+      <a href="https://math-class-platform.netlify.app" class="button">Go to Platform</a>
+
+      <p style="margin-top: 20px;">
+        Thank you for choosing <strong>Math Class Platform</strong>! 🎓
+      </p>
+    </div>
+
+    <div class="footer">
+      <p>
+        Need help? Contact
+        <a href="mailto:support@matheclass.com">support@matheclass.com</a>
+      </p>
+      <p>&copy; 2025 Math Class Platform. All rights reserved.</p>
+    </div>
+  </div>
+
+  <!-- Optional variations -->
+  <div class="email-container" style="margin-top:40px;">
+    <div class="header">
+      <h1 class="status-pending">⏳ Payment Pending</h1>
+      <small>Math Class Platform</small>
+    </div>
+
+    <div class="content">
+      <p>Hi <strong>Student Name</strong>,</p>
+      <p>
+        Your payment for <strong>Geometry Essentials</strong> is still processing. This may take a few minutes due to network verification.
+      </p>
+      <p>
+        You’ll receive a confirmation once the transaction completes successfully.
+      </p>
+
+      <a href="mailto:support@matheclass.com" class="button">Contact Support</a>
+    </div>
+
+    <div class="footer">
+      <p>&copy; 2025 Math Class Platform</p>
+    </div>
+  </div>
+
+  <div class="email-container" style="margin-top:40px;">
+    <div class="header">
+      <h1 class="status-failed">❌ Payment Failed</h1>
+      <small>Math Class Platform</small>
+    </div>
+
+    <div class="content">
+      <p>Hi <strong>Student Name</strong>,</p>
+      <p>
+        Unfortunately, your payment for <strong>Calculus Basics</strong> could not be completed.
+      </p>
+      <p>
+        No charges were made. Please retry your payment using a valid card.
+      </p>
+
+      <a href="https://math-class-platform.netlify.app/courses" class="button">Try Again</a>
+    </div>
+
+    <div class="footer">
+      <p>&copy; 2025 Math Class Platform</p>
+    </div>
+  </div>
+</body>
+</html>

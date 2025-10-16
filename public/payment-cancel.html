@@ -1,133 +1,118 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Payment Cancelled - Math Class Platform</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    <title>Payment Cancelled - Math Class Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
 
-    .cancel-container {
-      background: white;
-      border-radius: 20px;
-      padding: 40px;
-      text-align: center;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-      max-width: 500px;
-      width: 100%;
-      border-left: 6px solid #e74c3c;
-      animation: fadeIn 0.6s ease-out;
-    }
+        .cancel-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            border-left: 4px solid #e74c3c;
+        }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+        .cancel-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
 
-    .cancel-icon {
-      font-size: 80px;
-      margin-bottom: 20px;
-      animation: pulse 1.5s infinite;
-    }
+        h1 {
+            color: #e74c3c;
+            margin-bottom: 15px;
+        }
 
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-    }
+        p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
 
-    h1 {
-      color: #e74c3c;
-      margin-bottom: 15px;
-      font-size: 2.2rem;
-    }
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
 
-    p {
-      color: #666;
-      margin-bottom: 25px;
-      font-size: 1.1rem;
-      line-height: 1.6;
-    }
+        .btn {
+            padding: 15px 25px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: inline-block;
+            text-align: center;
+            min-width: 160px;
+        }
 
-    .buttons {
-      display: flex;
-      gap: 15px;
-      justify-content: center;
-      margin-top: 20px;
-      flex-wrap: wrap;
-    }
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
 
-    .btn {
-      padding: 15px 25px;
-      border-radius: 10px;
-      text-decoration: none;
-      font-weight: bold;
-      transition: all 0.3s ease;
-      border: none;
-      cursor: pointer;
-      display: inline-block;
-      text-align: center;
-      min-width: 160px;
-    }
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
 
-    .btn-primary { background: #3498db; color: white; }
-    .btn-primary:hover { background: #2980b9; transform: translateY(-2px); }
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
 
-    .btn-secondary { background: #95a5a6; color: white; }
-    .btn-secondary:hover { background: #7f8c8d; transform: translateY(-2px); }
+        .btn-secondary:hover {
+            background: #7f8c8d;
+            transform: translateY(-2px);
+        }
 
-    .btn-support { background: #34495e; color: white; }
-    .btn-support:hover { background: #2c3e50; transform: translateY(-2px); }
-
-    .support-note {
-      background: #f9f9f9;
-      border-radius: 10px;
-      padding: 15px;
-      margin-top: 20px;
-      font-size: 0.9rem;
-      color: #555;
-    }
-
-    @media (max-width: 768px) {
-      .cancel-container { padding: 25px 20px; }
-      h1 { font-size: 1.8rem; }
-      .buttons { flex-direction: column; }
-      .btn { width: 100%; }
-    }
-  </style>
+        @media (max-width: 768px) {
+            .cancel-container {
+                padding: 25px 20px;
+            }
+            
+            .buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="cancel-container">
-    <div class="cancel-icon">❌</div>
-    <h1>Payment Cancelled</h1>
-    <p>Your payment was cancelled. No charges were made.</p>
-    <p>If this was unintentional, you can safely retry your purchase below.</p>
-
-    <div class="buttons">
-      <a href="/courses" class="btn btn-primary">Browse Courses</a>
-      <a href="/" class="btn btn-secondary">Back to Home</a>
-      <a href="mailto:support@matheclass.com?subject=Payment Cancelled Assistance&body=I cancelled my payment and need help retrying." class="btn btn-support">Contact Support</a>
+    <div class="cancel-container">
+        <div class="cancel-icon">❌</div>
+        <h1>Payment Cancelled</h1>
+        <p>Your payment was cancelled. No charges were made.</p>
+        <p>You can try again anytime.</p>
+        
+        <div class="buttons">
+            <a href="/courses" class="btn btn-primary">Browse Courses</a>
+            <a href="/" class="btn btn-secondary">Back to Home</a>
+        </div>
     </div>
-
-    <div class="support-note">
-      Tip: If you believe your card was charged in error, please check your email for a Stripe receipt or contact support with your payment details.
-    </div>
-  </div>
-
-  <script>
-    // Optional: auto-redirect hint for better UX
-    setTimeout(() => {
-      console.log('⏳ Redirect reminder: you can safely retry your payment anytime.');
-    }, 3000);
-  </script>
 </body>
 </html>
