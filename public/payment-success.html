@@ -36,7 +36,6 @@
     }
     h1 { color: #2ecc71; margin-bottom: 15px; font-size: 2.5rem; }
     .subtitle { color: #666; font-size: 1.2rem; margin-bottom: 30px; }
-
     .info-box { background: #f8f9fa; border-radius: 10px; padding: 25px; margin: 25px 0; text-align: left; }
     .info-box h3 { color: #333; margin-bottom: 15px; text-align: center; }
     .steps { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
@@ -49,7 +48,6 @@
     .step-content { flex: 1; }
     .step-content strong { color: #2c3e50; display: block; margin-bottom: 5px; }
     .step-content p { color: #7f8c8d; margin: 0; line-height: 1.5; }
-
     .important-notes {
       background: #fff3cd; border: 1px solid #ffeaa7;
       border-radius: 10px; padding: 20px; margin: 20px 0; text-align: left;
@@ -57,7 +55,6 @@
     .important-notes h4 { color: #856404; margin-bottom: 10px; text-align: center; }
     .important-notes ul { color: #856404; padding-left: 20px; }
     .important-notes li { margin-bottom: 8px; line-height: 1.4; }
-
     .support-info {
       background: #e3f2fd; border-radius: 10px;
       padding: 20px; margin: 20px 0; text-align: left;
@@ -66,14 +63,12 @@
       margin: 5px 0; word-break: break-all;
       font-family: monospace; font-size: 0.9rem;
     }
-
     .status-message {
       margin-top: 15px;
       font-weight: bold;
       font-size: 1rem;
       min-height: 24px;
     }
-
     .buttons { display: flex; gap: 15px; justify-content: center; margin-top: 30px; flex-wrap: wrap; }
     .btn {
       padding: 15px 25px; border-radius: 10px; text-decoration: none;
@@ -87,7 +82,6 @@
     .btn-secondary:hover { background: #7f8c8d; transform: translateY(-2px); }
     .btn-support { background: #34495e; color: white; }
     .btn-support:hover { background: #2c3e50; transform: translateY(-2px); }
-
     .login-prompt {
       background: #e8f5e8;
       border: 1px solid #2ecc71;
@@ -96,17 +90,14 @@
       margin: 15px 0;
       text-align: center;
     }
-
     .login-prompt a {
       color: #2ecc71;
       font-weight: bold;
       text-decoration: none;
     }
-
     .login-prompt a:hover {
       text-decoration: underline;
     }
-
     @media (max-width: 768px) {
       .success-container { padding: 25px 20px; }
       h1 { font-size: 2rem; }
@@ -126,64 +117,35 @@
     <div class="info-box">
       <h3>What happens next?</h3>
       <div class="steps">
-        <div class="step">
-          <div class="step-number">1</div>
-          <div class="step-content">
-            <strong>Payment Processed</strong>
-            <p>Your payment has been securely processed by Stripe.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-number">2</div>
-          <div class="step-content">
-            <strong>Enrollment Processing</strong>
-            <p>We're automatically enrolling you in the course.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-number">3</div>
-          <div class="step-content">
-            <strong>Admin Approval</strong>
-            <p>Your enrollment will be reviewed and approved by an administrator.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-number">4</div>
-          <div class="step-content">
-            <strong>Access Granted</strong>
-            <p>Once approved, you'll have full access to the course materials.</p>
-          </div>
-        </div>
+        <div class="step"><div class="step-number">1</div><div class="step-content"><strong>Payment Processed</strong><p>Your payment has been securely processed by Stripe.</p></div></div>
+        <div class="step"><div class="step-number">2</div><div class="step-content"><strong>Enrollment Processing</strong><p>We're automatically enrolling you in the course.</p></div></div>
+        <div class="step"><div class="step-number">3</div><div class="step-content"><strong>Admin Approval</strong><p>Your enrollment will be reviewed and approved by an administrator.</p></div></div>
+        <div class="step"><div class="step-number">4</div><div class="step-content"><strong>Access Granted</strong><p>Once approved, you'll have full access to the course materials.</p></div></div>
       </div>
     </div>
 
     <div class="important-notes">
       <h4>📝 Important Notes:</h4>
       <ul>
-        <li>Enrollment is processed automatically via Stripe webhooks</li>
-        <li>You'll receive a confirmation email after admin approval</li>
-        <li>Check "My Courses" to view your enrollment status</li>
-        <li>Admin approval typically takes 1-2 business hours</li>
-        <li>Contact support if you don't see your course within 24 hours</li>
+        <li>Enrollment is processed automatically via Stripe webhooks.</li>
+        <li>You'll receive a confirmation email after admin approval.</li>
+        <li>Check "My Courses" to view your enrollment status.</li>
+        <li>Admin approval typically takes 1–2 business hours.</li>
+        <li>Contact support if you don't see your course within 24 hours.</li>
       </ul>
     </div>
 
     <div class="support-info">
       <p><strong>Reference ID:</strong> <span id="sessionId">Loading...</span></p>
       <p><strong>Course ID:</strong> <span id="courseId">Loading...</span></p>
-      <p style="text-align: center; margin-top: 10px; font-style: italic;">
-        Save this information for support if needed.
-      </p>
+      <p style="text-align: center; margin-top: 10px; font-style: italic;">Save this information for support if needed.</p>
     </div>
 
-    <!-- Login prompt for users who might not be logged in -->
     <div class="login-prompt" id="loginPrompt" style="display: none;">
-      <p>🔐 <strong>Attention:</strong> Please <a href="/login">log in</a> to your account to access your courses and track enrollment status.</p>
+      <p>🔐 <strong>Attention:</strong> Please <a href="/login">log in</a> to access your courses and track enrollment status.</p>
     </div>
 
-    <div class="status-message" id="statusMessage">
-      ⏳ Processing your enrollment...
-    </div>
+    <div class="status-message" id="statusMessage">⏳ Processing your enrollment...</div>
 
     <div class="buttons">
       <a href="/my-courses" class="btn btn-primary">Go to My Courses</a>
@@ -193,127 +155,75 @@
   </div>
 
   <script>
-    // Get URL parameters
+    // Parse query params
     function getParameterByName(name) {
-      const url = window.location.href;
-      name = name.replace(/[\[\]]/g, '\\$&');
       const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
-      const results = regex.exec(url);
+      const results = regex.exec(window.location.href);
       if (!results) return null;
-      if (!results[2]) return '';
-      return decodeURIComponent(results[2].replace(/\+/g, ' '));
+      return decodeURIComponent(results[2]?.replace(/\+/g, ' ') || '');
     }
 
     const sessionId = getParameterByName('session_id');
     const courseId = getParameterByName('course_id');
-
-    // Display reference information
-    if (sessionId) {
-      document.getElementById('sessionId').textContent = sessionId;
-    } else {
-      document.getElementById('sessionId').textContent = 'Not available';
-    }
-
-    if (courseId) {
-      document.getElementById('courseId').textContent = courseId;
-    } else {
-      document.getElementById('courseId').textContent = 'Not available';
-    }
-
-    // Set up support email link
-    const supportLink = document.getElementById('supportLink');
-    supportLink.href = `mailto:support@matheclass.com?subject=Payment Confirmation Support&body=Session ID: ${sessionId}%0ACourse ID: ${courseId}%0AIssue: I need help with my course enrollment`;
+    document.getElementById('sessionId').textContent = sessionId || 'Not available';
+    document.getElementById('courseId').textContent = courseId || 'Not available';
+    document.getElementById('supportLink').href =
+      `mailto:support@matheclass.com?subject=Payment Confirmation Support&body=Session ID: ${sessionId}%0ACourse ID: ${courseId}`;
 
     const statusMessage = document.getElementById('statusMessage');
     const loginPrompt = document.getElementById('loginPrompt');
 
-    // Main enrollment confirmation function
     async function confirmEnrollment() {
       try {
-        // Check if user is likely logged in (has token)
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        
         if (!token) {
-          // User is probably not logged in - show login prompt
-          statusMessage.textContent = '✅ Payment successful! Your enrollment is being processed.';
+          statusMessage.textContent = '✅ Payment successful! Enrollment will be confirmed soon.';
           statusMessage.style.color = '#2ecc71';
           loginPrompt.style.display = 'block';
-          console.log('User not logged in - relying on webhook for enrollment');
           return;
         }
 
-        // Try to confirm enrollment via API
         statusMessage.textContent = '⏳ Confirming your enrollment...';
-        
-        const response = await fetch('/api/v1/payments/confirm', {
+
+        const response = await fetch('/api/v1/payments/confirm-payment', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ 
-            sessionId: sessionId, 
-            courseId: courseId 
-          })
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ sessionId, courseId }),
         });
 
         const data = await response.json();
 
         if (data.success) {
-          console.log('✅ Enrollment confirmed via API:', data);
           statusMessage.textContent = '✅ Enrollment confirmed! Waiting for admin approval.';
           statusMessage.style.color = '#2ecc71';
         } else {
-          console.warn('⚠️ API enrollment confirmation failed:', data);
-          // Fall back to webhook processing
-          statusMessage.textContent = '✅ Payment successful! Your enrollment is being processed via secure webhook.';
+          statusMessage.textContent = '✅ Payment received! Enrollment will be processed automatically.';
           statusMessage.style.color = '#2ecc71';
         }
-
       } catch (error) {
-        console.error('❌ Error in enrollment confirmation:', error);
-        // Fall back to webhook processing
-        statusMessage.textContent = '✅ Payment successful! Your enrollment is being processed. Please check "My Courses" shortly.';
+        console.error('❌ Enrollment confirmation error:', error);
+        statusMessage.textContent = '✅ Payment successful! Enrollment will be confirmed shortly.';
         statusMessage.style.color = '#2ecc71';
       }
     }
 
-    // Initialize the process
-    function initializePaymentSuccess() {
-      console.log('Payment Success Page Loaded', {
-        sessionId,
-        courseId,
-        timestamp: new Date().toISOString()
-      });
-
-      // Always show success message immediately
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('✅ Payment Success Page Loaded', { sessionId, courseId });
       statusMessage.textContent = '✅ Payment successful! Processing your enrollment...';
       statusMessage.style.color = '#2ecc71';
 
-      // Try API confirmation, but rely on webhooks as fallback
-      if (sessionId && courseId) {
-        confirmEnrollment();
-      } else {
-        statusMessage.textContent = '⚠️ Missing payment information. Please contact support with your receipt.';
+      if (sessionId && courseId) confirmEnrollment();
+      else {
+        statusMessage.textContent = '⚠️ Missing payment information. Please contact support.';
         statusMessage.style.color = '#e67e22';
       }
 
-      // Additional reassurance - webhooks will handle it
+      // Safety reassurance
       setTimeout(() => {
-        if (statusMessage.textContent.includes('Processing')) {
-          statusMessage.textContent = '✅ Enrollment processing completed! Please check "My Courses".';
-        }
+        if (statusMessage.textContent.includes('Processing'))
+          statusMessage.textContent = '✅ Enrollment completed! Check "My Courses".';
       }, 5000);
-    }
-
-    // Start the process when page loads
-    document.addEventListener('DOMContentLoaded', initializePaymentSuccess);
-
-    // Also support manual retry if needed
-    window.retryEnrollmentConfirmation = function() {
-      statusMessage.textContent = '🔄 Retrying enrollment confirmation...';
-      confirmEnrollment();
-    };
+    });
   </script>
 </body>
 </html>

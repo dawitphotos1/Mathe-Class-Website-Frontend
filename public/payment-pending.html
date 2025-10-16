@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Payment Cancelled - Math Class Platform</title>
+  <title>Payment Pending - Math Class Platform</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -17,15 +17,15 @@
       padding: 20px;
     }
 
-    .cancel-container {
+    .pending-container {
       background: white;
       border-radius: 20px;
       padding: 40px;
       text-align: center;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-      max-width: 500px;
+      max-width: 550px;
       width: 100%;
-      border-left: 6px solid #e74c3c;
+      border-left: 6px solid #f1c40f;
       animation: fadeIn 0.6s ease-out;
     }
 
@@ -34,7 +34,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .cancel-icon {
+    .pending-icon {
       font-size: 80px;
       margin-bottom: 20px;
       animation: pulse 1.5s infinite;
@@ -46,7 +46,7 @@
     }
 
     h1 {
-      color: #e74c3c;
+      color: #f1c40f;
       margin-bottom: 15px;
       font-size: 2.2rem;
     }
@@ -56,6 +56,16 @@
       margin-bottom: 25px;
       font-size: 1.1rem;
       line-height: 1.6;
+    }
+
+    .status {
+      background: #fffbe6;
+      border-radius: 10px;
+      border: 1px solid #ffe58f;
+      color: #856404;
+      padding: 15px;
+      margin-bottom: 25px;
+      font-weight: bold;
     }
 
     .buttons {
@@ -98,7 +108,7 @@
     }
 
     @media (max-width: 768px) {
-      .cancel-container { padding: 25px 20px; }
+      .pending-container { padding: 25px 20px; }
       h1 { font-size: 1.8rem; }
       .buttons { flex-direction: column; }
       .btn { width: 100%; }
@@ -106,28 +116,43 @@
   </style>
 </head>
 <body>
-  <div class="cancel-container">
-    <div class="cancel-icon">❌</div>
-    <h1>Payment Cancelled</h1>
-    <p>Your payment was cancelled. No charges were made.</p>
-    <p>If this was unintentional, you can safely retry your purchase below.</p>
+  <div class="pending-container">
+    <div class="pending-icon">⏳</div>
+    <h1>Payment Pending</h1>
+    <p>Your payment is being verified by your bank or payment provider.</p>
+    <p>This process usually completes within a few minutes.</p>
+
+    <div class="status" id="statusMessage">
+      Waiting for confirmation from Stripe...
+    </div>
 
     <div class="buttons">
-      <a href="/courses" class="btn btn-primary">Browse Courses</a>
-      <a href="/" class="btn btn-secondary">Back to Home</a>
-      <a href="mailto:support@matheclass.com?subject=Payment Cancelled Assistance&body=I cancelled my payment and need help retrying." class="btn btn-support">Contact Support</a>
+      <a href="/my-courses" class="btn btn-primary">Go to My Courses</a>
+      <a href="/courses" class="btn btn-secondary">Browse More Courses</a>
+      <a href="mailto:support@matheclass.com?subject=Payment Pending Inquiry&body=My payment is pending and I would like an update." class="btn btn-support">Contact Support</a>
     </div>
 
     <div class="support-note">
-      Tip: If you believe your card was charged in error, please check your email for a Stripe receipt or contact support with your payment details.
+      You can safely close this page — we’ll notify you once your payment is confirmed.  
+      Refresh this page later to check for updates.
     </div>
   </div>
 
   <script>
-    // Optional: auto-redirect hint for better UX
+    // Simulate periodic status checks
+    const statusMessage = document.getElementById('statusMessage');
+
+    let dots = 0;
+    setInterval(() => {
+      dots = (dots + 1) % 4;
+      statusMessage.textContent = 'Waiting for confirmation from Stripe' + '.'.repeat(dots);
+    }, 1000);
+
+    // Optional: auto-refresh every 60 seconds (can be adjusted)
     setTimeout(() => {
-      console.log('⏳ Redirect reminder: you can safely retry your payment anytime.');
-    }, 3000);
+      console.log('🔁 Auto-refresh triggered to check payment status');
+      window.location.reload();
+    }, 60000);
   </script>
 </body>
 </html>
