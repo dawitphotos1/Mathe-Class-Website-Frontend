@@ -60,7 +60,7 @@ export const login = async ({ email, password }) => {
 };
 
 // 📝 Register
-export const register = async (payload) => {
+export const registerUser = async (payload) => {
   const res = await axiosInstance.post("/auth/register", payload);
 
   if (res.data?.token) {
