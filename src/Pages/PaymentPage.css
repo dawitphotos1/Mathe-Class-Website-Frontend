@@ -130,15 +130,15 @@
     margin: 1rem auto;
     padding: 0 0.5rem;
   }
-  
+
   .payment-card {
     padding: 1.5rem;
   }
-  
+
   .payment-actions {
     gap: 0.75rem;
   }
-  
+
   .payment-btn {
     padding: 0.875rem 1.5rem;
     font-size: 1rem;
