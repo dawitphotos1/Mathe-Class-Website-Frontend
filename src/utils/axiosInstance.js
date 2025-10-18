@@ -128,29 +128,26 @@
 
 
 
-
 // src/utils/axiosInstance.js
 import axios from "axios";
+import { toast } from "react-toastify"; // ✅ Added import
 
 /* ============================================================
    🌍 Determine API Base URL
 ============================================================ */
 const getBaseURL = () => {
-  // ✅ 1. Environment variable from Netlify (primary)
   const envURL = process.env.REACT_APP_API_URL;
   if (envURL) {
     console.log("🌍 Using REACT_APP_API_URL from environment:", envURL);
     return envURL.trim();
   }
 
-  // ✅ 2. Production fallback (Render backend)
   if (process.env.NODE_ENV === "production") {
     const prodURL = "https://mathe-class-website-backend-1.onrender.com/api/v1";
     console.log("🌍 Using fallback production URL:", prodURL);
     return prodURL;
   }
 
-  // ✅ 3. Local development (default)
   const localURL = "http://localhost:5000/api/v1";
   console.log("🌍 Using local development URL:", localURL);
   return localURL;
@@ -199,7 +196,6 @@ axiosInstance.interceptors.response.use(
   (response) => {
     console.log(`✅ Response [${response.status}] → ${response.config.url}`);
 
-    // Log course/payment responses for debugging
     if (response.config.url.includes("/courses") || response.config.url.includes("/payments")) {
       console.log("💰 API Response Data:", response.data);
     }
@@ -238,7 +234,7 @@ axiosInstance.interceptors.response.use(
     // 🧩 Network or CORS issues
     if (!status) {
       console.error("🌐 Network error — backend may be down or CORS misconfigured");
-      toast?.error?.("Network connection issue. Please check your connection.");
+      toast.error("Network connection issue. Please check your connection."); // ✅ Safe now
     }
 
     return Promise.reject(error);
