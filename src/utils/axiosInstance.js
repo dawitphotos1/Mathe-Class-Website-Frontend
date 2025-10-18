@@ -1,4 +1,3 @@
-
 // // src/utils/axiosInstance.js
 // import axios from "axios";
 
@@ -52,7 +51,7 @@
 //     }
 
 //     console.log(`🚀 API request [${config.method?.toUpperCase()}]: ${config.baseURL}${config.url}`);
-    
+
 //     // Log request details for debugging
 //     if (config.data) {
 //       console.log("📦 Request data:", config.data);
@@ -72,12 +71,12 @@
 // axiosInstance.interceptors.response.use(
 //   (response) => {
 //     console.log(`✅ API response [${response.status}]: ${response.config.url}`);
-    
+
 //     // Log response data for debugging (especially for course data)
 //     if (response.config.url.includes('/courses') || response.config.url.includes('/payments')) {
 //       console.log("💰 Course/Payment response data:", response.data);
 //     }
-    
+
 //     return response;
 //   },
 //   (error) => {
@@ -96,18 +95,18 @@
 //     // Handle session expiration (401 Unauthorized)
 //     if (status === 401) {
 //       const token = localStorage.getItem("token");
-      
+
 //       if (token && !url?.includes("/auth/") && !hasShownSessionAlert) {
 //         hasShownSessionAlert = true;
 //         console.log("🔐 Session expired, redirecting to login...");
-        
+
 //         localStorage.removeItem("token");
 //         localStorage.removeItem("user");
-        
+
 //         if (!window.location.pathname.includes("/login")) {
 //           window.location.href = "/login?session=expired";
 //         }
-        
+
 //         setTimeout(() => {
 //           hasShownSessionAlert = false;
 //         }, 5000);
@@ -125,8 +124,6 @@
 // );
 
 // export default axiosInstance;
-
-
 
 // src/utils/axiosInstance.js
 import axios from "axios";
@@ -174,9 +171,13 @@ axiosInstance.interceptors.request.use(
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log(`🔐 Token added → ${config.method?.toUpperCase()} ${config.url}`);
+      console.log(
+        `🔐 Token added → ${config.method?.toUpperCase()} ${config.url}`
+      );
     } else {
-      console.warn(`⚠️ Guest request → ${config.method?.toUpperCase()} ${config.url}`);
+      console.warn(
+        `⚠️ Guest request → ${config.method?.toUpperCase()} ${config.url}`
+      );
     }
 
     return config;
@@ -196,7 +197,10 @@ axiosInstance.interceptors.response.use(
   (response) => {
     console.log(`✅ Response [${response.status}] → ${response.config.url}`);
 
-    if (response.config.url.includes("/courses") || response.config.url.includes("/payments")) {
+    if (
+      response.config.url.includes("/courses") ||
+      response.config.url.includes("/payments")
+    ) {
       console.log("💰 API Response Data:", response.data);
     }
 
@@ -233,7 +237,9 @@ axiosInstance.interceptors.response.use(
 
     // 🧩 Network or CORS issues
     if (!status) {
-      console.error("🌐 Network error — backend may be down or CORS misconfigured");
+      console.error(
+        "🌐 Network error — backend may be down or CORS misconfigured"
+      );
       toast.error("Network connection issue. Please check your connection."); // ✅ Safe now
     }
 
