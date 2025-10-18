@@ -8,30 +8,33 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  // ⏳ While checking auth state, show loader
-  if (loading) {
-    return <Loading />;
-  }
+  // ⏳ While checking authentication, show a loading screen
+  if (loading) return <Loading />;
 
-  // 🔐 If not logged in, redirect to login
+  // 🔐 If user is not logged in, redirect to login
   if (!user) {
+    console.warn("🚫 ProtectedRoute: Not logged in, redirecting to /login");
     return (
       <Navigate
         to="/login"
         replace
         state={{
-          from: location,
-          message: "Please log in to continue.",
+          from: location.pathname,
+          message: "Your session has expired. Please log in again.",
         }}
       />
     );
   }
 
-  // 🧭 If allowedRoles is specified and user role is not allowed
+  // 🧭 If route has restricted roles and user doesn’t match
   if (allowedRoles && !allowedRoles.includes(user.role)) {
+    console.warn(
+      `🚫 ProtectedRoute: Access denied for role "${user.role}". Allowed: ${allowedRoles}`
+    );
     return <Navigate to="/unauthorized" replace />;
   }
 
+  // ✅ Authenticated and authorized — render the child route
   return children;
 };
 

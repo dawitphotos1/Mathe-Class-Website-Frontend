@@ -1,151 +1,111 @@
+import React, { createContext, useContext, useEffect, useState } from "react";
+import axiosInstance from "../utils/axiosInstance";
 
-// context/AuthContext.jsx
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-} from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import {
-  login,
-  register,
-  getCurrentUser,
-  logout,
-} from "../services/authService";
-
-export const AuthContext = createContext();
+const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem("user");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [checked, setChecked] = useState(false); // prevents false 401 redirects
 
-  // 🛠 Save token
-  const saveToken = (token) => {
-    if (token) {
-      localStorage.setItem("authToken", token);
-    } else {
-      localStorage.removeItem("authToken");
-    }
-  };
-
-  // 🔐 Login
-  const loginUser = async ({ email, password }) => {
-    try {
-      const res = await login({ email, password });
-      const { token, user } = res.data;
-
-      saveToken(token);
-      setUser(user);
-      toast.success("Logged in successfully");
-
-      if (user.role === "admin") {
-        navigate("/admin");
-      } else if (user.role === "teacher") {
-        navigate("/dashboard");
-      } else if (user.role === "student") {
-        navigate("/my-courses");
-      } else {
-        navigate("/");
-      }
-
-      return user;
-    } catch (err) {
-      console.error("❌ Login failed:", err.response?.data || err.message);
-      toast.error(err.response?.data?.error || "Login failed");
-      throw err;
-    }
-  };
-
-  // 📝 Register
-  const registerUser = async (payload) => {
-    try {
-      const res = await register(payload);
-      const { token, user } = res.data;
-
-      if (user.approval_status === "approved") {
-        saveToken(token);
-        setUser(user);
-        toast.success("Registered and logged in");
-
-        if (user.role === "admin") {
-          navigate("/admin");
-        } else if (user.role === "teacher") {
-          navigate("/dashboard");
-        } else if (user.role === "student") {
-          navigate("/my-courses");
-        } else {
-          navigate("/");
-        }
-      } else {
-        toast.info("Registration pending approval");
-        navigate("/login");
-      }
-
-      return user;
-    } catch (err) {
-      console.error("❌ Register failed:", err.response?.data || err.message);
-      toast.error(err.response?.data?.error || "Registration failed");
-      throw err;
-    }
-  };
-
-  // 🔒 Logout
-  const logoutUser = useCallback(async () => {
-    try {
-      await logout();
-      saveToken(null);
-      setUser(null);
-      toast.info("Logged out");
-      navigate("/login");
-    } catch (err) {
-      console.error("Logout error:", err);
-      toast.error("Logout failed");
-    }
-  }, [navigate]);
-
-  // 🚀 On mount: restore session
+  /* =====================================================
+     🔹 Auto-verify session on load / refresh
+  ===================================================== */
   useEffect(() => {
-    const restoreSession = async () => {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
+    const verifyUser = async () => {
       try {
-        const me = await getCurrentUser();
-        setUser(me.data.user);
-      } catch {
-        console.warn("Session expired, clearing token");
-        saveToken(null);
-        setUser(null);
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.log("🔸 No token in storage — guest session");
+          setUser(null);
+          return;
+        }
+
+        const { data } = await axiosInstance.get("/auth/me");
+        if (data?.success && data.user) {
+          console.log("✅ Session verified for:", data.user.email);
+          setUser(data.user);
+          localStorage.setItem("user", JSON.stringify(data.user));
+        } else {
+          console.warn("⚠️ Invalid session response — logging out");
+          await safeLogout();
+        }
+      } catch (err) {
+        console.warn(
+          "⚠️ Session check failed:",
+          err.response?.data || err.message
+        );
+        await safeLogout(false); // don’t force redirect while verifying
       } finally {
         setLoading(false);
+        setChecked(true);
       }
     };
 
-    restoreSession();
+    verifyUser();
   }, []);
+
+  /* =====================================================
+     🔐 Login User
+  ===================================================== */
+  const loginUser = async ({ email, password }) => {
+    const { data } = await axiosInstance.post("/auth/login", {
+      email,
+      password,
+    });
+
+    if (data?.token && data?.user) {
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      setUser(data.user);
+      return { ...data.user, token: data.token };
+    }
+
+    throw new Error(data?.error || "Login failed");
+  };
+
+  /* =====================================================
+     🚪 Safe Logout (shared)
+  ===================================================== */
+  const safeLogout = async (redirect = true) => {
+    try {
+      await axiosInstance.post("/auth/logout");
+    } catch (err) {
+      console.warn("⚠️ Logout request failed:", err.message);
+    } finally {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setUser(null);
+      if (redirect) window.location.href = "/login";
+    }
+  };
+
+  /* =====================================================
+     🚪 Public Logout Function
+  ===================================================== */
+  const logoutUser = async () => {
+    await safeLogout(true);
+  };
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        loading,
-        isAuthenticated: !!user,
+        loading: loading && !checked, // prevent early redirects
         loginUser,
-        registerUser,
         logoutUser,
+        isAuthenticated: !!user,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
-
-export default AuthProvider;

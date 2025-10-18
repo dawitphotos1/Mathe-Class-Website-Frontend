@@ -1,79 +1,3 @@
-// //utils/axiosInstance.js
-// import axios from "axios";
-
-// // Determine the correct base URL based on environment
-// const getBaseURL = () => {
-//   // If REACT_APP_API_URL is explicitly set, use it
-//   if (process.env.REACT_APP_API_URL) {
-//     return process.env.REACT_APP_API_URL;
-//   }
-
-//   // For production (Netlify deployment)
-//   if (process.env.NODE_ENV === "production") {
-//     return "https://mathe-class-website-backend-1.onrender.com/api/v1";
-//   }
-
-//   // For local development
-//   return "http://localhost:5000/api/v1";
-// };
-
-// const axiosInstance = axios.create({
-//   baseURL: getBaseURL(),
-//   timeout: 30000,
-//   withCredentials: true, // Important for cookies/auth
-// });
-
-// // Add request interceptor to attach token
-// axiosInstance.interceptors.request.use(
-//   (config) => {
-//     const token = localStorage.getItem("token");
-//     if (token) {
-//       config.headers.Authorization = `Bearer ${token}`;
-//     }
-//     console.log(
-//       "🚀 API request:",
-//       config.method?.toUpperCase(),
-//       config.baseURL + config.url
-//     );
-//     return config;
-//   },
-//   (error) => {
-//     console.error("❌ Request error:", error);
-//     return Promise.reject(error);
-//   }
-// );
-
-// // Response interceptor
-// axiosInstance.interceptors.response.use(
-//   (response) => {
-//     console.log("✅ API response:", response.status, response.config?.url);
-//     return response;
-//   },
-//   (error) => {
-//     console.error("❌ API response error:", {
-//       status: error.response?.status,
-//       url: error.config?.url,
-//       message: error.message,
-//       data: error.response?.data,
-//     });
-
-//     // Handle specific error cases
-//     if (error.response?.status === 401) {
-//       // Token expired or invalid
-//       localStorage.removeItem("token");
-//       window.location.href = "/login";
-//     }
-
-//     return Promise.reject(error);
-//   }
-// );
-
-// export default axiosInstance;
-
-
-
-
-
 // src/utils/axiosInstance.js
 import axios from "axios";
 
@@ -95,7 +19,7 @@ const getBaseURL = () => {
 const axiosInstance = axios.create({
   baseURL: getBaseURL(),
   timeout: 30000,
-  withCredentials: false, // ✅ usually false if you use JWT in headers
+  withCredentials: false, // ✅ JWT handled via Authorization header
 });
 
 /* ============================================================
@@ -108,7 +32,7 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     } else {
-      console.warn("⚠️ No token found — request may be unauthenticated:", config.url);
+      console.warn("⚠️ No token found — possible guest request:", config.url);
     }
 
     console.log(
@@ -125,8 +49,10 @@ axiosInstance.interceptors.request.use(
 );
 
 /* ============================================================
-   🧩 Response Interceptor — log & auto-logout on 401
+   🧩 Response Interceptor — handle errors & 401 safely
 ============================================================ */
+let hasShownSessionAlert = false; // Prevent spammy multiple alerts
+
 axiosInstance.interceptors.response.use(
   (response) => {
     console.log("✅ API response:", response.status, response.config?.url);
@@ -139,11 +65,26 @@ axiosInstance.interceptors.response.use(
 
     console.error(`❌ API error [${status}] ${url}:`, message);
 
-    // Handle expired / missing token
-    if (status === 401) {
+    // Only handle 401s for authenticated routes
+    if (
+      status === 401 &&
+      !url.includes("/auth/login") &&
+      !url.includes("/auth/register")
+    ) {
+      const token = localStorage.getItem("token");
+
+      if (token && !hasShownSessionAlert) {
+        hasShownSessionAlert = true;
+        alert("Your session has expired. Please log in again.");
+      }
+
       localStorage.removeItem("token");
-      alert("Your session has expired. Please log in again.");
-      window.location.href = "/login";
+      localStorage.removeItem("user");
+
+      // Avoid redirect loop if already on /login
+      if (!window.location.pathname.includes("/login")) {
+        window.location.href = "/login";
+      }
     }
 
     return Promise.reject(error);
