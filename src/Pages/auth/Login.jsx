@@ -179,7 +179,6 @@
 
 
 
-
 // src/pages/auth/Login.jsx
 import React, { useState, useEffect } from "react";
 import {
@@ -193,7 +192,7 @@ import { useAuth } from "../../context/AuthContext";
 import "./Login.css";
 
 const Login = () => {
-  const { loginUser, isAuthenticated } = useAuth();
+  const { loginUser, isAuthenticated, user } = useAuth(); // ✅ Added user here
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -237,10 +236,10 @@ const Login = () => {
   useEffect(() => {
     if (isAuthenticated) {
       console.log("✅ Already authenticated, redirecting...");
-      const from = location.state?.from?.pathname || getRoleBasedRedirect(user?.role);
+      const from = location.state?.from?.pathname || getRoleBasedRedirect(user?.role); // ✅ Now user is defined
       navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate, location, user]);
+  }, [isAuthenticated, navigate, location, user]); // ✅ Added user to dependencies
 
   const handleChange = (e) => {
     setFormData((prev) => ({
