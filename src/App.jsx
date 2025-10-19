@@ -239,7 +239,6 @@
 
 
 
-
 // src/App.jsx
 import React, { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -254,7 +253,7 @@ import Contact from "./components/Contact";
 import AdminLayout from "./components/AdminLayout";
 import PendingStudents from "./components/PendingStudents";
 
-// Lazy-loaded pages with correct paths
+// ✅ Lazy-loaded pages (clean paths)
 const Home = React.lazy(() => import("./Pages/Home"));
 const Register = React.lazy(() => import("./Pages/auth/Register"));
 const Login = React.lazy(() => import("./Pages/auth/Login"));
@@ -277,45 +276,60 @@ const CourseLessons = React.lazy(() => import("./Pages/CourseLessons"));
 const MyCoursesPage = React.lazy(() => import("./Pages/courses/MyCourses"));
 const AdminLessonLogs = React.lazy(() => import("./Pages/AdminLessonLogs"));
 const NotFound = React.lazy(() => import("./Pages/NotFound"));
-
-// Teacher components
 const EditCourse = React.lazy(() => import("./Pages/teachers/EditCourse"));
 const MyTeachingCourses = React.lazy(() => import("./Pages/teachers/MyTeachingCourses"));
 const TeacherCourseProgress = React.lazy(() => import("./Pages/courses/TeacherCourseProgress"));
 const EditLesson = React.lazy(() => import("./Pages/teachers/EditLesson"));
 const LessonCreationForm = React.lazy(() => import("./components/LessonCreationForm"));
 
-// Public Route component (redirects if already logged in)
+/* =========================================================
+   🧩 PublicRoute — only for guests
+========================================================= */
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated, loading, user } = useAuth();
-  
-  if (loading) return <Loading />;
-  
-  if (isAuthenticated) {
-    // Redirect to role-appropriate dashboard
-    let redirectPath = "/my-courses";
-    if (user?.role === "admin") redirectPath = "/admin";
-    if (user?.role === "teacher") redirectPath = "/dashboard";
-    
-    return <Navigate to={redirectPath} replace />;
+  const { isAuthenticated, loading, checked, user } = useAuth();
+
+  if (loading || !checked) return <Loading />;
+
+  if (isAuthenticated && user?.role) {
+    console.log("🔁 Redirecting logged-in user:", user.role);
+    switch (user.role) {
+      case "admin":
+        return <Navigate to="/admin" replace />;
+      case "teacher":
+        return <Navigate to="/teacher-dashboard" replace />;
+      case "student":
+        return <Navigate to="/my-courses" replace />;
+      default:
+        return <Navigate to="/" replace />;
+    }
   }
-  
+
   return children;
 };
 
-// Role-based redirect component
+/* =========================================================
+   🧭 RoleBasedRedirect — smart central redirect
+========================================================= */
 const RoleBasedRedirect = () => {
   const { user } = useAuth();
-  
-  if (user?.role === "admin") return <Navigate to="/admin" replace />;
-  if (user?.role === "teacher") return <Navigate to="/dashboard" replace />;
-  if (user?.role === "student") return <Navigate to="/my-courses" replace />;
-  
-  return <Navigate to="/" replace />;
+
+  if (!user) return <Navigate to="/login" replace />;
+  console.log("🎯 RoleBasedRedirect for:", user.role);
+
+  switch (user.role) {
+    case "admin":
+      return <Navigate to="/admin" replace />;
+    case "teacher":
+      return <Navigate to="/teacher-dashboard" replace />;
+    case "student":
+      return <Navigate to="/my-courses" replace />;
+    default:
+      return <Navigate to="/" replace />;
+  }
 };
 
 /* =========================================================
-   🌐 Inner App Content — waits for Auth to finish loading
+   🌐 Main App Content
 ========================================================= */
 function AppContent() {
   const { loading, checked } = useAuth();
@@ -332,32 +346,29 @@ function AppContent() {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Home />} />
-            <Route 
-              path="/register" 
+            <Route
+              path="/register"
               element={
                 <PublicRoute>
                   <Register />
                 </PublicRoute>
-              } 
+              }
             />
-            <Route 
-              path="/login" 
+            <Route
+              path="/login"
               element={
                 <PublicRoute>
                   <Login />
                 </PublicRoute>
-              } 
+              }
             />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/courses" element={<Courses />} />
             <Route path="/courses/:slug" element={<CourseDetail />} />
-            <Route path="/contact" element={<Contact />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
 
-            {/* Role-based redirect for root authenticated access */}
-            <Route 
-              path="/dashboard" 
-              element={<RoleBasedRedirect />} 
-            />
+            {/* Universal redirect path */}
+            <Route path="/dashboard" element={<RoleBasedRedirect />} />
 
             {/* Payments */}
             <Route path="/payment/:courseId" element={<PaymentPage />} />
@@ -365,7 +376,7 @@ function AppContent() {
             <Route path="/payment-cancel" element={<PaymentCancel />} />
             <Route path="/cancel" element={<Cancel />} />
 
-            {/* Admin Routes */}
+            {/* ==================== ADMIN ROUTES ==================== */}
             <Route
               path="/admin/*"
               element={
@@ -382,15 +393,7 @@ function AppContent() {
               <Route path="files" element={<FileManager />} />
             </Route>
 
-            {/* Teacher Routes */}
-            <Route
-              path="/create-course"
-              element={
-                <ProtectedRoute allowedRoles={["teacher"]}>
-                  <CreateCourse />
-                </ProtectedRoute>
-              }
-            />
+            {/* ==================== TEACHER ROUTES ==================== */}
             <Route
               path="/teacher-dashboard"
               element={
@@ -400,10 +403,10 @@ function AppContent() {
               }
             />
             <Route
-              path="/teacher/course/:courseId/progress"
+              path="/create-course"
               element={
                 <ProtectedRoute allowedRoles={["teacher"]}>
-                  <TeacherCourseProgress />
+                  <CreateCourse />
                 </ProtectedRoute>
               }
             />
@@ -416,10 +419,10 @@ function AppContent() {
               }
             />
             <Route
-              path="/courses/:courseId/lessons/new"
+              path="/courses/:courseId/edit"
               element={
                 <ProtectedRoute allowedRoles={["teacher"]}>
-                  <LessonCreationForm />
+                  <EditCourse />
                 </ProtectedRoute>
               }
             />
@@ -432,28 +435,28 @@ function AppContent() {
               }
             />
             <Route
-              path="/courses/:courseId/edit"
+              path="/teacher/course/:courseId/progress"
               element={
                 <ProtectedRoute allowedRoles={["teacher"]}>
-                  <EditCourse />
+                  <TeacherCourseProgress />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/courses/:courseId/lessons/new"
+              element={
+                <ProtectedRoute allowedRoles={["teacher"]}>
+                  <LessonCreationForm />
                 </ProtectedRoute>
               }
             />
 
-            {/* Student Routes */}
+            {/* ==================== STUDENT ROUTES ==================== */}
             <Route
               path="/my-courses"
               element={
                 <ProtectedRoute allowedRoles={["student"]}>
                   <MyCoursesPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/courses/:courseId/view-lessons"
-              element={
-                <ProtectedRoute allowedRoles={["student"]}>
-                  <CourseLessons />
                 </ProtectedRoute>
               }
             />
@@ -465,8 +468,16 @@ function AppContent() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/courses/:courseId/view-lessons"
+              element={
+                <ProtectedRoute allowedRoles={["student"]}>
+                  <CourseLessons />
+                </ProtectedRoute>
+              }
+            />
 
-            {/* Shared Routes */}
+            {/* Shared Profile */}
             <Route
               path="/profile"
               element={

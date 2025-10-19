@@ -178,7 +178,6 @@
 // export default Login;
 
 
-
 // src/pages/auth/Login.jsx
 import React, { useState, useEffect } from "react";
 import {
@@ -192,21 +191,19 @@ import { useAuth } from "../../context/AuthContext";
 import "./Login.css";
 
 const Login = () => {
-  const { loginUser, isAuthenticated, user } = useAuth(); // ✅ Added user here
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const { loginUser, isAuthenticated, user, checked } = useAuth(); // ✅ added checked
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  // Get role-based redirect path
+  /* =====================================================
+     🎯 Determine redirect path based on user role
+  ===================================================== */
   const getRoleBasedRedirect = (userRole) => {
     console.log("🎯 Determining redirect for role:", userRole);
-    
     switch (userRole) {
       case "admin":
         return "/admin";
@@ -219,28 +216,34 @@ const Login = () => {
     }
   };
 
-  // Check for session expiration message
+  /* =====================================================
+     ⚠️ Handle session expired message in URL
+  ===================================================== */
   useEffect(() => {
     if (searchParams.get("session") === "expired") {
       toast.error("Your session has expired. Please log in again.");
-      // Clean up the URL
       const newSearch = new URLSearchParams(searchParams);
       newSearch.delete("session");
-      navigate(`${location.pathname}?${newSearch.toString()}`, {
-        replace: true,
-      });
+      navigate(`${location.pathname}?${newSearch.toString()}`, { replace: true });
     }
   }, [searchParams, navigate, location]);
 
-  // Redirect if already authenticated
+  /* =====================================================
+     🔁 Auto-redirect if already authenticated
+  ===================================================== */
   useEffect(() => {
-    if (isAuthenticated) {
-      console.log("✅ Already authenticated, redirecting...");
-      const from = location.state?.from?.pathname || getRoleBasedRedirect(user?.role); // ✅ Now user is defined
+    // Only run this check when AuthContext has finished initializing
+    if (checked && isAuthenticated && user?.role) {
+      console.log("✅ Already authenticated, redirecting user:", user.email);
+      const from = location.state?.from?.pathname || getRoleBasedRedirect(user.role);
+      console.log("➡️ Redirecting to:", from);
       navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate, location, user]); // ✅ Added user to dependencies
+  }, [checked, isAuthenticated, user, navigate, location]);
 
+  /* =====================================================
+     ✏️ Handle form input
+  ===================================================== */
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -248,6 +251,9 @@ const Login = () => {
     }));
   };
 
+  /* =====================================================
+     🔐 Handle login submit
+  ===================================================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -259,31 +265,26 @@ const Login = () => {
     }
 
     setLoading(true);
-
     try {
       console.log("🔄 Attempting login...");
-      const user = await loginUser({
+      const loggedInUser = await loginUser({
         email: email.trim().toLowerCase(),
         password,
       });
 
       toast.success("Login successful! Redirecting...");
-      console.log("✅ Login successful, user role:", user.role);
+      console.log("✅ Login successful, user role:", loggedInUser.role);
 
-      // Determine redirect path based on user role
-      const redirectPath = getRoleBasedRedirect(user.role);
-
-      // Use the original intended path or role-based path
+      const redirectPath = getRoleBasedRedirect(loggedInUser.role);
       const from = location.state?.from?.pathname || redirectPath;
       console.log(`📍 Redirecting to: ${from}`);
-      
-      // Small delay to show success message
+
+      // ⏳ Wait just long enough for AuthContext to update before navigation
       setTimeout(() => {
         navigate(from, { replace: true });
-      }, 500);
-      
+      }, 300);
     } catch (error) {
-      console.error("Login failed:", error);
+      console.error("❌ Login failed:", error);
       const errorMsg =
         error.response?.data?.error ||
         error.message ||
@@ -294,8 +295,10 @@ const Login = () => {
     }
   };
 
-  // Don't show login form if already authenticated
-  if (isAuthenticated) {
+  /* =====================================================
+     🚫 Prevent showing login form if user is authenticated
+  ===================================================== */
+  if (checked && isAuthenticated) {
     return (
       <div className="auth-container">
         <div className="auth-form">
@@ -306,6 +309,9 @@ const Login = () => {
     );
   }
 
+  /* =====================================================
+     🧾 Login Form
+  ===================================================== */
   return (
     <div className="auth-container">
       <div className="auth-form">
@@ -358,7 +364,7 @@ const Login = () => {
         </form>
 
         <div className="auth-footer">
-          Don't have an account? <Link to="/register">Register here</Link>
+          Don’t have an account? <Link to="/register">Register here</Link>
         </div>
       </div>
     </div>

@@ -40,7 +40,6 @@
 
 
 
-
 // src/components/ProtectedRoute.jsx
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -50,41 +49,47 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading, checked, isAuthenticated } = useAuth();
   const location = useLocation();
 
-  // Show loading spinner while checking authentication
+  // ⏳ Wait for AuthContext to load user info
   if (loading || !checked) {
+    console.log("⏳ AuthContext still loading user...");
     return <Loading />;
   }
 
-  console.log("🛡️ ProtectedRoute check:", {
+  // 🧩 DEBUG LOG — shows exactly what's happening
+  console.log("🛡️ ProtectedRoute Debug →", {
+    path: location.pathname,
     isAuthenticated,
+    user,
     userRole: user?.role,
     allowedRoles,
-    path: location.pathname
   });
 
+  // 🚫 If not logged in → redirect to login
   if (!isAuthenticated) {
-    console.log("🚫 Redirecting to login - not authenticated");
+    console.warn("🚫 Not authenticated — redirecting to /login");
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Check role-based access
+  // 🚫 Role mismatch (logged in but not allowed for this route)
   if (allowedRoles.length > 0 && user?.role && !allowedRoles.includes(user.role)) {
-    console.log("🚫 Access denied - role mismatch:", {
+    console.warn("🚫 Role mismatch detected:", {
       userRole: user.role,
       allowedRoles,
-      path: location.pathname
+      path: location.pathname,
     });
-    
-    // Show more specific error message
+
+    // 🧭 If Admin tries to access student/teacher route → go to admin dashboard
     if (user.role === "admin") {
-      console.log("🔄 Admin trying to access restricted route, redirecting to admin dashboard");
+      console.info("🔄 Redirecting admin → /admin/dashboard");
       return <Navigate to="/admin" replace />;
     }
-    
+
+    // 🧭 Otherwise, go to unauthorized page
+    console.info("🔒 Redirecting to /unauthorized");
     return <Navigate to="/unauthorized" replace />;
   }
 
-  console.log("✅ ProtectedRoute - access granted");
+  console.log("✅ Access granted to:", location.pathname);
   return children;
 };
 

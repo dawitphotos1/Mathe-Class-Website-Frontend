@@ -162,7 +162,6 @@
 
 
 
-
 // src/context/AuthContext.jsx
 import React, { createContext, useContext, useEffect, useState } from "react";
 import axiosInstance from "../utils/axiosInstance";
@@ -183,7 +182,7 @@ export const AuthProvider = ({ children }) => {
   const [checked, setChecked] = useState(false);
 
   /* =====================================================
-     🔹 Auto-verify session on load / refresh
+     🔹 Verify session on page load / refresh
   ===================================================== */
   useEffect(() => {
     const verifyUser = async () => {
@@ -199,7 +198,7 @@ export const AuthProvider = ({ children }) => {
 
         console.log("🔐 Verifying session with token...");
         const { data } = await axiosInstance.get("/auth/me");
-        
+
         if (data?.success && data.user) {
           console.log("✅ Session verified for:", data.user.email);
           setUser(data.user);
@@ -232,16 +231,17 @@ export const AuthProvider = ({ children }) => {
 
       if (data?.success) {
         if (data.token && data.user) {
-          // Auto-login after registration
           localStorage.setItem("token", data.token);
           localStorage.setItem("user", JSON.stringify(data.user));
           setUser(data.user);
+          setChecked(true);
+          setLoading(false);
           return { user: data.user, token: data.token };
         } else if (data.message) {
-          // Registration successful but needs approval
           return { message: data.message, needsApproval: true };
         }
       }
+
       throw new Error(data?.error || "Registration failed");
     } catch (error) {
       console.error("Registration error:", error);
@@ -250,38 +250,39 @@ export const AuthProvider = ({ children }) => {
   };
 
   /* =====================================================
-     🔐 Login User
+     🔐 Login User (fixed flicker issue)
   ===================================================== */
- const loginUser = async ({ email, password }) => {
-   try {
-     console.log("🔐 Attempting login for:", email);
-     const { data } = await axiosInstance.post("/auth/login", {
-       email,
-       password,
-     });
+  const loginUser = async ({ email, password }) => {
+    try {
+      console.log("🔐 Attempting login for:", email);
+      const { data } = await axiosInstance.post("/auth/login", { email, password });
 
-     console.log("🔐 Login response:", data);
+      console.log("🔐 Login response:", data);
 
-     if (data?.success && data?.token && data?.user) {
-       // Store tokens and update state
-       localStorage.setItem("token", data.token);
-       localStorage.setItem("user", JSON.stringify(data.user));
-       setUser(data.user);
-       console.log("✅ Login successful, user state updated:", {
-         email: data.user.email,
-         role: data.user.role,
-       });
-       return data.user;
-     }
+      if (data?.success && data?.token && data?.user) {
+        // ✅ Store and update state immediately
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        setUser(data.user);
+        setChecked(true);   // ✅ Ensures ProtectedRoute waits
+        setLoading(false);  // ✅ Prevents "Access Denied" flicker
 
-     throw new Error(data?.error || "Login failed");
-   } catch (error) {
-     console.error("Login error:", error);
-     throw error;
-   }
- };
+        console.log("✅ Login successful:", {
+          email: data.user.email,
+          role: data.user.role,
+        });
+        return data.user;
+      }
+
+      throw new Error(data?.error || "Login failed");
+    } catch (error) {
+      console.error("❌ Login error:", error);
+      throw error;
+    }
+  };
+
   /* =====================================================
-     🚪 Safe Logout (shared)
+     🚪 Safe Logout
   ===================================================== */
   const safeLogout = async (redirect = true) => {
     try {
@@ -292,14 +293,16 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       setUser(null);
-      if (redirect && !window.location.pathname.includes('/login')) {
+      setChecked(true);
+      setLoading(false);
+      if (redirect && !window.location.pathname.includes("/login")) {
         window.location.href = "/login";
       }
     }
   };
 
   /* =====================================================
-     🚪 Public Logout Function
+     🚪 Public Logout
   ===================================================== */
   const logoutUser = async () => {
     await safeLogout(true);
@@ -309,12 +312,12 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
-        loading: loading && !checked,
+        loading: loading && !checked, // prevents false loading
         checked,
+        isAuthenticated: !!user,
         registerUser,
         loginUser,
         logoutUser,
-        isAuthenticated: !!user,
       }}
     >
       {children}
