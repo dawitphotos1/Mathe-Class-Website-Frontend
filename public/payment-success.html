@@ -107,14 +107,19 @@
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          credentials: 'include', // Important for cookies
+          credentials: 'include',
           body: JSON.stringify({ sessionId, courseId }),
         });
+
+        // Check if response is OK before parsing JSON
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
 
         const data = await res.json();
         console.log("💬 Payment confirm response:", data);
 
-        if (res.ok && data.success) {
+        if (data.success) {
           showSuccess("Your enrollment has been received and is pending admin approval.");
         } else {
           let msg = data.error || "We couldn't confirm your payment.";
