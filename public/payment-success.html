@@ -77,7 +77,8 @@
   </div>
 
   <script>
-    const API_BASE = "https://math-class-backend.onrender.com/api/v1";
+    // ✅ CORRECT BACKEND URL - FIXED
+    const API_BASE = "https://mathe-class-website-backend-1.onrender.com/api/v1";
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get("session_id");
     const courseId = params.get("course_id");
@@ -91,6 +92,7 @@
       }
 
       console.log("🔁 Confirming payment:", { sessionId, courseId });
+      console.log("🔗 Using backend:", API_BASE);
 
       try {
         if (!token) {
@@ -105,6 +107,7 @@
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
+          credentials: 'include', // Important for cookies
           body: JSON.stringify({ sessionId, courseId }),
         });
 
@@ -114,7 +117,7 @@
         if (res.ok && data.success) {
           showSuccess("Your enrollment has been received and is pending admin approval.");
         } else {
-          let msg = data.error || "We couldn’t confirm your payment.";
+          let msg = data.error || "We couldn't confirm your payment.";
           if (msg.includes("Duplicate")) {
             msg = "You have already paid for this course. Duplicate payments are not allowed.";
           } else if (msg.includes("Unauthorized") || msg.includes("Not authenticated")) {
@@ -133,6 +136,7 @@
         <h2>🎉 Payment Successful!</h2>
         <p>${message}</p>
         <button class="btn" onclick="window.location.href='/courses'">Browse More Courses</button>
+        <button class="btn" onclick="window.location.href='/my-courses'" style="background: #2196F3; margin-left: 10px;">View My Courses</button>
       `;
       card.classList.add("fade-in");
     }
@@ -146,6 +150,7 @@
       card.classList.add("fade-in");
     }
 
+    // Start payment confirmation
     confirmPayment();
   </script>
 </body>
