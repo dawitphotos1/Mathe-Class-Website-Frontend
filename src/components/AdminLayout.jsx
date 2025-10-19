@@ -1,25 +1,31 @@
 
+// src/components/AdminLayout.jsx
 import React from "react";
-import { Outlet, Navigate } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import AdminSidebar from "./AdminSidebar";
 import Loading from "./Loading";
 
 const AdminLayout = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, checked } = useAuth();
 
-  if (loading) {
-    return <Loading />; // wait until auth check is finished
+  // Wait until auth verification finishes
+  if (loading || !checked) {
+    return <Loading />;
   }
 
-  if (!user || user.role !== "admin") {
-    return <Navigate to="/unauthorized" replace />;
-  }
+  // ⚠️ Important: don't handle role access here
+  // ProtectedRoute already prevents non-admins from reaching this component
 
   return (
-    <div className="flex">
-      <AdminSidebar />
-      <main className="flex-1 p-6">
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <aside className="w-64 bg-white shadow-md">
+        <AdminSidebar />
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto p-6">
         <Outlet />
       </main>
     </div>
