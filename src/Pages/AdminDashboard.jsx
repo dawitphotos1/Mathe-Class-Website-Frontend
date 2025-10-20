@@ -1,350 +1,455 @@
 
-// src/Pages/AdminDashboard.jsx
+// // src/Pages/AdminDashboard.jsx
+// import React, { useState, useEffect, useCallback } from "react";
+// import { toast } from "react-toastify";
+// import axiosInstance from "../utils/axiosInstance";
+// import { useAuth } from "../context/AuthContext";
+// import "./AdminDashboard.css";
 
+// const AdminDashboard = () => {
+//   const { user } = useAuth();
+
+//   const [pendingStudents, setPendingStudents] = useState([]);
+//   const [approvedStudents, setApprovedStudents] = useState([]);
+//   const [pendingEnrollments, setPendingEnrollments] = useState([]);
+//   const [approvedEnrollments, setApprovedEnrollments] = useState([]);
+//   const [loading, setLoading] = useState({
+//     students: false,
+//     enrollments: false,
+//   });
+
+//   // Summary statistics
+//   const studentStats = {
+//     pending: pendingStudents.length,
+//     approved: approvedStudents.length,
+//     total: pendingStudents.length + approvedStudents.length,
+//   };
+
+//   const enrollmentStats = {
+//     pending: pendingEnrollments.length,
+//     approved: approvedEnrollments.length,
+//     total: pendingEnrollments.length + approvedEnrollments.length,
+//   };
+
+//   const fetchStudentsByStatus = useCallback(async (status, setter) => {
+//     try {
+//       setLoading((prev) => ({ ...prev, students: true }));
+//       const res = await axiosInstance.get(`/admin/students?status=${status}`);
+//       setter(res.data.students || []);
+//     } catch (err) {
+//       toast.error(err.response?.data?.error || "Failed to fetch students");
+//     } finally {
+//       setLoading((prev) => ({ ...prev, students: false }));
+//     }
+//   }, []);
+
+//   const fetchEnrollmentsByStatus = useCallback(async (status, setter) => {
+//     try {
+//       setLoading((prev) => ({ ...prev, enrollments: true }));
+//       const res = await axiosInstance.get(
+//         `/admin/enrollments?status=${status}`
+//       );
+//       setter(res.data.enrollments || []);
+//     } catch (err) {
+//       toast.error(err.response?.data?.error || "Failed to fetch enrollments");
+//     } finally {
+//       setLoading((prev) => ({ ...prev, enrollments: false }));
+//     }
+//   }, []);
+
+//   // Student management
+//   const handleApproveStudent = async (id) => {
+//     try {
+//       await axiosInstance.patch(`/admin/students/${id}/approve`);
+//       toast.success("✅ Student approved successfully");
+//       fetchStudentsByStatus("pending", setPendingStudents);
+//       fetchStudentsByStatus("approved", setApprovedStudents);
+//     } catch (err) {
+//       toast.error(err.response?.data?.error || "Failed to approve student");
+//     }
+//   };
+
+//   const handleRejectStudent = async (id) => {
+//     try {
+//       await axiosInstance.patch(`/admin/students/${id}/reject`);
+//       toast.info("🚫 Student rejected");
+//       fetchStudentsByStatus("pending", setPendingStudents);
+//       fetchStudentsByStatus("approved", setApprovedStudents);
+//     } catch (err) {
+//       toast.error(err.response?.data?.error || "Failed to reject student");
+//     }
+//   };
+
+//   // Enrollment management
+//   const handleApproveEnrollment = async (id) => {
+//     try {
+//       await axiosInstance.patch(`/admin/enrollments/${id}/approve`);
+//       toast.success("✅ Enrollment approved");
+//       fetchEnrollmentsByStatus("pending", setPendingEnrollments);
+//       fetchEnrollmentsByStatus("approved", setApprovedEnrollments);
+//     } catch (err) {
+//       toast.error(err.response?.data?.error || "Failed to approve enrollment");
+//     }
+//   };
+
+//   const handleRejectEnrollment = async (id) => {
+//     try {
+//       await axiosInstance.patch(`/admin/enrollments/${id}/reject`);
+//       toast.info("🚫 Enrollment rejected");
+//       fetchEnrollmentsByStatus("pending", setPendingEnrollments);
+//       fetchEnrollmentsByStatus("approved", setApprovedEnrollments);
+//     } catch (err) {
+//       toast.error(err.response?.data?.error || "Failed to reject enrollment");
+//     }
+//   };
+
+//   // Load data
+//   useEffect(() => {
+//     fetchStudentsByStatus("pending", setPendingStudents);
+//     fetchStudentsByStatus("approved", setApprovedStudents);
+//     fetchEnrollmentsByStatus("pending", setPendingEnrollments);
+//     fetchEnrollmentsByStatus("approved", setApprovedEnrollments);
+//   }, [fetchStudentsByStatus, fetchEnrollmentsByStatus]);
+
+//   return (
+//     <div className="admin-dashboard">
+//       {/* Welcome Header */}
+//       <div className="dashboard-welcome">
+//         <h1>Welcome back, {user?.name}!</h1>
+//         <p>Here's what's happening with your platform today.</p>
+//       </div>
+
+//       {/* Quick Stats */}
+//       <div className="quick-stats">
+//         <div className="stat-card">
+//           <div className="stat-icon">👥</div>
+//           <div className="stat-content">
+//             <h3>{studentStats.total}</h3>
+//             <p>Total Students</p>
+//           </div>
+//         </div>
+//         <div className="stat-card warning">
+//           <div className="stat-icon">⏳</div>
+//           <div className="stat-content">
+//             <h3>{studentStats.pending}</h3>
+//             <p>Pending Students</p>
+//           </div>
+//         </div>
+//         <div className="stat-card danger">
+//           <div className="stat-icon">📚</div>
+//           <div className="stat-content">
+//             <h3>{enrollmentStats.pending}</h3>
+//             <p>Pending Enrollments</p>
+//           </div>
+//         </div>
+//         <div className="stat-card success">
+//           <div className="stat-icon">✅</div>
+//           <div className="stat-content">
+//             <h3>{enrollmentStats.approved}</h3>
+//             <p>Approved Enrollments</p>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Pending Actions */}
+//       <div className="pending-actions">
+//         {/* Pending Students */}
+//         <div className="action-section">
+//           <h3>Pending Student Approvals ({studentStats.pending})</h3>
+//           {loading.students ? (
+//             <div className="loading">Loading students...</div>
+//           ) : pendingStudents.length === 0 ? (
+//             <div className="no-pending">No pending student approvals</div>
+//           ) : (
+//             <div className="pending-list">
+//               {pendingStudents.slice(0, 5).map((student) => (
+//                 <div key={student.id} className="pending-item">
+//                   <div className="item-info">
+//                     <strong>{student.name}</strong>
+//                     <span>{student.email}</span>
+//                     <small>{student.subject || "No subject"}</small>
+//                   </div>
+//                   <div className="item-actions">
+//                     <button
+//                       className="btn-approve"
+//                       onClick={() => handleApproveStudent(student.id)}
+//                     >
+//                       Approve
+//                     </button>
+//                     <button
+//                       className="btn-reject"
+//                       onClick={() => handleRejectStudent(student.id)}
+//                     >
+//                       Reject
+//                     </button>
+//                   </div>
+//                 </div>
+//               ))}
+//               {pendingStudents.length > 5 && (
+//                 <div className="view-all">
+//                   <button className="btn-view-all">
+//                     View all {pendingStudents.length} pending students
+//                   </button>
+//                 </div>
+//               )}
+//             </div>
+//           )}
+//         </div>
+
+//         {/* Pending Enrollments */}
+//         <div className="action-section">
+//           <h3>Pending Enrollment Approvals ({enrollmentStats.pending})</h3>
+//           {loading.enrollments ? (
+//             <div className="loading">Loading enrollments...</div>
+//           ) : pendingEnrollments.length === 0 ? (
+//             <div className="no-pending">No pending enrollment approvals</div>
+//           ) : (
+//             <div className="pending-list">
+//               {pendingEnrollments.slice(0, 5).map((enrollment) => (
+//                 <div key={enrollment.id} className="pending-item">
+//                   <div className="item-info">
+//                     <strong>{enrollment.student?.name || "N/A"}</strong>
+//                     <span>{enrollment.course?.title || "N/A"}</span>
+//                     <small>Payment: {enrollment.payment_status}</small>
+//                   </div>
+//                   <div className="item-actions">
+//                     <button
+//                       className="btn-approve"
+//                       onClick={() => handleApproveEnrollment(enrollment.id)}
+//                     >
+//                       Approve
+//                     </button>
+//                     <button
+//                       className="btn-reject"
+//                       onClick={() => handleRejectEnrollment(enrollment.id)}
+//                     >
+//                       Reject
+//                     </button>
+//                   </div>
+//                 </div>
+//               ))}
+//               {pendingEnrollments.length > 5 && (
+//                 <div className="view-all">
+//                   <button className="btn-view-all">
+//                     View all {pendingEnrollments.length} pending enrollments
+//                   </button>
+//                 </div>
+//               )}
+//             </div>
+//           )}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default AdminDashboard;
+
+
+
+
+
+
+// src/pages/AdminDashboard.jsx
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axiosInstance from "../utils/axiosInstance";
 import { useAuth } from "../context/AuthContext";
-import { useTheme } from "../context/ThemeContext";
 
 const AdminDashboard = () => {
-  const { user, isAuthenticated, logoutUser } = useAuth();
-  const { theme } = useTheme();
-  const navigate = useNavigate();
-
-  const isDark = theme === "dark";
-
-  // State
+  const { user } = useAuth();
   const [pendingStudents, setPendingStudents] = useState([]);
   const [approvedStudents, setApprovedStudents] = useState([]);
-  const [rejectedStudents, setRejectedStudents] = useState([]);
   const [pendingEnrollments, setPendingEnrollments] = useState([]);
   const [approvedEnrollments, setApprovedEnrollments] = useState([]);
-  const [rejectedEnrollments, setRejectedEnrollments] = useState([]);
-  const [activeStudentTab, setActiveStudentTab] = useState("pending");
-  const [activeEnrollTab, setActiveEnrollTab] = useState("pending");
-  const [errorStudents, setErrorStudents] = useState("");
-  const [errorEnrollments, setErrorEnrollments] = useState("");
+  const [loading, setLoading] = useState({ students: false, enrollments: false });
 
-  /* ============================================================
-     🔒 Global error handler
-  ============================================================ */
-  const handleError = useCallback(
-    (err, setError) => {
-      const status = err.response?.status;
-      if (status === 401) {
-        logoutUser();
-        toast.error("Session expired. Please log in again.");
-        navigate("/login");
-      } else {
-        const errorMsg = err.response?.data?.error || "Something went wrong";
-        toast.error(errorMsg);
-        setError(errorMsg);
-      }
-    },
-    [navigate, logoutUser]
-  );
+  const studentStats = {
+    pending: pendingStudents.length,
+    approved: approvedStudents.length,
+    total: pendingStudents.length + approvedStudents.length,
+  };
 
-  /* ============================================================
-     📡 Fetchers
-  ============================================================ */
-  const fetchStudentsByStatus = useCallback(
-    async (status, setter) => {
-      try {
-        const res = await axiosInstance.get(`/admin/students?status=${status}`);
-        setter(res.data.students || []);
-      } catch (err) {
-        handleError(err, setErrorStudents);
-      }
-    },
-    [handleError]
-  );
+  const enrollmentStats = {
+    pending: pendingEnrollments.length,
+    approved: approvedEnrollments.length,
+    total: pendingEnrollments.length + approvedEnrollments.length,
+  };
 
-  const fetchEnrollmentsByStatus = useCallback(
-    async (status, setter) => {
-      try {
-        const res = await axiosInstance.get(
-          `/admin/enrollments?status=${status}`
-        );
-        setter(res.data.enrollments || []);
-      } catch (err) {
-        handleError(err, setErrorEnrollments);
-      }
-    },
-    [handleError]
-  );
-
-  /* ============================================================
-     ✅ Approvals & Rejections
-  ============================================================ */
-  const handleApproveStudent = async (enrollmentId) => {
+  const fetchStudentsByStatus = useCallback(async (status, setter) => {
     try {
-      await axiosInstance.patch(`/admin/enrollments/${enrollmentId}/approve`);
-      toast.success("✅ Student approved");
+      setLoading((prev) => ({ ...prev, students: true }));
+      const res = await axiosInstance.get(`/admin/students?status=${status}`);
+      setter(res.data.students || []);
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Failed to fetch students");
+    } finally {
+      setLoading((prev) => ({ ...prev, students: false }));
+    }
+  }, []);
+
+  const fetchEnrollmentsByStatus = useCallback(async (status, setter) => {
+    try {
+      setLoading((prev) => ({ ...prev, enrollments: true }));
+      const res = await axiosInstance.get(`/admin/enrollments?status=${status}`);
+      setter(res.data.enrollments || []);
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Failed to fetch enrollments");
+    } finally {
+      setLoading((prev) => ({ ...prev, enrollments: false }));
+    }
+  }, []);
+
+  // ✅ MISSING HANDLERS ADDED HERE
+  const handleApproveStudent = async (id) => {
+    try {
+      await axiosInstance.patch(`/admin/students/${id}/approve`);
+      toast.success("✅ Student approved successfully");
       fetchStudentsByStatus("pending", setPendingStudents);
       fetchStudentsByStatus("approved", setApprovedStudents);
     } catch (err) {
-      handleError(err, setErrorStudents);
+      toast.error(err.response?.data?.error || "Failed to approve student");
     }
   };
 
-  const handleRejectStudent = async (enrollmentId) => {
+  const handleRejectStudent = async (id) => {
     try {
-      await axiosInstance.patch(`/admin/enrollments/${enrollmentId}/reject`);
+      await axiosInstance.patch(`/admin/students/${id}/reject`);
       toast.info("🚫 Student rejected");
       fetchStudentsByStatus("pending", setPendingStudents);
-      fetchStudentsByStatus("rejected", setRejectedStudents);
+      fetchStudentsByStatus("approved", setApprovedStudents);
     } catch (err) {
-      handleError(err, setErrorStudents);
+      toast.error(err.response?.data?.error || "Failed to reject student");
     }
   };
 
-  const handleApproveEnrollment = async (enrollId) => {
+  const handleApproveEnrollment = async (id) => {
     try {
-      await axiosInstance.patch(`/admin/enrollments/${enrollId}/approve`);
+      await axiosInstance.patch(`/admin/enrollments/${id}/approve`);
       toast.success("✅ Enrollment approved");
       fetchEnrollmentsByStatus("pending", setPendingEnrollments);
       fetchEnrollmentsByStatus("approved", setApprovedEnrollments);
     } catch (err) {
-      handleError(err, setErrorEnrollments);
+      toast.error(err.response?.data?.error || "Failed to approve enrollment");
     }
   };
 
-  const handleRejectEnrollment = async (enrollId) => {
+  const handleRejectEnrollment = async (id) => {
     try {
-      await axiosInstance.patch(`/admin/enrollments/${enrollId}/reject`);
+      await axiosInstance.patch(`/admin/enrollments/${id}/reject`);
       toast.info("🚫 Enrollment rejected");
       fetchEnrollmentsByStatus("pending", setPendingEnrollments);
-      fetchEnrollmentsByStatus("rejected", setRejectedEnrollments);
+      fetchEnrollmentsByStatus("approved", setApprovedEnrollments);
     } catch (err) {
-      handleError(err, setErrorEnrollments);
+      toast.error(err.response?.data?.error || "Failed to reject enrollment");
     }
   };
 
-  /* ============================================================
-     🚀 Load data on mount
-  ============================================================ */
   useEffect(() => {
-    if (isAuthenticated && user?.role === "admin") {
-      fetchStudentsByStatus("pending", setPendingStudents);
-      fetchStudentsByStatus("approved", setApprovedStudents);
-      fetchStudentsByStatus("rejected", setRejectedStudents);
-      fetchEnrollmentsByStatus("pending", setPendingEnrollments);
-      fetchEnrollmentsByStatus("approved", setApprovedEnrollments);
-      fetchEnrollmentsByStatus("rejected", setRejectedEnrollments);
-    }
-  }, [
-    isAuthenticated,
-    user?.role,
-    fetchStudentsByStatus,
-    fetchEnrollmentsByStatus,
-  ]);
+    fetchStudentsByStatus("pending", setPendingStudents);
+    fetchStudentsByStatus("approved", setApprovedStudents);
+    fetchEnrollmentsByStatus("pending", setPendingEnrollments);
+    fetchEnrollmentsByStatus("approved", setApprovedEnrollments);
+  }, [fetchStudentsByStatus, fetchEnrollmentsByStatus]);
 
-  /* ============================================================
-     💅 UI Helpers
-  ============================================================ */
-  const sectionClass = `p-4 rounded-lg shadow-md ${
-    isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"
-  }`;
-
-  const tabClass = (active) =>
-    `px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-      active
-        ? isDark
-          ? "bg-blue-600 text-white"
-          : "bg-blue-500 text-white"
-        : isDark
-        ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-    }`;
-
-  const tableClass = `min-w-full border mt-4 text-sm ${
-    isDark ? "border-gray-700 text-gray-200" : "border-gray-300 text-gray-800"
-  }`;
-
-  /* ============================================================
-     🖥️ Render
-  ============================================================ */
   return (
-    <div
-      className={`p-6 min-h-screen ${
-        isDark ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"
-      }`}
-    >
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Admin Dashboard</h2>
-        <button
-          onClick={logoutUser}
-          className={`px-4 py-2 rounded-md ${
-            isDark
-              ? "bg-red-600 hover:bg-red-700 text-white"
-              : "bg-red-500 hover:bg-red-600 text-white"
-          }`}
-        >
-          Logout
-        </button>
+    <div className="p-6 max-w-screen-xl mx-auto">
+      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-xl text-center mb-8">
+        <h1 className="text-3xl font-bold">Welcome back, {user?.name}!</h1>
+        <p className="text-sm mt-2">Here's what's happening with your platform today.</p>
       </div>
 
-      {/* ==================== STUDENTS ==================== */}
-      <div className={`${sectionClass} mb-8`}>
-        <h3 className="text-lg font-semibold mb-3">Student Approvals</h3>
-        <div className="flex gap-2 mb-4">
-          <button
-            onClick={() => setActiveStudentTab("pending")}
-            className={tabClass(activeStudentTab === "pending")}
-          >
-            Pending
-          </button>
-          <button
-            onClick={() => setActiveStudentTab("approved")}
-            className={tabClass(activeStudentTab === "approved")}
-          >
-            Approved
-          </button>
-          <button
-            onClick={() => setActiveStudentTab("rejected")}
-            className={tabClass(activeStudentTab === "rejected")}
-          >
-            Rejected
-          </button>
-        </div>
-
-        {errorStudents && <p className="text-red-400">{errorStudents}</p>}
-
-        <div className="overflow-x-auto">
-          <table className={tableClass}>
-            <thead>
-              <tr className={isDark ? "bg-gray-700" : "bg-gray-200"}>
-                <th className="px-4 py-2">Student</th>
-                <th className="px-4 py-2">Email</th>
-                <th className="px-4 py-2">Course</th>
-                <th className="px-4 py-2">Payment</th>
-                <th className="px-4 py-2">Status</th>
-                {activeStudentTab === "pending" && (
-                  <th className="px-4 py-2">Actions</th>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {(activeStudentTab === "pending"
-                ? pendingStudents
-                : activeStudentTab === "approved"
-                ? approvedStudents
-                : rejectedStudents
-              ).map((en) => (
-                <tr
-                  key={en.id}
-                  className={isDark ? "border-gray-700" : "border-gray-300"}
-                >
-                  <td className="px-4 py-2">{en.student?.name}</td>
-                  <td className="px-4 py-2">{en.student?.email}</td>
-                  <td className="px-4 py-2">{en.course?.title}</td>
-                  <td className="px-4 py-2">{en.payment_status}</td>
-                  <td className="px-4 py-2">{en.approval_status}</td>
-                  {activeStudentTab === "pending" && (
-                    <td className="px-4 py-2 flex gap-2">
-                      <button
-                        onClick={() => handleApproveStudent(en.id)}
-                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleRejectStudent(en.id)}
-                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
-                      >
-                        Reject
-                      </button>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatCard icon="👥" title="Total Students" value={studentStats.total} />
+        <StatCard icon="⏳" title="Pending Students" value={studentStats.pending} border="border-yellow-500" />
+        <StatCard icon="📚" title="Pending Enrollments" value={enrollmentStats.pending} border="border-red-500" />
+        <StatCard icon="✅" title="Approved Enrollments" value={enrollmentStats.approved} border="border-green-500" />
       </div>
 
-      {/* ==================== ENROLLMENTS ==================== */}
-      <div className={sectionClass}>
-        <h3 className="text-lg font-semibold mb-3">Course Enrollments</h3>
-        <div className="flex gap-2 mb-4">
-          <button
-            onClick={() => setActiveEnrollTab("pending")}
-            className={tabClass(activeEnrollTab === "pending")}
-          >
-            Pending
-          </button>
-          <button
-            onClick={() => setActiveEnrollTab("approved")}
-            className={tabClass(activeEnrollTab === "approved")}
-          >
-            Approved
-          </button>
-          <button
-            onClick={() => setActiveEnrollTab("rejected")}
-            className={tabClass(activeEnrollTab === "rejected")}
-          >
-            Rejected
-          </button>
-        </div>
-
-        {errorEnrollments && <p className="text-red-400">{errorEnrollments}</p>}
-
-        <div className="overflow-x-auto">
-          <table className={tableClass}>
-            <thead>
-              <tr className={isDark ? "bg-gray-700" : "bg-gray-200"}>
-                <th className="px-4 py-2">Student</th>
-                <th className="px-4 py-2">Email</th>
-                <th className="px-4 py-2">Course</th>
-                <th className="px-4 py-2">Payment</th>
-                <th className="px-4 py-2">Status</th>
-                {activeEnrollTab === "pending" && (
-                  <th className="px-4 py-2">Actions</th>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {(activeEnrollTab === "pending"
-                ? pendingEnrollments
-                : activeEnrollTab === "approved"
-                ? approvedEnrollments
-                : rejectedEnrollments
-              ).map((en) => (
-                <tr
-                  key={en.id}
-                  className={isDark ? "border-gray-700" : "border-gray-300"}
-                >
-                  <td className="px-4 py-2">{en.student?.name}</td>
-                  <td className="px-4 py-2">{en.student?.email}</td>
-                  <td className="px-4 py-2">{en.course?.title}</td>
-                  <td className="px-4 py-2">{en.payment_status}</td>
-                  <td className="px-4 py-2">{en.approval_status}</td>
-                  {activeEnrollTab === "pending" && (
-                    <td className="px-4 py-2 flex gap-2">
-                      <button
-                        onClick={() => handleApproveEnrollment(en.id)}
-                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleRejectEnrollment(en.id)}
-                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
-                      >
-                        Reject
-                      </button>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <div className="grid md:grid-cols-2 gap-6">
+        <ActionSection
+          title={`Pending Student Approvals (${studentStats.pending})`}
+          items={pendingStudents}
+          loading={loading.students}
+          onApprove={handleApproveStudent}
+          onReject={handleRejectStudent}
+          type="student"
+        />
+        <ActionSection
+          title={`Pending Enrollment Approvals (${enrollmentStats.pending})`}
+          items={pendingEnrollments}
+          loading={loading.enrollments}
+          onApprove={handleApproveEnrollment}
+          onReject={handleRejectEnrollment}
+          type="enrollment"
+        />
       </div>
     </div>
   );
+
+  function StatCard({ icon, title, value, border = "border-indigo-500" }) {
+    return (
+      <div className={`bg-white p-4 rounded-lg shadow-md flex items-center border-l-4 ${border}`}>
+        <div className="text-3xl mr-4">{icon}</div>
+        <div>
+          <h3 className="text-xl font-bold text-gray-800">{value}</h3>
+          <p className="text-gray-600">{title}</p>
+        </div>
+      </div>
+    );
+  }
+
+  function ActionSection({ title, items, loading, onApprove, onReject, type }) {
+    return (
+      <div className="bg-white p-4 rounded-lg shadow-md">
+        <h3 className="text-lg font-semibold mb-4 text-gray-800">{title}</h3>
+        {loading ? (
+          <p className="text-indigo-600 font-medium text-center">Loading...</p>
+        ) : items.length === 0 ? (
+          <p className="text-gray-500 text-center italic">No pending {type}s</p>
+        ) : (
+          <>
+            <div className="space-y-3">
+              {items.slice(0, 5).map((item) => (
+                <div key={item.id} className="bg-gray-100 p-4 rounded flex justify-between items-center">
+                  <div>
+                    <p className="font-semibold text-gray-800">
+                      {type === "student" ? item.name : item.student?.name}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {type === "student" ? item.email : item.course?.title}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {type === "student" ? item.subject || "No subject" : `Payment: ${item.payment_status}`}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+                      onClick={() => onApprove(item.id)}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                      onClick={() => onReject(item.id)}
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {items.length > 5 && (
+              <button className="mt-4 w-full text-indigo-600 hover:underline font-semibold">
+                View all {items.length} pending {type}s
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    );
+  }
 };
 
 export default AdminDashboard;
