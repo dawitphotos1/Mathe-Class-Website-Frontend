@@ -1,250 +1,7 @@
-// // src/pages/courses/CourseDetail.jsx
-// import React, { useEffect, useState } from "react";
-// import { useParams, useNavigate } from "react-router-dom";
-// import { useAuth } from "../../context/AuthContext";
-// import { toast } from "react-toastify";
-// import axiosInstance from "../../utils/axiosInstance";
-// import "./CourseDetail.css";
-
-// const CourseDetail = () => {
-//   const { slug } = useParams();
-//   const navigate = useNavigate();
-//   const { user, isAuthenticated } = useAuth();
-
-//   const [course, setCourse] = useState(null);
-//   const [loading, setLoading] = useState(true);
-//   const [expandedUnit, setExpandedUnit] = useState(null);
-//   const [isEnrolled, setIsEnrolled] = useState(false);
-
-//   useEffect(() => {
-//     fetchCourseDetails();
-//   }, [slug]);
-
-//   const fetchCourseDetails = async () => {
-//     try {
-//       setLoading(true);
-      
-//       console.log(`🔄 Fetching course details for slug: ${slug}`);
-      
-//       const { data } = await axiosInstance.get(`/courses/${slug}`);
-      
-//       if (data.success && data.course) {
-//         console.log("✅ Course details loaded:", data.course);
-        
-//         // Ensure price is properly formatted
-//         const formattedCourse = {
-//           ...data.course,
-//           price: parseFloat(data.course.price) || 0
-//         };
-        
-//         setCourse(formattedCourse);
-        
-//         // Check enrollment status if user is authenticated
-//         if (isAuthenticated && user) {
-//           checkEnrollmentStatus(formattedCourse.id);
-//         }
-//       } else {
-//         throw new Error("Course not found");
-//       }
-//     } catch (err) {
-//       console.error("❌ Error fetching course:", err);
-//       toast.error("Failed to load course information");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const checkEnrollmentStatus = async (courseId) => {
-//     try {
-//       const response = await axiosInstance.get(`/enrollments/check/${courseId}`);
-//       setIsEnrolled(response.data.enrolled || false);
-//     } catch (error) {
-//       console.error("Error checking enrollment:", error);
-//       setIsEnrolled(false);
-//     }
-//   };
-
-//   const toggleUnit = (index) => {
-//     setExpandedUnit(expandedUnit === index ? null : index);
-//   };
-
-//   const handleEnroll = () => {
-//     if (!course || !course.id) {
-//       toast.error("Course ID is missing. Cannot proceed with enrollment.");
-//       return;
-//     }
-    
-//     if (!isAuthenticated) {
-//       navigate('/login', { 
-//         state: { 
-//           from: `/courses/${slug}`,
-//           message: "Please login to enroll in this course"
-//         } 
-//       });
-//       return;
-//     }
-
-//     console.log("🚀 Navigating to payment with course ID:", course.id);
-//     navigate(`/payment/${course.id}`);
-//   };
-
-//   const handleViewContent = () => {
-//     if (user?.role === 'teacher') {
-//       navigate('/dashboard');
-//     } else if (user?.role === 'admin') {
-//       navigate('/admin');
-//     } else if (isEnrolled) {
-//       navigate(`/courses/${course.id}/view-lessons`);
-//     } else {
-//       navigate('/my-courses');
-//     }
-//   };
-
-//   if (loading) {
-//     return (
-//       <div className="course-detail-container">
-//         <div className="loading-section">
-//           <h2>Loading Course Details...</h2>
-//           <p>Please wait while we load the course information.</p>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   if (!course) {
-//     return (
-//       <div className="course-detail-container">
-//         <div className="error-section">
-//           <h2>Course Not Found</h2>
-//           <p>The requested course could not be found.</p>
-//           <button onClick={() => navigate("/courses")} className="btn-primary">
-//             Browse All Courses
-//           </button>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   const displayPrice = parseFloat(course.price || 0).toFixed(2);
-//   const isStudent = user && user.role === 'student';
-
-//   return (
-//     <div className="course-detail-container">
-//       <div className="course-header">
-//         <h1>{course.title}</h1>
-//         <p className="course-description">{course.description}</p>
-//         <div className="course-meta">
-//           <span className="course-price">${displayPrice}</span>
-//           {isAuthenticated && (
-//             <span className={`user-badge role-${user.role}`}>
-//               {user.role.toUpperCase()}
-//               {isEnrolled && " • ENROLLED"}
-//             </span>
-//           )}
-//         </div>
-//       </div>
-
-//       {/* Course Curriculum */}
-//       <div className="course-content">
-//         <h2 className="curriculum-title">Course Curriculum</h2>
-
-//         {course.lessons && course.lessons.length > 0 ? (
-//           course.lessons.map((lesson, index) => (
-//             <div
-//               key={lesson.id}
-//               className={`unit-card ${expandedUnit === index ? "expanded" : ""}`}
-//             >
-//               <div
-//                 className="unit-header"
-//                 onClick={() => toggleUnit(index)}
-//               >
-//                 <h3 className="unit-title">
-//                   {lesson.title}
-//                   <span className="unit-toggle">
-//                     {expandedUnit === index ? "−" : "+"}
-//                   </span>
-//                 </h3>
-//               </div>
-
-//               {expandedUnit === index && (
-//                 <div className="lesson-content">
-//                   <p>{lesson.content || "Lesson content coming soon..."}</p>
-//                   {lesson.video_url && (
-//                     <div className="video-preview">
-//                       <small>Video available</small>
-//                     </div>
-//                   )}
-//                 </div>
-//               )}
-//             </div>
-//           ))
-//         ) : (
-//           <div className="no-lessons">
-//             <p>Course lessons will be available soon. Check back later!</p>
-//           </div>
-//         )}
-//       </div>
-
-//       {/* Enrollment Section */}
-//       <div className="course-actions">
-//         {isStudent ? (
-//           <button
-//             className="btn-enroll-now"
-//             onClick={handleEnroll}
-//             disabled={isEnrolled}
-//           >
-//             {isEnrolled ? "Already Enrolled" : `Enroll Now - $${displayPrice}`}
-//           </button>
-//         ) : isAuthenticated ? (
-//           <div className="non-student-access">
-//             <div className="access-info">
-//               <h4>
-//                 {user.role === 'teacher' ? '👨‍🏫 Teacher Access' : '👑 Admin Access'}
-//               </h4>
-//               <p>
-//                 {user.role === 'teacher' 
-//                   ? 'You have full access to course content as a teacher.'
-//                   : 'You have administrative access to all courses.'
-//                 }
-//               </p>
-//               <button
-//                 className="btn-view-content"
-//                 onClick={handleViewContent}
-//               >
-//                 {user.role === 'teacher' ? 'Manage Courses' : 'View Dashboard'}
-//               </button>
-//             </div>
-//           </div>
-//         ) : (
-//           <>
-//             <button
-//               className="btn-enroll-now"
-//               onClick={handleEnroll}
-//             >
-//               Enroll Now - $${displayPrice}
-//             </button>
-//             <button
-//               className="btn-login-text"
-//               onClick={() => navigate("/login")}
-//             >
-//               Already have an account? Login here
-//             </button>
-//           </>
-//         )}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default CourseDetail;
-
-
-
 // src/pages/courses/CourseDetail.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { usePayment } from "../../hooks/usePayment";
 import { toast } from "react-toastify";
 import axiosInstance from "../../utils/axiosInstance";
 import "./CourseDetail.css";
@@ -253,13 +10,11 @@ const CourseDetail = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  const { createCheckout, processing } = usePayment();
 
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [expandedUnit, setExpandedUnit] = useState(null);
   const [isEnrolled, setIsEnrolled] = useState(false);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchCourseDetails();
@@ -268,51 +23,18 @@ const CourseDetail = () => {
   const fetchCourseDetails = async () => {
     try {
       setLoading(true);
-      setError(null);
       
       console.log(`🔄 Fetching course details for slug: ${slug}`);
       
-      // Try multiple endpoints - some might work better than others
-      let endpoints = [
-        `/courses/${slug}`,           // Try by slug first
-        `/courses/slug/${slug}`,      // Try alternative slug endpoint
-        `/courses/id/${slug}`,        // Try by ID if slug is numeric
-        `/courses`                    // Fallback to get all and filter
-      ];
-
-      let courseData = null;
+      const { data } = await axiosInstance.get(`/courses/${slug}`);
       
-      for (let endpoint of endpoints) {
-        try {
-          console.log(`🔍 Trying endpoint: ${endpoint}`);
-          const { data } = await axiosInstance.get(endpoint);
-          
-          if (data.success && data.course) {
-            courseData = data.course;
-            console.log(`✅ Course found via ${endpoint}:`, courseData.title);
-            break;
-          } else if (data.courses) {
-            // If we got all courses, find the one with matching slug
-            const foundCourse = data.courses.find(c => 
-              c.slug === slug || c.id == slug || c.title?.toLowerCase().includes(slug.toLowerCase())
-            );
-            if (foundCourse) {
-              courseData = foundCourse;
-              console.log(`✅ Course found in list:`, foundCourse.title);
-              break;
-            }
-          }
-        } catch (err) {
-          console.log(`❌ Endpoint ${endpoint} failed:`, err.message);
-          continue;
-        }
-      }
-
-      if (courseData) {
+      if (data.success && data.course) {
+        console.log("✅ Course details loaded:", data.course);
+        
         // Ensure price is properly formatted
         const formattedCourse = {
-          ...courseData,
-          price: parseFloat(courseData.price) || 0
+          ...data.course,
+          price: parseFloat(data.course.price) || 0
         };
         
         setCourse(formattedCourse);
@@ -322,12 +44,10 @@ const CourseDetail = () => {
           checkEnrollmentStatus(formattedCourse.id);
         }
       } else {
-        setError("Course not found");
-        toast.error("Course not found or not available");
+        throw new Error("Course not found");
       }
     } catch (err) {
       console.error("❌ Error fetching course:", err);
-      setError("Failed to load course information");
       toast.error("Failed to load course information");
     } finally {
       setLoading(false);
@@ -348,7 +68,7 @@ const CourseDetail = () => {
     setExpandedUnit(expandedUnit === index ? null : index);
   };
 
-  const handleEnroll = async () => {
+  const handleEnroll = () => {
     if (!course || !course.id) {
       toast.error("Course ID is missing. Cannot proceed with enrollment.");
       return;
@@ -364,12 +84,8 @@ const CourseDetail = () => {
       return;
     }
 
-    console.log("🚀 Starting payment process for course:", course.id);
-    try {
-      await createCheckout(course.id);
-    } catch (error) {
-      console.error("Enrollment failed:", error);
-    }
+    console.log("🚀 Navigating to payment with course ID:", course.id);
+    navigate(`/payment/${course.id}`);
   };
 
   const handleViewContent = () => {
@@ -384,59 +100,26 @@ const CourseDetail = () => {
     }
   };
 
-  // Debug function to test backend endpoints
-  const testBackendEndpoints = async () => {
-    console.log("🧪 Testing backend endpoints...");
-    
-    const endpoints = [
-      '/courses',
-      '/courses/algebra-1', 
-      '/courses/slug/algebra-1',
-      '/courses/1',
-      '/health'
-    ];
-
-    for (let endpoint of endpoints) {
-      try {
-        const response = await axiosInstance.get(endpoint);
-        console.log(`✅ ${endpoint}:`, response.status, response.data);
-      } catch (err) {
-        console.log(`❌ ${endpoint}:`, err.response?.status, err.message);
-      }
-    }
-  };
-
   if (loading) {
     return (
       <div className="course-detail-container">
         <div className="loading-section">
           <h2>Loading Course Details...</h2>
           <p>Please wait while we load the course information.</p>
-          <button onClick={testBackendEndpoints} className="btn-secondary">
-            Debug Backend Connection
-          </button>
         </div>
       </div>
     );
   }
 
-  if (error || !course) {
+  if (!course) {
     return (
       <div className="course-detail-container">
         <div className="error-section">
           <h2>Course Not Found</h2>
-          <p>{error || "The requested course could not be found."}</p>
-          <div style={{ marginTop: '20px' }}>
-            <button onClick={() => navigate("/courses")} className="btn-primary">
-              Browse All Courses
-            </button>
-            <button onClick={testBackendEndpoints} className="btn-secondary" style={{ marginLeft: '10px' }}>
-              Debug Backend
-            </button>
-            <button onClick={fetchCourseDetails} className="btn-secondary" style={{ marginLeft: '10px' }}>
-              Try Again
-            </button>
-          </div>
+          <p>The requested course could not be found.</p>
+          <button onClick={() => navigate("/courses")} className="btn-primary">
+            Browse All Courses
+          </button>
         </div>
       </div>
     );
@@ -447,18 +130,6 @@ const CourseDetail = () => {
 
   return (
     <div className="course-detail-container">
-      {/* Debug info - remove in production */}
-      {process.env.NODE_ENV === 'development' && (
-        <div style={{ background: '#f0f0f0', padding: '10px', marginBottom: '20px', borderRadius: '5px' }}>
-          <small>
-            <strong>Debug:</strong> Course ID: {course.id} | Slug: {slug} | 
-            <button onClick={testBackendEndpoints} style={{ marginLeft: '10px', fontSize: '12px' }}>
-              Test Endpoints
-            </button>
-          </small>
-        </div>
-      )}
-
       <div className="course-header">
         <h1>{course.title}</h1>
         <p className="course-description">{course.description}</p>
@@ -520,10 +191,9 @@ const CourseDetail = () => {
           <button
             className="btn-enroll-now"
             onClick={handleEnroll}
-            disabled={isEnrolled || processing}
+            disabled={isEnrolled}
           >
-            {processing ? "Processing Payment..." :
-             isEnrolled ? "Already Enrolled" : `Enroll Now - $${displayPrice}`}
+            {isEnrolled ? "Already Enrolled" : `Enroll Now - $${displayPrice}`}
           </button>
         ) : isAuthenticated ? (
           <div className="non-student-access">
@@ -550,9 +220,8 @@ const CourseDetail = () => {
             <button
               className="btn-enroll-now"
               onClick={handleEnroll}
-              disabled={processing}
             >
-              {processing ? "Processing..." : `Enroll Now - $${displayPrice}`}
+              Enroll Now - $${displayPrice}
             </button>
             <button
               className="btn-login-text"
