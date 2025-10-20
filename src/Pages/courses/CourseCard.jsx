@@ -258,7 +258,6 @@
 
 
 
-
 // src/components/CourseCard.jsx
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -300,24 +299,17 @@ const CourseCard = ({ course, onCourseDeleted }) => {
     return () => (isMounted = false);
   }, [user, course?.id]);
 
-  // FIXED: Simplified price extraction
+  // Get display price
   const getDisplayPrice = () => {
-    if (!course) {
-      return "0.00";
-    }
+    if (!course) return "0.00";
 
-    // Use the price directly from the course object
     const price = course.price;
     
-    // Handle cases where price might be null/undefined
     if (price === undefined || price === null) {
-      console.warn(`⚠️ Price missing for course: ${course.title}`);
       return "0.00";
     }
 
-    // Convert to proper format
-    const formattedPrice = parseFloat(price).toFixed(2);
-    return formattedPrice;
+    return parseFloat(price).toFixed(2);
   };
 
   const displayPrice = getDisplayPrice();
@@ -339,7 +331,6 @@ const CourseCard = ({ course, onCourseDeleted }) => {
       return;
     }
 
-    console.log("🔄 Starting payment process for course:", course.id);
     try {
       await createCheckout(course.id);
     } catch (error) {
