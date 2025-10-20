@@ -255,6 +255,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import axiosInstance from "../utils/axiosInstance";
 import { useAuth } from "../context/AuthContext";
+import "./AdminDashboard.css";
 
 const AdminDashboard = () => {
   const { user } = useAuth();

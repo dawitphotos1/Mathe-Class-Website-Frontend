@@ -44,6 +44,7 @@ import { Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import AdminSidebar from "./AdminSidebar";
 import Loading from "./Loading";
+import "./AdminLayout.css";
 
 const AdminLayout = () => {
   const { user, loading, checked } = useAuth();
