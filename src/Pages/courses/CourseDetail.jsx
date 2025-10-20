@@ -240,12 +240,11 @@
 
 
 
-
 // src/pages/courses/CourseDetail.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { usePayment } from "../../hooks/usePayment"; // ADD THIS IMPORT
+import { usePayment } from "../../hooks/usePayment";
 import { toast } from "react-toastify";
 import axiosInstance from "../../utils/axiosInstance";
 import "./CourseDetail.css";
@@ -254,12 +253,13 @@ const CourseDetail = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  const { createCheckout, processing } = usePayment(); // ADD THIS HOOK
+  const { createCheckout, processing } = usePayment();
 
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [expandedUnit, setExpandedUnit] = useState(null);
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchCourseDetails();
@@ -268,18 +268,51 @@ const CourseDetail = () => {
   const fetchCourseDetails = async () => {
     try {
       setLoading(true);
+      setError(null);
       
       console.log(`🔄 Fetching course details for slug: ${slug}`);
       
-      const { data } = await axiosInstance.get(`/courses/${slug}`);
+      // Try multiple endpoints - some might work better than others
+      let endpoints = [
+        `/courses/${slug}`,           // Try by slug first
+        `/courses/slug/${slug}`,      // Try alternative slug endpoint
+        `/courses/id/${slug}`,        // Try by ID if slug is numeric
+        `/courses`                    // Fallback to get all and filter
+      ];
+
+      let courseData = null;
       
-      if (data.success && data.course) {
-        console.log("✅ Course details loaded:", data.course);
-        
+      for (let endpoint of endpoints) {
+        try {
+          console.log(`🔍 Trying endpoint: ${endpoint}`);
+          const { data } = await axiosInstance.get(endpoint);
+          
+          if (data.success && data.course) {
+            courseData = data.course;
+            console.log(`✅ Course found via ${endpoint}:`, courseData.title);
+            break;
+          } else if (data.courses) {
+            // If we got all courses, find the one with matching slug
+            const foundCourse = data.courses.find(c => 
+              c.slug === slug || c.id == slug || c.title?.toLowerCase().includes(slug.toLowerCase())
+            );
+            if (foundCourse) {
+              courseData = foundCourse;
+              console.log(`✅ Course found in list:`, foundCourse.title);
+              break;
+            }
+          }
+        } catch (err) {
+          console.log(`❌ Endpoint ${endpoint} failed:`, err.message);
+          continue;
+        }
+      }
+
+      if (courseData) {
         // Ensure price is properly formatted
         const formattedCourse = {
-          ...data.course,
-          price: parseFloat(data.course.price) || 0
+          ...courseData,
+          price: parseFloat(courseData.price) || 0
         };
         
         setCourse(formattedCourse);
@@ -289,10 +322,12 @@ const CourseDetail = () => {
           checkEnrollmentStatus(formattedCourse.id);
         }
       } else {
-        throw new Error("Course not found");
+        setError("Course not found");
+        toast.error("Course not found or not available");
       }
     } catch (err) {
       console.error("❌ Error fetching course:", err);
+      setError("Failed to load course information");
       toast.error("Failed to load course information");
     } finally {
       setLoading(false);
@@ -333,7 +368,6 @@ const CourseDetail = () => {
     try {
       await createCheckout(course.id);
     } catch (error) {
-      // Error is already handled in the hook
       console.error("Enrollment failed:", error);
     }
   };
@@ -350,26 +384,59 @@ const CourseDetail = () => {
     }
   };
 
+  // Debug function to test backend endpoints
+  const testBackendEndpoints = async () => {
+    console.log("🧪 Testing backend endpoints...");
+    
+    const endpoints = [
+      '/courses',
+      '/courses/algebra-1', 
+      '/courses/slug/algebra-1',
+      '/courses/1',
+      '/health'
+    ];
+
+    for (let endpoint of endpoints) {
+      try {
+        const response = await axiosInstance.get(endpoint);
+        console.log(`✅ ${endpoint}:`, response.status, response.data);
+      } catch (err) {
+        console.log(`❌ ${endpoint}:`, err.response?.status, err.message);
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="course-detail-container">
         <div className="loading-section">
           <h2>Loading Course Details...</h2>
           <p>Please wait while we load the course information.</p>
+          <button onClick={testBackendEndpoints} className="btn-secondary">
+            Debug Backend Connection
+          </button>
         </div>
       </div>
     );
   }
 
-  if (!course) {
+  if (error || !course) {
     return (
       <div className="course-detail-container">
         <div className="error-section">
           <h2>Course Not Found</h2>
-          <p>The requested course could not be found.</p>
-          <button onClick={() => navigate("/courses")} className="btn-primary">
-            Browse All Courses
-          </button>
+          <p>{error || "The requested course could not be found."}</p>
+          <div style={{ marginTop: '20px' }}>
+            <button onClick={() => navigate("/courses")} className="btn-primary">
+              Browse All Courses
+            </button>
+            <button onClick={testBackendEndpoints} className="btn-secondary" style={{ marginLeft: '10px' }}>
+              Debug Backend
+            </button>
+            <button onClick={fetchCourseDetails} className="btn-secondary" style={{ marginLeft: '10px' }}>
+              Try Again
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -380,6 +447,18 @@ const CourseDetail = () => {
 
   return (
     <div className="course-detail-container">
+      {/* Debug info - remove in production */}
+      {process.env.NODE_ENV === 'development' && (
+        <div style={{ background: '#f0f0f0', padding: '10px', marginBottom: '20px', borderRadius: '5px' }}>
+          <small>
+            <strong>Debug:</strong> Course ID: {course.id} | Slug: {slug} | 
+            <button onClick={testBackendEndpoints} style={{ marginLeft: '10px', fontSize: '12px' }}>
+              Test Endpoints
+            </button>
+          </small>
+        </div>
+      )}
+
       <div className="course-header">
         <h1>{course.title}</h1>
         <p className="course-description">{course.description}</p>
