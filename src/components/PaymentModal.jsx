@@ -1,4 +1,4 @@
-// // src/components/PaymentModal.jsx
+// src/components/PaymentModal.jsx
 
 import React from "react";
 import "./PaymentModal.css";
