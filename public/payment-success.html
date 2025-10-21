@@ -77,14 +77,16 @@
   </div>
 
   <script>
-    const API_BASE = "https://mathe-class-website-backend-1.onrender.com/api/v1";
+    // ✅ CORRECT BACKEND URL
+    const API_BASE = "https://math-class-website-backend-1.onrender.com/api/v1";
+
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get("session_id");
     const courseId = params.get("course_id");
     const token = localStorage.getItem("token");
     const card = document.getElementById("status-card");
 
-    async function confirmPayment(retry = 0) {
+    async function confirmPayment() {
       if (!sessionId || !courseId) {
         showError("Invalid payment information. Please try again.");
         return;
@@ -96,7 +98,7 @@
       try {
         if (!token) {
           console.warn("⚠️ No token found — relying on Stripe webhook only.");
-          showSuccess("Your payment is being verified. Please check your courses shortly.");
+          showSuccess("Your payment is being verified. Please check your courses soon.");
           return;
         }
 
@@ -110,14 +112,7 @@
           body: JSON.stringify({ sessionId, courseId }),
         });
 
-        if (!res.ok) {
-          if (res.status === 400 && retry < 2) {
-            console.warn("⏳ Payment not confirmed yet, retrying...");
-            await new Promise(r => setTimeout(r, 3000)); // wait 3s and retry
-            return confirmPayment(retry + 1);
-          }
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
         const data = await res.json();
         console.log("💬 Payment confirm response:", data);
@@ -125,9 +120,12 @@
         if (data.success) {
           showSuccess("Your enrollment has been received and is pending admin approval.");
         } else {
-          const msg = data.error?.includes("Duplicate")
-            ? "You have already paid for this course. Duplicate payments are not allowed."
-            : data.error || "We couldn't confirm your payment.";
+          let msg = data.error || "We couldn't confirm your payment.";
+          if (msg.includes("Duplicate")) {
+            msg = "You have already paid for this course. Duplicate payments are not allowed.";
+          } else if (msg.includes("Unauthorized") || msg.includes("Not authenticated")) {
+            msg = "Not authenticated. Please log in again.";
+          }
           showError(msg);
         }
       } catch (err) {
@@ -155,8 +153,7 @@
       card.classList.add("fade-in");
     }
 
-    // ✅ Add short delay before confirming to let Stripe webhook finish
-    setTimeout(confirmPayment, 1500);
+    confirmPayment();
   </script>
 </body>
 </html>

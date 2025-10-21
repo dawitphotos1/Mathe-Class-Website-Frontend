@@ -14,7 +14,7 @@ const getBaseURL = () => {
   }
 
   if (process.env.NODE_ENV === "production") {
-    const prodURL = "https://mathe-class-website-backend-1.onrender.com/api/v1";
+    const prodURL = "https://math-class-website-backend-1.onrender.com/api/v1";
     console.log("🌍 Using fallback production URL:", prodURL);
     return prodURL;
   }

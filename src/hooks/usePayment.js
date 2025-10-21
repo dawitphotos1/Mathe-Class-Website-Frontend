@@ -9,7 +9,7 @@ export const usePayment = () => {
     setProcessing(true);
     try {
       // Use absolute URL to your backend
-      const API_BASE = process.env.REACT_APP_API_URL || 'https://mathe-class-website-backend-1.onrender.com/api/v1';
+      const API_BASE = process.env.REACT_APP_API_URL || 'https://math-class-website-backend-1.onrender.com/api/v1';
       const token = localStorage.getItem('token');
       
       console.log('🛒 Starting checkout for course:', courseId);
@@ -75,7 +75,7 @@ export const usePayment = () => {
   // Test Stripe connection
   const testStripeConnection = async () => {
     try {
-      const API_BASE = process.env.REACT_APP_API_URL || 'https://mathe-class-website-backend-1.onrender.com/api/v1';
+      const API_BASE = process.env.REACT_APP_API_URL || 'https://math-class-website-backend-1.onrender.com/api/v1';
       const token = localStorage.getItem('token');
       
       console.log('🧪 Testing Stripe connection...');
