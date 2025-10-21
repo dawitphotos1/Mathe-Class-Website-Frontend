@@ -135,13 +135,14 @@ import axios from "axios";
 ============================================================ */
 const getBaseURL = () => {
   const envURL = process.env.REACT_APP_API_URL;
+  console.log("🔍 Checking REACT_APP_API_URL:", envURL); // Add this line
   if (envURL) {
     console.log("🌍 Using REACT_APP_API_URL from environment:", envURL);
     return envURL.trim();
   }
 
   if (process.env.NODE_ENV === "production") {
-    const prodURL = "https://math-class-website-backend-1.onrender.com/api/v1";
+    const prodURL = "https://mathe-class-website-backend-1.onrender.com/api/v1";
     console.log("🌍 Using fallback production URL:", prodURL);
     return prodURL;
   }
