@@ -4,7 +4,7 @@ import { Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import AdminSidebar from "./AdminSidebar";
 import Loading from "./Loading";
-import "../Pages/AdminDashboard.css"; // ← FIXED PATH
+import "../pages/AdminDashboard.css"; // ← FIXED PATH
 
 const AdminLayout = () => {
   const { user, loading, checked } = useAuth();

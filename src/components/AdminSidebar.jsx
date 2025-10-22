@@ -11,7 +11,7 @@ import {
   FaChevronLeft,
   FaChevronRight,
 } from "react-icons/fa";
-import "../Pages/AdminDashboard.css";
+import "../pages/AdminDashboard.css";
 
 const AdminSidebar = () => {
   const { user } = useAuth();

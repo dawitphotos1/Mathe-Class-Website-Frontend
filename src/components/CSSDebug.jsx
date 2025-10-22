@@ -1,6 +1,6 @@
 // src/components/CSSDebug.jsx
 import React from 'react';
-import '../Pages/AdminDashboard.css';
+import '../pages/AdminDashboard.css';
 
 const CSSDebug = () => {
   return (
