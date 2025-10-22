@@ -1,115 +1,139 @@
+/* Unauthorized.css - Modern Admin Theme */
 
 .unauth-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 85vh;
-  background: var(--background, #f5f7fa);
-  color: var(--text-color, #222);
-  transition: background 0.3s, color 0.3s;
-  padding: 20px;
-}
-
-.dark-mode .unauth-wrapper {
-  background: #0e0e0e;
-  color: #f1f1f1;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  padding: 1rem;
 }
 
 .unauth-content {
-  text-align: center;
-  background: rgba(255, 255, 255, 0.85);
+  background: #ffffff;
+  color: #333;
+  padding: 3rem 2.5rem;
   border-radius: 16px;
-  padding: 50px 40px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
   max-width: 520px;
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s ease;
-}
-
-.dark-mode .unauth-content {
-  background: rgba(25, 25, 25, 0.85);
-  box-shadow: 0 0 20px rgba(0, 200, 255, 0.15);
+  width: 100%;
+  text-align: center;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
 .unauth-icon {
-  font-size: 4rem;
-  margin-bottom: 15px;
-  animation: pulse 1.6s infinite ease-in-out;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.9;
-  }
-  50% {
-    transform: scale(1.15);
-    opacity: 1;
-  }
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  color: #667eea;
 }
 
 .unauth-title {
   font-size: 2rem;
-  margin-bottom: 10px;
-  color: #d9534f;
   font-weight: 700;
-  text-shadow: 0 0 6px rgba(217, 83, 79, 0.3);
-}
-
-.dark-mode .unauth-title {
-  color: #ff6b6b;
-  text-shadow: 0 0 8px rgba(255, 100, 100, 0.4);
+  color: #dc3545;
+  margin-bottom: 0.5rem;
 }
 
 .unauth-text {
   font-size: 1.1rem;
-  margin-bottom: 10px;
-  line-height: 1.6;
-  opacity: 0.9;
+  color: #555;
+  margin-bottom: 0.5rem;
 }
 
 .unauth-subtext {
   font-size: 1rem;
-  margin-bottom: 30px;
-  opacity: 0.85;
+  color: #666;
+  margin-bottom: 2rem;
 }
 
 .unauth-role {
+  color: #667eea;
   font-weight: 600;
-  color: #007bff;
-}
-
-.dark-mode .unauth-role {
-  color: #00bfff;
 }
 
 .unauth-actions {
   display: flex;
   justify-content: center;
+  gap: 1rem;
   flex-wrap: wrap;
-  gap: 15px;
 }
 
 .unauth-btn {
-  background: #6c757d;
-  color: #fff;
+  background: #e2e8f0;
   border: none;
-  border-radius: 10px;
-  padding: 10px 20px;
-  font-size: 1rem;
+  color: #333;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.25s, transform 0.15s;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
 }
 
 .unauth-btn:hover {
-  background: #5a6268;
-  transform: scale(1.05);
+  background: #d1d8e0;
 }
 
 .unauth-btn.primary {
-  background: #007bff;
-  font-weight: 600;
+  background: #667eea;
+  color: #fff;
 }
 
 .unauth-btn.primary:hover {
-  background: #0056b3;
+  background: #5a67d8;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==== Dark Mode Support (if your theme toggles) ==== */
+.dark-mode .unauth-content {
+  background: #2d3748;
+  color: #e2e8f0;
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .unauth-title {
+  color: #fc8181;
+}
+
+.dark-mode .unauth-role {
+  color: #90cdf4;
+}
+
+.dark-mode .unauth-btn {
+  background: #4a5568;
+  color: #e2e8f0;
+}
+
+.dark-mode .unauth-btn.primary {
+  background: #667eea;
+}
+
+/* ==== Responsive ==== */
+@media (max-width: 480px) {
+  .unauth-content {
+    padding: 2rem 1.5rem;
+  }
+
+  .unauth-title {
+    font-size: 1.6rem;
+  }
+
+  .unauth-text {
+    font-size: 1rem;
+  }
+
+  .unauth-btn {
+    width: 100%;
+  }
 }
