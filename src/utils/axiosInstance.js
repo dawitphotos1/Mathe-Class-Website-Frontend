@@ -4,19 +4,14 @@ import axios from "axios";
 /* ============================================================
    🌍 Determine API Base URL
 ============================================================ */
+
 const getBaseURL = () => {
-  const envURL = process.env.REACT_APP_API_URL;
-  if (envURL) return envURL.trim();
-
-  if (process.env.NODE_ENV === "production") {
-    return "https://mathe-class-website-backend-1.onrender.com/api/v1";
-  }
-
-  return "http://localhost:5000/api/v1";
+  // Always use production URL for now - environment variables aren't working
+  return "https://mathe-class-website-backend-1.onrender.com/api/v1";
 };
 
 const baseURL = getBaseURL();
-console.log("🎯 Axios Base URL:", baseURL);
+console.log("🌍 Using Production API URL:", baseURL);
 
 /* ============================================================
    ⚙️ Axios Instance Configuration
