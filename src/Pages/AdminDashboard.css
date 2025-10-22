@@ -742,3 +742,62 @@
   border-style: solid;
   border-color: transparent #2c3e50 transparent transparent;
 }
+
+
+
+
+
+
+/* =======================
+   PRODUCTION CSS FIXES
+======================= */
+
+/* Ensure all admin styles are loaded */
+.admin-layout,
+.admin-sidebar,
+.admin-main-content,
+.dashboard-container {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Force sidebar display in production */
+.admin-sidebar {
+  display: flex !important;
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  height: 100vh !important;
+  width: 240px !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+  z-index: 1000 !important;
+}
+
+/* Force main content positioning */
+.admin-main-content {
+  margin-left: 240px !important;
+  min-height: 100vh !important;
+  padding: 30px !important;
+  display: block !important;
+}
+
+/* Mobile responsive fixes for production */
+@media (max-width: 768px) {
+  .admin-sidebar {
+    transform: translateX(-100%) !important;
+  }
+  
+  .admin-sidebar.open {
+    transform: translateX(0) !important;
+  }
+  
+  .admin-main-content {
+    margin-left: 0 !important;
+    padding: 20px !important;
+  }
+  
+  .sidebar-toggle-btn {
+    display: block !important;
+  }
+}
