@@ -1,7 +1,8 @@
 
 // src/App.jsx - UPDATED VERSION
 import React, { Suspense } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+// import { Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
