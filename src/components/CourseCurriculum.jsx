@@ -42,10 +42,9 @@
 
 
 
-
 // src/components/CourseCurriculum.jsx
 import React from 'react';
-import { courseData } from '../courses/courseData'; // Adjust path as needed
+import { courseData } from '../Pages/courses/courseData'; // Correct path with capital P
 import './CourseCurriculum.css';
 
 const CourseCurriculum = ({ courseSlug }) => {
