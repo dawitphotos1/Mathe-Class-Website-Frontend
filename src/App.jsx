@@ -278,7 +278,6 @@
 
 
 
-
 // src/App.jsx
 import React, { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -295,15 +294,13 @@ import PendingStudents from "./components/PendingStudents";
 import CSSDebug from "./components/CSSDebug";
 import "./pages/AdminDashboard.css";
 
-/* =========================================================
-   🧩 Lazy-loaded Pages
-========================================================= */
+// ✅ Lazy-loaded pages
 const Home = React.lazy(() => import("./pages/Home"));
 const Register = React.lazy(() => import("./pages/auth/Register"));
 const Login = React.lazy(() => import("./pages/auth/Login"));
 const Courses = React.lazy(() => import("./pages/courses/Courses"));
 const CourseDetail = React.lazy(() => import("./pages/courses/CourseDetail"));
-const Payment = React.lazy(() => import("./pages/payments/Payment")); // ✅ fixed import
+const PaymentPage = React.lazy(() => import("./pages/payments/PaymentPage"));
 const PaymentSuccess = React.lazy(() => import("./pages/payments/PaymentSuccess"));
 const PaymentCancel = React.lazy(() => import("./pages/payments/PaymentCancel"));
 const Cancel = React.lazy(() => import("./pages/payments/Cancel"));
@@ -326,9 +323,7 @@ const TeacherCourseProgress = React.lazy(() => import("./pages/courses/TeacherCo
 const EditLesson = React.lazy(() => import("./pages/teachers/EditLesson"));
 const LessonCreationForm = React.lazy(() => import("./components/LessonCreationForm"));
 
-/* =========================================================
-   🧩 PublicRoute — blocks logged-in users from auth pages
-========================================================= */
+/* -------------------- PublicRoute -------------------- */
 const PublicRoute = ({ children }) => {
   const { isAuthenticated, loading, checked, user } = useAuth();
 
@@ -350,9 +345,7 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
-/* =========================================================
-   🧭 RoleBasedRedirect — smart central redirect
-========================================================= */
+/* -------------------- Role-Based Redirect -------------------- */
 const RoleBasedRedirect = () => {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
@@ -369,9 +362,7 @@ const RoleBasedRedirect = () => {
   }
 };
 
-/* =========================================================
-   🌐 Main App Content
-========================================================= */
+/* -------------------- Main App -------------------- */
 function AppContent() {
   const { loading, checked } = useAuth();
 
@@ -384,47 +375,26 @@ function AppContent() {
         <Navbar />
         <Suspense fallback={<Loading />}>
           <Routes>
-            {/* ---------- Public Routes ---------- */}
+            {/* Public Routes */}
             <Route path="/" element={<Home />} />
-            <Route
-              path="/register"
-              element={
-                <PublicRoute>
-                  <Register />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/login"
-              element={
-                <PublicRoute>
-                  <Login />
-                </PublicRoute>
-              }
-            />
+            <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+            <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/courses" element={<Courses />} />
             <Route path="/courses/:slug" element={<CourseDetail />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
 
-            {/* ---------- Payment Routes ---------- */}
-            <Route path="/payments/:courseSlug" element={<Payment />} /> {/* ✅ fixed */}
+            {/* ✅ Fixed Payment Route (singular) */}
+            <Route path="/payment/:courseId" element={<PaymentPage />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-cancel" element={<PaymentCancel />} />
             <Route path="/cancel" element={<Cancel />} />
 
-            {/* ---------- Dashboard Redirect ---------- */}
+            {/* Dashboards */}
             <Route path="/dashboard" element={<RoleBasedRedirect />} />
 
-            {/* ---------- Admin Routes ---------- */}
-            <Route
-              path="/admin/*"
-              element={
-                <ProtectedRoute allowedRoles={["admin"]}>
-                  <AdminLayout />
-                </ProtectedRoute>
-              }
-            >
+            {/* Admin Routes */}
+            <Route path="/admin/*" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout /></ProtectedRoute>}>
               <Route index element={<AdminDashboard />} />
               <Route path="pending-students" element={<PendingStudents />} />
               <Route path="manage-courses" element={<ManageCourses />} />
@@ -433,101 +403,24 @@ function AppContent() {
               <Route path="files" element={<FileManager />} />
             </Route>
 
-            {/* ---------- Teacher Routes ---------- */}
-            <Route
-              path="/teacher-dashboard"
-              element={
-                <ProtectedRoute allowedRoles={["teacher"]}>
-                  <MyTeachingCourses />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/create-course"
-              element={
-                <ProtectedRoute allowedRoles={["teacher"]}>
-                  <CreateCourse />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/courses/:courseId/manage-lessons"
-              element={
-                <ProtectedRoute allowedRoles={["teacher"]}>
-                  <ManageLessons />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/courses/:courseId/edit"
-              element={
-                <ProtectedRoute allowedRoles={["teacher"]}>
-                  <EditCourse />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/lessons/:lessonId/edit"
-              element={
-                <ProtectedRoute allowedRoles={["teacher"]}>
-                  <EditLesson />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/teacher/course/:courseId/progress"
-              element={
-                <ProtectedRoute allowedRoles={["teacher"]}>
-                  <TeacherCourseProgress />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/courses/:courseId/lessons/new"
-              element={
-                <ProtectedRoute allowedRoles={["teacher"]}>
-                  <LessonCreationForm />
-                </ProtectedRoute>
-              }
-            />
+            {/* Teacher Routes */}
+            <Route path="/teacher-dashboard" element={<ProtectedRoute allowedRoles={["teacher"]}><MyTeachingCourses /></ProtectedRoute>} />
+            <Route path="/create-course" element={<ProtectedRoute allowedRoles={["teacher"]}><CreateCourse /></ProtectedRoute>} />
+            <Route path="/courses/:courseId/manage-lessons" element={<ProtectedRoute allowedRoles={["teacher"]}><ManageLessons /></ProtectedRoute>} />
+            <Route path="/courses/:courseId/edit" element={<ProtectedRoute allowedRoles={["teacher"]}><EditCourse /></ProtectedRoute>} />
+            <Route path="/lessons/:lessonId/edit" element={<ProtectedRoute allowedRoles={["teacher"]}><EditLesson /></ProtectedRoute>} />
+            <Route path="/teacher/course/:courseId/progress" element={<ProtectedRoute allowedRoles={["teacher"]}><TeacherCourseProgress /></ProtectedRoute>} />
+            <Route path="/courses/:courseId/lessons/new" element={<ProtectedRoute allowedRoles={["teacher"]}><LessonCreationForm /></ProtectedRoute>} />
 
-            {/* ---------- Student Routes ---------- */}
-            <Route
-              path="/my-courses"
-              element={
-                <ProtectedRoute allowedRoles={["student"]}>
-                  <MyCoursesPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/courses/:courseId/view"
-              element={
-                <ProtectedRoute allowedRoles={["student"]}>
-                  <CourseViewer />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/courses/:courseId/view-lessons"
-              element={
-                <ProtectedRoute allowedRoles={["student"]}>
-                  <CourseLessons />
-                </ProtectedRoute>
-              }
-            />
+            {/* Student Routes */}
+            <Route path="/my-courses" element={<ProtectedRoute allowedRoles={["student"]}><MyCoursesPage /></ProtectedRoute>} />
+            <Route path="/courses/:courseId/view" element={<ProtectedRoute allowedRoles={["student"]}><CourseViewer /></ProtectedRoute>} />
+            <Route path="/courses/:courseId/view-lessons" element={<ProtectedRoute allowedRoles={["student"]}><CourseLessons /></ProtectedRoute>} />
 
-            {/* ---------- Shared Profile ---------- */}
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute allowedRoles={["admin", "teacher", "student"]}>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
+            {/* Shared Profile */}
+            <Route path="/profile" element={<ProtectedRoute allowedRoles={["admin","teacher","student"]}><Profile /></ProtectedRoute>} />
 
-            {/* ---------- Fallback ---------- */}
+            {/* 404 Fallback */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
@@ -537,9 +430,7 @@ function AppContent() {
   );
 }
 
-/* =========================================================
-   🌍 Root App Wrapper
-========================================================= */
+/* -------------------- Root Wrapper -------------------- */
 function App() {
   return (
     <ThemeProvider>

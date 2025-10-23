@@ -82,7 +82,6 @@
 
 
 
-
 // src/pages/courses/Courses.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -100,7 +99,7 @@ const CourseSkeleton = () => (
   </div>
 );
 
-const Courses = ({ user }) => {
+const Courses = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCourseSlug, setSelectedCourseSlug] = useState(null);
@@ -126,12 +125,9 @@ const Courses = ({ user }) => {
     setSelectedCourseSlug(slug);
   };
 
-  const handleEnrollNow = (slug) => {
-    // ✅ Prevent self-navigation loop
-    const targetPath = `/payments/${slug}`;
-    if (window.location.pathname !== targetPath) {
-      navigate(targetPath);
-    }
+  const handleEnrollNow = (id) => {
+    // ✅ Correct: singular /payment/ and use course ID
+    navigate(`/payment/${id}`);
   };
 
   if (loading) {
@@ -147,14 +143,15 @@ const Courses = ({ user }) => {
     );
   }
 
-  if (!courses.length) return <div className="error">No courses available</div>;
+  if (!courses.length)
+    return <div className="error">No courses available</div>;
 
   return (
     <div className="courses">
       <h1>Available Courses</h1>
       <div className="course-list">
         {courses.map((course) => (
-          <div key={course.id} className="course-item">
+          <div key={course.id || course._id} className="course-item">
             <h2>{course.title}</h2>
             <p>{course.description}</p>
             <p className="course-price">
@@ -164,7 +161,7 @@ const Courses = ({ user }) => {
             <div className="course-actions">
               <button
                 className="btn-enroll"
-                onClick={() => navigate(`/payment/${course.id}`)}
+                onClick={() => handleEnrollNow(course.id || course._id)}
               >
                 Enroll Now - ${parseFloat(course.price || 0).toFixed(2)}
               </button>

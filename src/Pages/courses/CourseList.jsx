@@ -118,6 +118,7 @@
 
 
 
+// src/pages/courses/CourseList.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
@@ -146,42 +147,12 @@ const CourseList = () => {
   })();
 
   const fallbackCourses = [
-    {
-      slug: "algebra-1",
-      title: "Algebra 1",
-      description: "Introduction to Algebra",
-      price: 1200,
-    },
-    {
-      slug: "algebra-2",
-      title: "Algebra 2",
-      description: "Advanced Algebra Concepts",
-      price: 1200,
-    },
-    {
-      slug: "pre-calculus",
-      title: "Pre-Calculus",
-      description: "Preparation for Calculus",
-      price: 1200,
-    },
-    {
-      slug: "calculus",
-      title: "Calculus",
-      description: "Differential and Integral Calculus",
-      price: 1250,
-    },
-    {
-      slug: "geometry-trigonometry",
-      title: "Geometry & Trigonometry",
-      description: "Shapes and Angles",
-      price: 1250,
-    },
-    {
-      slug: "statistics-probability",
-      title: "Statistics & Probability",
-      description: "Data Analysis and Probability",
-      price: 1250,
-    },
+    { slug: "algebra-1", title: "Algebra 1", description: "Introduction to Algebra", price: 1200 },
+    { slug: "algebra-2", title: "Algebra 2", description: "Advanced Algebra Concepts", price: 1200 },
+    { slug: "pre-calculus", title: "Pre-Calculus", description: "Preparation for Calculus", price: 1200 },
+    { slug: "calculus", title: "Calculus", description: "Differential and Integral Calculus", price: 1250 },
+    { slug: "geometry-trigonometry", title: "Geometry & Trigonometry", description: "Shapes and Angles", price: 1250 },
+    { slug: "statistics-probability", title: "Statistics & Probability", description: "Data Analysis and Probability", price: 1250 },
   ];
 
   const courseImages = {
@@ -212,21 +183,15 @@ const CourseList = () => {
 
   const handleCourseClick = (slug, id) => {
     const courseIdStr = String(id);
-    if (user?.role === "student") {
-      if (enrolledCourses.includes(courseIdStr)) {
-        navigate(`/course/${slug}/viewer`);
-      } else {
-        // ✅ navigate to payment page, not looping path
-        navigate(`/payments/${slug}`);
-      }
+    if (user?.role === "student" && enrolledCourses.includes(courseIdStr)) {
+      navigate(`/course/${slug}/viewer`);
     } else {
-      navigate(`/payments/${slug}`); // Guests also go to checkout
+      // ✅ navigate to singular /payment/
+      navigate(`/payment/${id}`);
     }
   };
 
-  const handleViewCurriculum = (slug) => {
-    setSelectedCourseSlug(slug);
-  };
+  const handleViewCurriculum = (slug) => setSelectedCourseSlug(slug);
 
   const formatPrice = (price) =>
     price == null || isNaN(price) ? "N/A" : Number(price).toFixed(2);
@@ -238,9 +203,7 @@ const CourseList = () => {
         {courses.map((course) => (
           <div key={course.id || course.slug} className="course-card">
             <img
-              src={
-                courseImages[course.title] || "/math-logos/default-course.jpg"
-              }
+              src={courseImages[course.title] || "/math-logos/default-course.jpg"}
               alt={course.title}
               className="course-image"
             />
@@ -254,12 +217,12 @@ const CourseList = () => {
               <div className="course-actions">
                 <button
                   className="btn btn-primary"
-                  onClick={() => handleCourseClick(course.slug, course.id)}
+                  onClick={() => handleCourseClick(course.slug, course.id || course._id)}
                 >
                   {user?.role === "student" &&
                   enrolledCourses.includes(String(course.id))
                     ? "Start Learning"
-                    : "Enroll Now"}
+                    : `Enroll Now - $${formatPrice(course.price)}`}
                 </button>
 
                 <button
