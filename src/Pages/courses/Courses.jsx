@@ -79,9 +79,6 @@
 
 
 
-//IT IS ALREADY COPY
-
-//----------------------------------------------------------------------------------------
 
 
 
@@ -103,7 +100,7 @@ const CourseSkeleton = () => (
   </div>
 );
 
-const Courses = () => {
+const Courses = ({ user }) => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCourseSlug, setSelectedCourseSlug] = useState(null);
@@ -125,20 +122,16 @@ const Courses = () => {
     fetchCourses();
   }, []);
 
-  const handleEnrollClick = (slug) => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      toast.warning("Please log in before enrolling");
-      navigate("/login");
-      return;
-    }
-
-    // Go to the course detail page
-    navigate(`/courses/${slug}`);
-  };
-
   const handleViewCurriculum = (slug) => {
     setSelectedCourseSlug(slug);
+  };
+
+  const handleEnrollNow = (slug) => {
+    // ✅ Prevent self-navigation loop
+    const targetPath = `/payments/${slug}`;
+    if (window.location.pathname !== targetPath) {
+      navigate(targetPath);
+    }
   };
 
   if (loading) {
@@ -154,9 +147,7 @@ const Courses = () => {
     );
   }
 
-  if (!courses.length) {
-    return <div className="error">No courses available</div>;
-  }
+  if (!courses.length) return <div className="error">No courses available</div>;
 
   return (
     <div className="courses">
@@ -173,7 +164,7 @@ const Courses = () => {
             <div className="course-actions">
               <button
                 className="btn-enroll"
-                onClick={() => handleEnrollClick(course.slug)}
+                onClick={() => handleEnrollNow(course.slug)}
               >
                 Enroll Now - ${parseFloat(course.price || 0).toFixed(2)}
               </button>
