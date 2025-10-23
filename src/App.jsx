@@ -300,7 +300,7 @@ const Register = React.lazy(() => import("./pages/auth/Register"));
 const Login = React.lazy(() => import("./pages/auth/Login"));
 const Courses = React.lazy(() => import("./pages/courses/Courses"));
 const CourseDetail = React.lazy(() => import("./pages/courses/CourseDetail"));
-const PaymentPage = React.lazy(() => import("./pages/payments/PaymentPage"));
+const PaymentPage = React.lazy(() => import("./pages/PaymentPage"));
 const PaymentSuccess = React.lazy(() => import("./pages/payments/PaymentSuccess"));
 const PaymentCancel = React.lazy(() => import("./pages/payments/PaymentCancel"));
 const Cancel = React.lazy(() => import("./pages/payments/Cancel"));
