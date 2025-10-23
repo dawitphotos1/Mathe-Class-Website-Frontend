@@ -25,55 +25,94 @@
   color: #7f8c8d;
   font-size: 1.1em;
   line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.preview-notice {
+  color: #17a2b8;
+  font-size: 0.9em;
+  font-style: italic;
+  margin: 0;
 }
 
 .units-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
 }
 
 .unit-card {
   background: white;
   border-radius: 10px;
-  padding: 25px;
+  padding: 0;
   box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-  border-left: 4px solid #3498db;
-  transition: transform 0.2s ease;
+  border: 1px solid #e1e8ed;
+  overflow: hidden;
 }
 
-.unit-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+.unit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.unit-header:hover {
+  background: #f8f9fa;
 }
 
 .unit-title {
   color: #2c3e50;
-  margin-bottom: 20px;
-  font-size: 1.3em;
+  margin: 0;
+  font-size: 1.2em;
   font-weight: 600;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #ecf0f1;
+  flex: 1;
+}
+
+.expand-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: #3498db;
+  color: white;
+  border-radius: 50%;
+  font-size: 1.2em;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.unit-header:hover .expand-icon {
+  background: #2980b9;
+  transform: scale(1.1);
 }
 
 .lessons-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  padding: 0 25px 20px;
+  background: #fafbfc;
+  border-top: 1px solid #e9ecef;
 }
 
 .lesson-item {
-  padding: 15px;
-  background: #f8f9fa;
-  border-radius: 8px;
+  padding: 12px 15px;
+  background: white;
+  border-radius: 6px;
   border: 1px solid #e9ecef;
+  margin-top: 10px;
   transition: all 0.2s ease;
+}
+
+.lesson-item:first-child {
+  margin-top: 15px;
 }
 
 .lesson-item:hover {
   background: #e3f2fd;
   border-color: #3498db;
-  transform: translateX(5px);
 }
 
 .lesson-content {
@@ -83,13 +122,15 @@
 }
 
 .lesson-icon {
-  font-size: 1.2em;
+  font-size: 1.1em;
+  flex-shrink: 0;
 }
 
 .lesson-title {
   color: #2c3e50;
   font-weight: 500;
   flex: 1;
+  line-height: 1.4;
 }
 
 .curriculum-error {
@@ -97,25 +138,37 @@
   padding: 40px;
   color: #e74c3c;
   font-size: 1.1em;
+  background: white;
+  border-radius: 8px;
+  margin: 20px;
 }
 
-/* Responsive design */
 @media (max-width: 768px) {
   .course-curriculum {
     padding: 15px;
   }
   
-  .unit-card {
-    padding: 20px;
+  .unit-header {
+    padding: 15px 20px;
   }
   
-  .curriculum-header h2 {
-    font-size: 1.5em;
+  .unit-title {
+    font-size: 1.1em;
+  }
+  
+  .lessons-list {
+    padding: 0 20px 15px;
   }
   
   .lesson-content {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
+  }
+  
+  .expand-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 1.1em;
   }
 }

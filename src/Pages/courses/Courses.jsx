@@ -79,14 +79,12 @@
 
 
 
-
-
 // src/Pages/courses/Courses.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axiosInstance from "../../utils/axiosInstance";
-import CourseCurriculum from "../../components/CourseCurriculum"; // Add this import
+import CourseCurriculum from "../../components/CourseCurriculum";
 import "./Courses.css";
 
 const CourseSkeleton = () => (
@@ -101,7 +99,7 @@ const CourseSkeleton = () => (
 const Courses = ({ user }) => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCourseSlug, setSelectedCourseSlug] = useState(null); // Add this state
+  const [selectedCourseSlug, setSelectedCourseSlug] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -120,7 +118,12 @@ const Courses = ({ user }) => {
   }, []);
 
   const handleViewCurriculum = (slug) => {
-    setSelectedCourseSlug(slug); // Update this function
+    setSelectedCourseSlug(slug);
+  };
+
+  const handleEnrollClick = (courseSlug, courseId) => {
+    // Simple navigation to course details page
+    navigate(`/course/${courseSlug}`);
   };
 
   if (loading) {
@@ -136,8 +139,7 @@ const Courses = ({ user }) => {
     );
   }
 
-  if (!courses.length)
-    return <div className="error">No courses available</div>;
+  if (!courses.length) return <div className="error">No courses available</div>;
 
   return (
     <div className="courses">
@@ -147,35 +149,35 @@ const Courses = ({ user }) => {
           <div key={course.id} className="course-item">
             <h2>{course.title}</h2>
             <p>{course.description}</p>
-            <p>Price: ${parseFloat(course.price || 0).toFixed(2)}</p>
-            
-            {/* Updated buttons */}
+            <p className="course-price">
+              Price: ${parseFloat(course.price || 0).toFixed(2)}
+            </p>
+
             <div className="course-actions">
               <button
-                className="btn-view-course"
-                onClick={() => navigate(`/courses/${course.slug}`)}
+                className="btn-enroll"
+                onClick={() => handleEnrollClick(course.slug, course.id)}
               >
-                View Details
+                Enroll Now - ${parseFloat(course.price || 0).toFixed(2)}
               </button>
-              
+
               <button
-                className="btn-view-curriculum"
+                className="btn-preview"
                 onClick={() => handleViewCurriculum(course.slug)}
               >
-                View Curriculum
+                Free Preview
               </button>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Add Curriculum Modal */}
       {selectedCourseSlug && (
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
               <h3>Course Curriculum</h3>
-              <button 
+              <button
                 className="close-btn"
                 onClick={() => setSelectedCourseSlug(null)}
               >
