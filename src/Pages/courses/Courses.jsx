@@ -77,9 +77,6 @@
 
 // export default Courses;
 
-
-
-// src/Pages/courses/Courses.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -121,9 +118,16 @@ const Courses = ({ user }) => {
     setSelectedCourseSlug(slug);
   };
 
-  const handleEnrollClick = (courseSlug, courseId) => {
-    // Simple navigation to course details page
-    navigate(`/course/${courseSlug}`);
+  const handleEnrollClick = (courseSlug, courseId, coursePrice) => {
+    console.log("🎯 Redirecting to payment for:", courseSlug, "ID:", courseId);
+
+    // Navigate to your payment page with course ID
+    navigate(`/payments/${courseId}`, {
+      state: {
+        courseSlug: courseSlug,
+        coursePrice: coursePrice,
+      },
+    });
   };
 
   if (loading) {
@@ -156,7 +160,9 @@ const Courses = ({ user }) => {
             <div className="course-actions">
               <button
                 className="btn-enroll"
-                onClick={() => handleEnrollClick(course.slug, course.id)}
+                onClick={() =>
+                  handleEnrollClick(course.slug, course.id, course.price)
+                }
               >
                 Enroll Now - ${parseFloat(course.price || 0).toFixed(2)}
               </button>

@@ -118,7 +118,6 @@
 
 
 
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
@@ -204,8 +203,16 @@ const CourseList = () => {
     fetchCourses();
   }, []);
 
-  const handleEnrollClick = (courseSlug, courseId) => {
-    navigate(`/course/${courseSlug}`);
+  const handleEnrollClick = (courseSlug, courseId, coursePrice) => {
+    console.log("🎯 Redirecting to payment for:", courseSlug, "ID:", courseId);
+
+    // Navigate to payment page with course ID
+    navigate(`/payments/${courseId}`, {
+      state: {
+        courseSlug: courseSlug,
+        coursePrice: coursePrice,
+      },
+    });
   };
 
   const handleViewCurriculum = (slug) => {
@@ -238,7 +245,9 @@ const CourseList = () => {
               <div className="course-actions">
                 <button
                   className="btn btn-primary"
-                  onClick={() => handleEnrollClick(course.slug, course.id)}
+                  onClick={() =>
+                    handleEnrollClick(course.slug, course.id, course.price)
+                  }
                 >
                   {user?.role === "student" &&
                   enrolledCourses.includes(String(course.id))
