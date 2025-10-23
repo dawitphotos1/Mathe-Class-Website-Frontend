@@ -164,7 +164,7 @@ const Courses = ({ user }) => {
             <div className="course-actions">
               <button
                 className="btn-enroll"
-                onClick={() => handleEnrollNow(course.slug)}
+                onClick={() => navigate(`/payment/${course.id}`)}
               >
                 Enroll Now - ${parseFloat(course.price || 0).toFixed(2)}
               </button>
