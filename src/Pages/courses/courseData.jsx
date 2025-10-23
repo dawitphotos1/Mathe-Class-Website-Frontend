@@ -1,4 +1,5 @@
 // src/Pages/courses/courseData.js
+
 // 🔁 Map slugs to numeric IDs for Stripe pricing
 export const slugToIdMap = {
   "algebra-1": 1,
