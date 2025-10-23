@@ -45,7 +45,7 @@
 
 // src/components/CourseCurriculum.jsx
 import React from 'react';
-import { courseData } from '../data/courseData'; // Adjust path as needed
+import { courseData } from '../courses/courseData'; // Adjust path as needed
 import './CourseCurriculum.css';
 
 const CourseCurriculum = ({ courseSlug }) => {
