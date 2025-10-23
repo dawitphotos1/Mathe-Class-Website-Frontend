@@ -42,19 +42,20 @@
 
 
 
+
 // src/components/CourseCurriculum.jsx
-import React, { useState } from "react";
-import { courseData } from "../pages/courses/courseData";
-import "./CourseCurriculum.css";
+import React, { useState } from 'react';
+import { courseData } from '../Pages/courses/courseData';
+import './CourseCurriculum.css';
 
 const CourseCurriculum = ({ courseSlug }) => {
   const course = courseData[courseSlug];
   const [expandedUnits, setExpandedUnits] = useState({});
 
   const toggleUnit = (unitIndex) => {
-    setExpandedUnits((prev) => ({
+    setExpandedUnits(prev => ({
       ...prev,
-      [unitIndex]: !prev[unitIndex],
+      [unitIndex]: !prev[unitIndex]
     }));
   };
 
@@ -67,21 +68,22 @@ const CourseCurriculum = ({ courseSlug }) => {
       <div className="curriculum-header">
         <h2>{course.title} - Curriculum</h2>
         <p className="course-description">{course.description}</p>
-        <p className="preview-notice">
-          👆 Click + to expand units and preview all lessons
-        </p>
+        <p className="preview-notice">👆 Click + to expand units and preview all lessons</p>
       </div>
-
+      
       <div className="units-container">
         {course.contents.map((unit, unitIndex) => (
           <div key={unitIndex} className="unit-card">
-            <div className="unit-header" onClick={() => toggleUnit(unitIndex)}>
+            <div 
+              className="unit-header"
+              onClick={() => toggleUnit(unitIndex)}
+            >
               <h3 className="unit-title">{unit.unit}</h3>
               <span className="expand-icon">
-                {expandedUnits[unitIndex] ? "−" : "+"}
+                {expandedUnits[unitIndex] ? '−' : '+'}
               </span>
             </div>
-
+            
             {expandedUnits[unitIndex] && (
               <div className="lessons-list">
                 {unit.lessons.map((lesson, lessonIndex) => (
