@@ -262,7 +262,6 @@
 
 
 
-
 // src/pages/CoursePreviewPage.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -354,6 +353,25 @@ const CoursePreviewPage = () => {
     return parseFloat(course.price).toFixed(2);
   };
 
+  // Group lessons by units if they have unit information
+  const groupLessonsByUnit = () => {
+    const units = {};
+    
+    lessons.forEach(lesson => {
+      // Assuming lessons have a unit_id or similar property for grouping
+      const unitId = lesson.unit_id || 'default';
+      if (!units[unitId]) {
+        units[unitId] = {
+          title: lesson.unit_title || 'Course Content',
+          lessons: []
+        };
+      }
+      units[unitId].lessons.push(lesson);
+    });
+    
+    return Object.values(units);
+  };
+
   if (loading) {
     return (
       <div className="course-preview-page">
@@ -393,8 +411,8 @@ const CoursePreviewPage = () => {
     );
   }
 
-  // Group lessons by unit or show as list
   const displayPrice = getDisplayPrice();
+  const units = groupLessonsByUnit();
 
   return (
     <div className="course-preview-page">
@@ -403,7 +421,7 @@ const CoursePreviewPage = () => {
         <button onClick={() => navigate("/courses")} className="back-btn">
           ← Back to Courses
         </button>
-        <h1>{course.title} - Free Preview</h1>
+        <h1>{course.title}</h1>
         <p className="preview-subtitle">
           Explore the course content. Enroll to get full access to all lessons and features.
         </p>
@@ -418,7 +436,7 @@ const CoursePreviewPage = () => {
             </div>
           )}
           <div className="price-info">
-            <strong>Price:</strong> ${displayPrice}
+            <strong>Full Course Price:</strong> ${displayPrice}
           </div>
         </div>
         <p className="course-description">
@@ -428,29 +446,41 @@ const CoursePreviewPage = () => {
 
       {/* Course Content Preview */}
       <div className="course-content-section">
-        <h2>Course Content Preview</h2>
+        <h2>Course Curriculum Preview</h2>
         
         {lessons.length === 0 ? (
           <div className="no-lessons">
             <p>No lessons available for preview yet.</p>
           </div>
         ) : (
-          <div className="lessons-list">
-            {lessons.map((lesson, index) => (
-              <div key={lesson.id} className="lesson-item">
-                <div className="lesson-number">{index + 1}</div>
-                <div className="lesson-info">
-                  <h4 className="lesson-title">{lesson.title}</h4>
-                  {lesson.contentType && (
-                    <span className="lesson-type">{lesson.contentType}</span>
-                  )}
-                </div>
-                <div className="lesson-preview">
-                  {lesson.contentType === 'video' && lesson.video_url ? (
-                    <span className="preview-badge">🎥 Video Available</span>
-                  ) : (
-                    <span className="preview-badge">📖 Read Preview</span>
-                  )}
+          <div className="curriculum-container">
+            {units.map((unit, unitIndex) => (
+              <div key={unitIndex} className="unit-section">
+                <h3 className="unit-title">{unit.title}</h3>
+                <div className="lessons-list">
+                  {unit.lessons.map((lesson, index) => (
+                    <div key={lesson.id} className="lesson-item">
+                      <div className="lesson-number">{unitIndex + 1}.{index + 1}</div>
+                      <div className="lesson-info">
+                        <h4 className="lesson-title">{lesson.title}</h4>
+                        {lesson.contentType && (
+                          <span className="lesson-type">{lesson.contentType}</span>
+                        )}
+                        {lesson.description && (
+                          <p className="lesson-description">{lesson.description}</p>
+                        )}
+                      </div>
+                      <div className="lesson-preview">
+                        {lesson.contentType === 'video' && lesson.video_url ? (
+                          <span className="preview-badge video-preview">🎥 Video Preview</span>
+                        ) : lesson.contentType === 'text' ? (
+                          <span className="preview-badge text-preview">📖 Text Preview</span>
+                        ) : (
+                          <span className="preview-badge">👀 Preview Available</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
@@ -465,23 +495,28 @@ const CoursePreviewPage = () => {
             <h3>Ready to start learning?</h3>
             <p>Enroll now to get full access to all course materials, exercises, and instructor support.</p>
             <div className="enrollment-features">
-              <div className="feature">✅ Full access to all lessons</div>
-              <div className="feature">✅ Downloadable resources</div>
+              <div className="feature">✅ Full access to all {lessons.length} lessons</div>
+              <div className="feature">✅ Downloadable resources and exercises</div>
               <div className="feature">✅ Certificate of completion</div>
-              <div className="feature">✅ Instructor support</div>
+              <div className="feature">✅ Direct instructor support</div>
+              <div className="feature">✅ Progress tracking</div>
+              <div className="feature">✅ Lifetime access to course updates</div>
             </div>
           </div>
           <div className="enrollment-action">
-            <div className="price-display">${displayPrice}</div>
+            <div className="price-section">
+              <div className="price-display">${displayPrice}</div>
+              <div className="price-note">One-time payment • Lifetime access</div>
+            </div>
             <button
               onClick={handleEnroll}
               disabled={processing || isEnrolled}
-              className="enroll-btn-large"
+              className={`enroll-btn-large ${processing ? 'processing' : ''} ${isEnrolled ? 'enrolled' : ''}`}
             >
               {processing
                 ? "Processing..."
                 : isEnrolled
-                ? "Already Enrolled"
+                ? "✓ Already Enrolled"
                 : `ENROLL NOW - $${displayPrice}`}
             </button>
             {isEnrolled && (
@@ -492,7 +527,10 @@ const CoursePreviewPage = () => {
                 Access Full Course
               </button>
             )}
-            <p className="security-note">🔒 Secure payment powered by Stripe</p>
+            <div className="security-guarantee">
+              <p className="security-note">🔒 Secure payment powered by Stripe</p>
+              <p className="guarantee-note">30-day money-back guarantee</p>
+            </div>
           </div>
         </div>
       </div>

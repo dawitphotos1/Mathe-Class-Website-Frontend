@@ -124,142 +124,104 @@
 
 
 
-
-// src/pages/CoursesPage.jsx
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import CourseCard from "../components/CourseCard";
-import axiosInstance from "../utils/axiosInstance";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { api } from "../utils/axios";
 import "./CoursesPage.css";
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        setLoading(true);
-        console.log("🔄 Fetching courses from /courses endpoint...");
-
-        const response = await axiosInstance.get("/courses");
-        console.log("✅ Full API response:", response.data);
-
-        // FIX: Check the response structure and extract courses properly
-        let coursesData = [];
-
-        if (response.data.success && response.data.courses) {
-          // Structure: { success: true, courses: [...] }
-          coursesData = response.data.courses;
-          console.log(
-            "✅ Extracted courses from response.data.courses:",
-            coursesData
-          );
-        } else if (Array.isArray(response.data)) {
-          // Structure: direct array response
-          coursesData = response.data;
-          console.log(
-            "✅ Extracted courses from direct array response:",
-            coursesData
-          );
-        } else {
-          // Try to find courses in other possible locations
-          coursesData = response.data.data || response.data.items || [];
-          console.log("⚠️ Using fallback courses extraction:", coursesData);
-        }
-
-        // Debug: Check the first course's price
-        if (coursesData.length > 0) {
-          console.log("💰 First course price check:", {
-            title: coursesData[0].title,
-            price: coursesData[0].price,
-            priceType: typeof coursesData[0].price,
-          });
-        }
-
-        setCourses(coursesData);
-      } catch (err) {
-        console.error("❌ Error fetching courses:", err);
-        setError("Failed to load courses. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchCourses();
   }, []);
 
-  const handleCourseDeleted = (deletedCourseId) => {
-    setCourses(courses.filter(course => course.id !== deletedCourseId));
+  const fetchCourses = async () => {
+    try {
+      const response = await api.get("/courses");
+      if (response.data.success) {
+        setCourses(response.data.courses);
+      }
+    } catch (err) {
+      setError("Failed to load courses");
+      console.error("Error fetching courses:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (loading) {
-    return (
-      <div className="courses-page">
-        <div className="courses-header">
-          <h1>🎓 Explore Our Math Courses</h1>
-          <p>Click "Free Preview" to see course content and unlock enrollment option</p>
-        </div>
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Loading courses...</p>
-        </div>
-      </div>
-    );
-  }
+  const handleFreePreview = (courseSlug) => {
+    navigate(`/courses/${courseSlug}/preview`);
+  };
 
-  if (error) {
-    return (
-      <div className="courses-page">
-        <div className="error-container">
-          <h2>❌ Error Loading Courses</h2>
-          <p>{error}</p>
-          <button onClick={() => window.location.reload()} className="retry-btn">
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(price);
+  };
 
-  if (courses.length === 0) {
-    return (
-      <div className="courses-page">
-        <div className="courses-header">
-          <h1>🎓 Explore Our Math Courses</h1>
-          <p>Click "Free Preview" to see course content and unlock enrollment option</p>
-        </div>
-        <div className="empty-container">
-          <h2>📚 No Courses Available</h2>
-          <p>No courses are available at the moment.</p>
-          <p className="empty-subtitle">Please check back later or contact support.</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div className="loading">Loading courses...</div>;
+  if (error) return <div className="error">{error}</div>;
 
   return (
     <div className="courses-page">
       <div className="courses-header">
-        <h1>🎓 Explore Our Math Courses</h1>
-        <p>Click "Free Preview" to see course content and unlock enrollment option</p>
-      </div>
-
-      {/* Debug info - remove this after testing */}
-      <div className="debug-info">
+        <h1>Our Courses</h1>
         <p>
-          <strong>Debug:</strong> Showing {courses.length} courses. First course price: ${courses[0]?.price}
+          Browse our comprehensive math curriculum and preview course content
         </p>
       </div>
 
       <div className="courses-grid">
         {courses.map((course) => (
-          <CourseCard 
-            key={course.id} 
-            course={course} 
-            onCourseDeleted={handleCourseDeleted}
-          />
+          <div key={course.id} className="course-card">
+            <div className="course-image-container">
+              {course.thumbnail ? (
+                <img
+                  src={course.thumbnail}
+                  alt={course.title}
+                  className="course-image"
+                />
+              ) : (
+                <div className="course-image-placeholder">
+                  <span>{course.title}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="course-content">
+              <h3 className="course-title">{course.title}</h3>
+              <p className="course-description">
+                {course.description ||
+                  "Comprehensive math course with expert instruction"}
+              </p>
+
+              <div className="course-meta">
+                <div className="course-teacher">
+                  <span>
+                    Instructor: {course.teacher?.name || "Math Instructor"}
+                  </span>
+                </div>
+                <div className="course-price">{formatPrice(course.price)}</div>
+              </div>
+
+              <div className="course-actions">
+                <button
+                  className="btn-preview"
+                  onClick={() => handleFreePreview(course.slug)}
+                >
+                  Free Preview
+                </button>
+                {/* Enroll button removed from main listing as requested */}
+              </div>
+            </div>
+          </div>
         ))}
       </div>
     </div>
