@@ -263,7 +263,6 @@
 
 
 
-
 // src/pages/CoursePreviewPage.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -310,8 +309,13 @@ const CoursePreviewPage = () => {
 
         // Check enrollment status if user is logged in
         if (user) {
-          const enrollmentResponse = await axiosInstance.get(`/enrollments/check/${courseId}`);
-          setIsEnrolled(enrollmentResponse.data.enrolled || false);
+          try {
+            const enrollmentResponse = await axiosInstance.get(`/enrollments/check/${courseId}`);
+            setIsEnrolled(enrollmentResponse.data.enrolled || false);
+          } catch (err) {
+            console.error("Error checking enrollment:", err);
+            setIsEnrolled(false);
+          }
         }
 
       } catch (err) {
@@ -389,16 +393,7 @@ const CoursePreviewPage = () => {
     );
   }
 
-  // Group lessons by unit (assuming lessons have unit information)
-  const groupedLessons = lessons.reduce((acc, lesson) => {
-    const unit = lesson.unit || 'General';
-    if (!acc[unit]) {
-      acc[unit] = [];
-    }
-    acc[unit].push(lesson);
-    return acc;
-  }, {});
-
+  // Group lessons by unit or show as list
   const displayPrice = getDisplayPrice();
 
   return (
@@ -435,36 +430,31 @@ const CoursePreviewPage = () => {
       <div className="course-content-section">
         <h2>Course Content Preview</h2>
         
-        {Object.keys(groupedLessons).length === 0 ? (
+        {lessons.length === 0 ? (
           <div className="no-lessons">
             <p>No lessons available for preview yet.</p>
           </div>
         ) : (
-          Object.entries(groupedLessons).map(([unit, unitLessons]) => (
-            <div key={unit} className="unit-section">
-              <h3 className="unit-title">{unit}</h3>
-              <div className="lessons-list">
-                {unitLessons.map((lesson, index) => (
-                  <div key={lesson.id} className="lesson-item">
-                    <div className="lesson-number">{index + 1}</div>
-                    <div className="lesson-info">
-                      <h4 className="lesson-title">{lesson.title}</h4>
-                      {lesson.contentType && (
-                        <span className="lesson-type">{lesson.contentType}</span>
-                      )}
-                    </div>
-                    <div className="lesson-preview">
-                      {lesson.contentType === 'video' && lesson.video_url ? (
-                        <span className="preview-badge">🎥 Video Available</span>
-                      ) : (
-                        <span className="preview-badge">📖 Read Preview</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
+          <div className="lessons-list">
+            {lessons.map((lesson, index) => (
+              <div key={lesson.id} className="lesson-item">
+                <div className="lesson-number">{index + 1}</div>
+                <div className="lesson-info">
+                  <h4 className="lesson-title">{lesson.title}</h4>
+                  {lesson.contentType && (
+                    <span className="lesson-type">{lesson.contentType}</span>
+                  )}
+                </div>
+                <div className="lesson-preview">
+                  {lesson.contentType === 'video' && lesson.video_url ? (
+                    <span className="preview-badge">🎥 Video Available</span>
+                  ) : (
+                    <span className="preview-badge">📖 Read Preview</span>
+                  )}
+                </div>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
       </div>
 
