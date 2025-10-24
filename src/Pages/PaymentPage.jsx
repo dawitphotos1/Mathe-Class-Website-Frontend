@@ -309,8 +309,6 @@
 // export default PaymentPage;
 
 
-
-// src/pages/PaymentPage.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
@@ -335,7 +333,7 @@ const initializeStripe = async () => {
     console.log("✅ Stripe initialized successfully");
     return stripePromise;
   } catch (err) {
-    console.error("❌ Stripe init failed:", err);
+    console.error("❌ Stripe initialization failed:", err);
     throw new Error("Failed to initialize Stripe.");
   }
 };
@@ -353,42 +351,30 @@ const PaymentPage = () => {
   const [error, setError] = useState("");
 
   /* =========================================================
-     🧩 Detect if slug or ID
-  ========================================================== */
-  const isSlug = courseId && !/^[0-9a-fA-F]{24}$/.test(courseId);
-
-  /* =========================================================
-     🧭 Fetch Course Data
+     🧭 Fetch Course Details
   ========================================================== */
   useEffect(() => {
     const fetchCourseDetails = async () => {
       if (!courseId) {
-        setError("No course ID or slug provided.");
+        setError("No course ID provided.");
         setLoading(false);
         return;
       }
 
       setLoading(true);
       setError("");
-      console.log(
-        `🔍 Fetching course (${isSlug ? "slug" : "ID"}): ${courseId}`
-      );
+      console.log(`🔍 Fetching course by ID: ${courseId}`);
 
       try {
-        // Choose endpoint based on whether it's a slug or ID
-        const endpoint = isSlug
-          ? `/courses/slug/${courseId}`
-          : `/courses/id/${courseId}`;
-
-        const res = await axios.get(endpoint);
+        const res = await axios.get(`/courses/id/${courseId}`);
 
         if (res.data?.course || res.data?._id) {
           const courseData = res.data.course || res.data;
           const price = parseFloat(courseData.price || 0);
           setCourse({ ...courseData, price });
-          console.log("✅ Course loaded:", courseData.title);
+          console.log("✅ Course loaded successfully:", courseData.title);
         } else {
-          throw new Error("Invalid course data");
+          throw new Error("Invalid course data received.");
         }
       } catch (err) {
         console.error("❌ Error fetching course:", err);
@@ -399,7 +385,7 @@ const PaymentPage = () => {
     };
 
     fetchCourseDetails();
-  }, [courseId, isSlug]);
+  }, [courseId]);
 
   /* =========================================================
      💳 Handle Stripe Payment
@@ -458,12 +444,12 @@ const PaymentPage = () => {
   };
 
   /* =========================================================
-     🧭 Cancel Button
+     🚪 Cancel Navigation
   ========================================================== */
   const handleCancel = () => navigate(-1);
 
   /* =========================================================
-     🧱 Conditional Rendering
+     🧱 Conditional UI
   ========================================================== */
   if (loading)
     return (
