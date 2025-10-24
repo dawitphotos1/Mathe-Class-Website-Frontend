@@ -277,6 +277,8 @@
 
 
 
+
+
 // src/pages/auth/Register.jsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -298,7 +300,6 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
   const navigate = useNavigate();
 
   const studentSubjects = [
@@ -368,51 +369,44 @@ const Register = () => {
     setLoading(true);
 
     try {
+      // ✅ FIXED: Check if registerUser is a function before calling it
+      if (typeof registerUser !== 'function') {
+        throw new Error("Registration service is not available. Please try again later.");
+      }
+
       const result = await registerUser(payload);
 
-      if (result.success) {
-        if (result.token) {
-          toast.success("Registration successful! Welcome!");
-          navigate("/my-courses");
-        } else if (result.user?.approval_status === "pending") {
-          toast.success("Registration submitted! Waiting for admin approval.");
-          navigate("/login");
-        } else {
-          toast.success("Registration successful! Please log in.");
-          navigate("/login");
-        }
+      // Handle different registration scenarios
+      if (result.token) {
+        // Auto-logged in
+        toast.success("Registration successful! Welcome!");
+        navigate("/my-courses");
+      } else if (result.needsApproval) {
+        // Needs admin approval
+        toast.success(result.message || "Registration submitted for approval!");
+        navigate("/login");
       } else {
-        toast.error(result.error || "Registration failed.");
+        // Generic success
+        toast.success("Registration successful! Please log in.");
+        navigate("/login");
       }
     } catch (error) {
       console.error("Registration failed:", error);
       
-      // Improved error handling with retry logic
+      // ✅ IMPROVED ERROR HANDLING
       let errorMsg = "Registration failed. Please try again.";
       
-      if (error.message.includes('timeout') || error.message.includes('Backend server')) {
-        if (retryCount < 2) {
-          setRetryCount(prev => prev + 1);
-          toast.info(`Server is waking up... Retrying (${retryCount + 1}/2)`);
-          setTimeout(() => {
-            handleSubmit(e); // Retry after 3 seconds
-          }, 3000);
-          return;
-        } else {
-          errorMsg = "Server is taking too long to respond. The backend might be starting up. Please wait a moment and try again.";
-        }
-      } else if (error.message.includes('Network Error') || error.message.includes('Cannot connect')) {
-        errorMsg = "Cannot connect to the server. Please check your internet connection and try again.";
-      } else if (error.response?.data?.error) {
-        errorMsg = error.response.data.error;
-      } else if (error.response?.data?.message) {
-        errorMsg = error.response.data.message;
-      } else if (error.message) {
+      if (error.message) {
         errorMsg = error.message;
       }
       
+      if (error.response?.data?.error) {
+        errorMsg = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMsg = error.response.data.message;
+      }
+      
       toast.error(errorMsg);
-      setRetryCount(0); // Reset retry count on final error
     } finally {
       setLoading(false);
     }
