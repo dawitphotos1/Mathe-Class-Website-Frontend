@@ -495,7 +495,6 @@
 
 
 
-
 // src/pages/AdminDashboard.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -525,6 +524,7 @@ const AdminDashboard = () => {
     students: false,
     enrollments: false,
   });
+  const [approvingId, setApprovingId] = useState(null); // Track which enrollment is being approved
 
   // Summary stats
   const studentStats = {
@@ -623,36 +623,45 @@ const AdminDashboard = () => {
     }
   };
 
-  // ✅ FIXED: Approve Enrollment with detailed logging
+  // ✅ COMPLETELY REWRITTEN: Approve Enrollment with proper loading state
   const handleApproveEnrollment = async (id) => {
+    setApprovingId(id); // Set loading state for this specific enrollment
+    
     try {
-      console.log(`🔄 Approving enrollment: ${id}`);
+      console.log(`🔄 APPROVING: Starting approval for enrollment ID: ${id}`);
       
       const response = await axiosInstance.patch(`/admin/enrollments/${id}/approve`);
       
+      console.log('✅ Approval response:', response.data);
+      
       if (response.data.success) {
-        toast.success("✅ Enrollment approved successfully");
-        console.log("✅ Approval response:", response.data);
+        toast.success("✅ Enrollment approved successfully!");
         
         // Refresh all enrollment lists
-        fetchEnrollmentsByStatus("pending", setPendingEnrollments);
-        fetchEnrollmentsByStatus("approved", setApprovedEnrollments);
-        fetchEnrollmentsByStatus("rejected", setRejectedEnrollments);
+        await fetchEnrollmentsByStatus("pending", setPendingEnrollments);
+        await fetchEnrollmentsByStatus("approved", setApprovedEnrollments);
+        await fetchEnrollmentsByStatus("rejected", setRejectedEnrollments);
+        
+        console.log('🔄 Enrollment lists refreshed after approval');
       } else {
         toast.error(response.data.error || "Failed to approve enrollment");
       }
     } catch (err) {
-      console.error("❌ Enrollment approval error:", {
+      console.error("❌ ENROLLMENT APPROVAL ERROR:", {
         message: err.message,
         response: err.response?.data,
-        status: err.response?.status
+        status: err.response?.status,
+        enrollmentId: id
       });
       
       const errorMsg = err.response?.data?.error || 
                       err.response?.data?.message || 
-                      "Failed to approve enrollment";
+                      "Failed to approve enrollment. Please try again.";
+      
       toast.error(errorMsg);
       handleError(err, setErrorEnrollments);
+    } finally {
+      setApprovingId(null); // Clear loading state
     }
   };
 
@@ -665,25 +674,6 @@ const AdminDashboard = () => {
       fetchEnrollmentsByStatus("rejected", setRejectedEnrollments);
     } catch (err) {
       handleError(err, setErrorEnrollments);
-    }
-  };
-
-  // ✅ ADDED: Debug function to test enrollment
-  const debugEnrollment = async (enrollmentId) => {
-    try {
-      console.log("🔍 Debugging enrollment:", enrollmentId);
-      const response = await axiosInstance.get("/admin/debug-enrollments");
-      const enrollment = response.data.enrollments?.find(e => e.id == enrollmentId);
-      console.log("📊 Enrollment debug:", enrollment);
-      
-      if (enrollment) {
-        toast.info(`Enrollment ${enrollmentId} status: ${enrollment.approval_status}`);
-      } else {
-        toast.error(`Enrollment ${enrollmentId} not found`);
-      }
-    } catch (error) {
-      console.error("Debug error:", error);
-      toast.error("Debug failed");
     }
   };
 
@@ -892,19 +882,19 @@ const AdminDashboard = () => {
                       <td>{new Date(enrollment.createdAt).toLocaleDateString()}</td>
                       {activeEnrollTab === "pending" && (
                         <td className="action-buttons">
-                          <button className="btn-approve" onClick={() => handleApproveEnrollment(enrollment.id)}>
-                            Approve
-                          </button>
-                          <button className="btn-reject" onClick={() => handleRejectEnrollment(enrollment.id)}>
-                            Reject
-                          </button>
-                          {/* Debug button - remove in production */}
                           <button 
-                            className="btn-debug" 
-                            onClick={() => debugEnrollment(enrollment.id)}
-                            style={{marginLeft: '5px', fontSize: '12px', padding: '2px 5px'}}
+                            className="btn-approve" 
+                            onClick={() => handleApproveEnrollment(enrollment.id)}
+                            disabled={approvingId === enrollment.id}
                           >
-                            Debug
+                            {approvingId === enrollment.id ? "Approving..." : "Approve"}
+                          </button>
+                          <button 
+                            className="btn-reject" 
+                            onClick={() => handleRejectEnrollment(enrollment.id)}
+                            disabled={approvingId === enrollment.id}
+                          >
+                            Reject
                           </button>
                         </td>
                       )}
