@@ -75,27 +75,19 @@
 
 
 
+
 // src/utils/axiosInstance.js
 import axios from "axios";
 
-/* ============================================================
-   🌍 API Base URL - HARDCODED FOR PRODUCTION
-============================================================ */
 const baseURL = "https://mathe-class-website-backend-1.onrender.com/api/v1";
 console.log("🚀 Using Production API URL:", baseURL);
 
-/* ============================================================
-   ⚙️ Axios Instance Configuration
-============================================================ */
 const axiosInstance = axios.create({
   baseURL,
-  timeout: 15000, // Reduced from 30000 to 15000ms
+  timeout: 15000,
   withCredentials: true,
 });
 
-/* ============================================================
-   🔑 Request Interceptor — Attach Token & Better Logging
-============================================================ */
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -103,11 +95,7 @@ axiosInstance.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    console.log(`🚀 ${config.method?.toUpperCase()} → ${config.url}`, {
-      baseURL: config.baseURL,
-      timeout: config.timeout
-    });
-    
+    console.log(`🚀 ${config.method?.toUpperCase()} → ${config.url}`);
     return config;
   },
   (error) => {
@@ -116,9 +104,6 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-/* ============================================================
-   ⚡ Response Interceptor — Better Error Handling
-============================================================ */
 let hasShownSessionAlert = false;
 
 axiosInstance.interceptors.response.use(
@@ -135,27 +120,18 @@ axiosInstance.interceptors.response.use(
       status: status || 'No Status',
       message: error.message,
       code: error.code,
-      config: {
-        baseURL: error.config?.baseURL,
-        timeout: error.config?.timeout
-      }
     });
 
-    // Handle timeout specifically
     if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-      console.error('⏰ Request timeout - Backend might be sleeping or unreachable');
-      throw new Error('Backend server is taking too long to respond. Please try again.');
+      console.error('⏰ Request timeout - Backend might be sleeping');
     }
 
-    // Handle network errors
     if (!status && error.message) {
       if (error.message.includes('Network Error')) {
         console.error('🌐 Network Error - Check backend URL and CORS');
-        throw new Error('Cannot connect to server. Please check your internet connection.');
       }
     }
 
-    // Session expired
     if (status === 401) {
       const token = localStorage.getItem("token");
       if (token && !url?.includes("/auth/") && !hasShownSessionAlert) {

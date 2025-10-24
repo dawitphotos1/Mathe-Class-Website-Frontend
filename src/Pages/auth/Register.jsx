@@ -277,7 +277,6 @@
 
 
 
-
 // src/pages/auth/Register.jsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -299,6 +298,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const navigate = useNavigate();
 
   const studentSubjects = [
@@ -370,64 +370,6 @@ const Register = () => {
     try {
       const result = await registerUser(payload);
 
-      // ✅ UPDATED: Handle registration response based on actual backend response
-      if (result.success) {
-        if (result.token) {
-          // Auto-logged in (admin/teacher or pre-approved)
-          toast.success("Registration successful! Welcome!");
-          navigate("/my-courses");
-        } else if (result.user?.approval_status === "pending") {
-          // Needs admin approval
-          toast.success("Registration submitted! Waiting for admin approval.");
-          navigate("/login");
-        } else {
-          // Generic success
-          toast.success("Registration successful! Please log in.");
-          navigate("/login");
-        }
-      } else {
-        toast.error(result.error || "Registration failed.");
-      }
-    } catch (error) {
-      console.error(
-        "Registration failed:",
-        error.response?.data || error.message
-      );
-      const errorMsg =
-        error.response?.data?.error ||
-        error.response?.data?.message ||
-        error.message ||
-        "Registration failed. Please try again.";
-      toast.error(errorMsg);
-    } finally {
-      setLoading(false);
-    }
-  };
-  // In your handleSubmit function in Register.jsx, update the catch block:
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const errorMessage = validateForm();
-    if (errorMessage) {
-      toast.error(errorMessage);
-      return;
-    }
-
-    const payload = {
-      name: formData.name.trim(),
-      email: formData.email.trim().toLowerCase(),
-      password: formData.password,
-      role: formData.role.toLowerCase(),
-      subject: formData.subject.trim(),
-    };
-
-    console.log("Submitting registration data:", payload);
-    setLoading(true);
-
-    try {
-      const result = await registerUser(payload);
-
       if (result.success) {
         if (result.token) {
           toast.success("Registration successful! Welcome!");
@@ -444,22 +386,23 @@ const Register = () => {
       }
     } catch (error) {
       console.error("Registration failed:", error);
-
-      // ✅ IMPROVED ERROR HANDLING
+      
+      // Improved error handling with retry logic
       let errorMsg = "Registration failed. Please try again.";
-
-      if (
-        error.message.includes("timeout") ||
-        error.message.includes("Backend server")
-      ) {
-        errorMsg =
-          "Server is taking too long to respond. The backend might be starting up. Please wait a moment and try again.";
-      } else if (
-        error.message.includes("Network Error") ||
-        error.message.includes("Cannot connect")
-      ) {
-        errorMsg =
-          "Cannot connect to the server. Please check your internet connection and try again.";
+      
+      if (error.message.includes('timeout') || error.message.includes('Backend server')) {
+        if (retryCount < 2) {
+          setRetryCount(prev => prev + 1);
+          toast.info(`Server is waking up... Retrying (${retryCount + 1}/2)`);
+          setTimeout(() => {
+            handleSubmit(e); // Retry after 3 seconds
+          }, 3000);
+          return;
+        } else {
+          errorMsg = "Server is taking too long to respond. The backend might be starting up. Please wait a moment and try again.";
+        }
+      } else if (error.message.includes('Network Error') || error.message.includes('Cannot connect')) {
+        errorMsg = "Cannot connect to the server. Please check your internet connection and try again.";
       } else if (error.response?.data?.error) {
         errorMsg = error.response.data.error;
       } else if (error.response?.data?.message) {
@@ -467,8 +410,9 @@ const Register = () => {
       } else if (error.message) {
         errorMsg = error.message;
       }
-
+      
       toast.error(errorMsg);
+      setRetryCount(0); // Reset retry count on final error
     } finally {
       setLoading(false);
     }
