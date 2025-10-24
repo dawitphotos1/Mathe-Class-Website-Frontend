@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algebra 1 Course</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .course-content {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            margin-top: 30px;
+        }
+        
+        .free-preview {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #f0f8ff;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 2px dashed #6a11cb;
+        }
+        
+        .free-preview h2 {
+            color: #6a11cb;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+        
+        .free-preview p {
+            max-width: 600px;
+            margin: 0 auto 20px;
+            color: #555;
+        }
+        
+        .preview-video {
+            width: 100%;
+            max-width: 800px;
+            height: 400px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6a11cb;
+            font-size: 1.2rem;
+            border: 2px solid #6a11cb;
+        }
+        
+        .units-container {
+            margin-top: 40px;
+        }
+        
+        .unit {
+            margin-bottom: 30px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .unit-header {
+            background-color: #f8f9fa;
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        
+        .unit-header:hover {
+            background-color: #e9ecef;
+        }
+        
+        .unit-header h3 {
+            font-size: 1.3rem;
+            color: #333;
+        }
+        
+        .subunits {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .subunit {
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .subunit:last-child {
+            border-bottom: none;
+        }
+        
+        .subunit-icon {
+            width: 24px;
+            height: 24px;
+            background-color: #6a11cb;
+            border-radius: 50%;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .subunit-content {
+            flex: 1;
+        }
+        
+        .subunit-content h4 {
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .subunit-content p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .enroll-section {
+            text-align: center;
+            margin-top: 50px;
+            padding: 30px;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border-radius: 10px;
+            color: white;
+        }
+        
+        .enroll-section h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        
+        .enroll-section p {
+            max-width: 600px;
+            margin: 0 auto 25px;
+            font-size: 1.1rem;
+        }
+        
+        .enroll-btn {
+            background-color: white;
+            color: #6a11cb;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .enroll-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+        
+        .price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .unit.active .subunits {
+            max-height: 1000px;
+        }
+        
+        .unit.active .unit-header {
+            background-color: #e6f0ff;
+        }
+        
+        .chevron {
+            transition: transform 0.3s;
+        }
+        
+        .unit.active .chevron {
+            transform: rotate(180deg);
+        }
+        
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .preview-video {
+                height: 250px;
+            }
+            
+            .enroll-section h2 {
+                font-size: 1.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Algebra 1</h1>
+            <p>Master the fundamentals of algebra with our comprehensive course</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="course-content">
+            <div class="free-preview">
+                <h2>Free Preview</h2>
+                <p>Get a taste of what this course offers with our free preview content. Explore the first unit and see if this course is right for you.</p>
+                <div class="preview-video">
+                    [Preview Video Placeholder]
+                </div>
+                <p>Watch the introduction to Algebra 1 and see how our expert instructors break down complex concepts.</p>
+            </div>
+            
+            <div class="units-container">
+                <h2 style="margin-bottom: 20px; color: #333;">Course Curriculum</h2>
+                
+                <div class="unit">
+                    <div class="unit-header">
+                        <h3>Unit 1: Introduction to Algebra</h3>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="subunits">
+                        <div class="subunit">
+                            <div class="subunit-icon">1</div>
+                            <div class="subunit-content">
+                                <h4>What is Algebra?</h4>
+                                <p>Understanding the basic concepts and applications</p>
+                            </div>
+                        </div>
+                        <div class="subunit">
+                            <div class="subunit-icon">2</div>
+                            <div class="subunit-content">
+                                <h4>Variables and Expressions</h4>
+                                <p>Learn how to work with variables and create expressions</p>
+                            </div>
+                        </div>
+                        <div class="subunit">
+                            <div class="subunit-icon">3</div>
+                            <div class="subunit-content">
+                                <h4>Solving Simple Equations</h4>
+                                <p>Step-by-step approach to solving basic equations</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="unit">
+                    <div class="unit-header">
+                        <h3>Unit 2: Linear Equations and Inequalities</h3>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="subunits">
+                        <div class="subunit">
+                            <div class="subunit-icon">1</div>
+                            <div class="subunit-content">
+                                <h4>Graphing Linear Equations</h4>
+                                <p>Master the coordinate plane and linear graphs</p>
+                            </div>
+                        </div>
+                        <div class="subunit">
+                            <div class="subunit-icon">2</div>
+                            <div class="subunit-content">
+                                <h4>Slope and Intercepts</h4>
+                                <p>Understanding slope, y-intercept, and their applications</p>
+                            </div>
+                        </div>
+                        <div class="subunit">
+                            <div class="subunit-icon">3</div>
+                            <div class="subunit-content">
+                                <h4>Solving Inequalities</h4>
+                                <p>Learn to solve and graph inequalities</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="unit">
+                    <div class="unit-header">
+                        <h3>Unit 3: Systems of Equations</h3>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="subunits">
+                        <div class="subunit">
+                            <div class="subunit-icon">1</div>
+                            <div class="subunit-content">
+                                <h4>Solving by Graphing</h4>
+                                <p>Graphical method for solving systems</p>
+                            </div>
+                        </div>
+                        <div class="subunit">
+                            <div class="subunit-icon">2</div>
+                            <div class="subunit-content">
+                                <h4>Substitution Method</h4>
+                                <p>Step-by-step substitution approach</p>
+                            </div>
+                        </div>
+                        <div class="subunit">
+                            <div class="subunit-icon">3</div>
+                            <div class="subunit-content">
+                                <h4>Elimination Method</h4>
+                                <p>Using elimination to solve systems</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="unit">
+                    <div class="unit-header">
+                        <h3>Unit 4: Polynomials</h3>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="subunits">
+                        <div class="subunit">
+                            <div class="subunit-icon">1</div>
+                            <div class="subunit-content">
+                                <h4>Introduction to Polynomials</h4>
+                                <p>Understanding terms, degrees, and classification</p>
+                            </div>
+                        </div>
+                        <div class="subunit">
+                            <div class="subunit-icon">2</div>
+                            <div class="subunit-content">
+                                <h4>Adding and Subtracting Polynomials</h4>
+                                <p>Operations with polynomials</p>
+                            </div>
+                        </div>
+                        <div class="subunit">
+                            <div class="subunit-icon">3</div>
+                            <div class="subunit-content">
+                                <h4>Multiplying Polynomials</h4>
+                                <p>FOIL method and polynomial multiplication</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="enroll-section">
+                <h2>Ready to Master Algebra?</h2>
+                <p>Enroll now to get full access to all course materials, practice exercises, and instructor support.</p>
+                <button class="enroll-btn">ENROLL NOW - $1200.00</button>
+                <div class="price">$1200.00</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle unit expansion
+        document.querySelectorAll('.unit-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const unit = header.parentElement;
+                unit.classList.toggle('active');
+            });
+        });
+        
+        // Auto-expand the first unit
+        document.querySelector('.unit').classList.add('active');
+    </script>
+</body>
+</html>
