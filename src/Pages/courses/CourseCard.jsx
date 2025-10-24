@@ -226,26 +226,22 @@
 
 
 
-
 // src/components/CourseCard.jsx
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
-import { usePayment } from "../hooks/usePayment";
 import axiosInstance from "../../utils/axiosInstance";
 import "./CourseCard.css";
 
 const CourseCard = ({ course, onCourseDeleted }) => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  const { createCheckout, processing } = usePayment();
 
   const [isCheckingEnrollment, setIsCheckingEnrollment] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showEnrollButton, setShowEnrollButton] = useState(false);
 
   // Check enrollment status
   useEffect(() => {
@@ -284,34 +280,9 @@ const CourseCard = ({ course, onCourseDeleted }) => {
 
   const displayPrice = getDisplayPrice();
 
-  const handlePreviewClick = () => {
-    setShowEnrollButton(true);
-    // You can add preview functionality here
-    toast.info(`Previewing ${course.title}`);
-  };
-
-  const handleEnroll = async () => {
-    if (!isAuthenticated) {
-      toast.error("Please log in to enroll.");
-      navigate("/login", { state: { from: `/courses/${course.id}` } });
-      return;
-    }
-
-    if (!course.id || !course.title) {
-      toast.error("Course data is incomplete.");
-      return;
-    }
-
-    if (isEnrolled) {
-      toast.error("You are already enrolled in this course!");
-      return;
-    }
-
-    try {
-      await createCheckout(course.id);
-    } catch (error) {
-      console.error("Enrollment failed:", error);
-    }
+  const handleFreePreview = () => {
+    // Navigate to course preview page with course ID
+    navigate(`/courses/${course.id}/preview`);
   };
 
   const handleStartCourse = () => {
@@ -376,17 +347,6 @@ const CourseCard = ({ course, onCourseDeleted }) => {
           }}
         />
         
-        {/* Free Preview Button Overlay */}
-        <div className="course-overlay">
-          <button 
-            className="preview-btn"
-            onClick={handlePreviewClick}
-            disabled={isEnrolled}
-          >
-            🎬 Free Preview
-          </button>
-        </div>
-
         {isEnrolled && <div className="enrolled-badge">Enrolled</div>}
       </div>
 
@@ -406,23 +366,16 @@ const CourseCard = ({ course, onCourseDeleted }) => {
           </div>
         )}
 
-        {/* Enroll Now Button - Shows after preview */}
-        {showEnrollButton && !isEnrolled && (
-          <div className="enroll-section">
-            <button
-              onClick={handleEnroll}
-              className="enroll-btn"
-              disabled={processing || isCheckingEnrollment}
-            >
-              {processing
-                ? "Processing..."
-                : isCheckingEnrollment
-                ? "Checking..."
-                : `🎯 ENROLL NOW - $${displayPrice}`}
-            </button>
-            <p className="enroll-note">Start your learning journey today!</p>
-          </div>
-        )}
+        {/* Free Preview Button - Always visible */}
+        <div className="preview-section">
+          <button 
+            className="preview-btn"
+            onClick={handleFreePreview}
+          >
+            🎬 Free Preview
+          </button>
+          <p className="preview-note">Explore course content before enrolling</p>
+        </div>
 
         {/* Action Buttons */}
         <div className="course-actions">

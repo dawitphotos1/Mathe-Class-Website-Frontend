@@ -186,7 +186,6 @@
 
 
 
-
 /* src/components/CourseCard.css */
 .course-card {
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
@@ -218,52 +217,6 @@
 
 .course-card:hover .course-image {
   transform: scale(1.05);
-}
-
-.course-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.2) 0%,
-    rgba(0, 0, 0, 0.4) 100%
-  );
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.course-card:hover .course-overlay {
-  opacity: 1;
-}
-
-.preview-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 25px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
-
-.preview-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-}
-
-.preview-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
 }
 
 .enrolled-badge {
@@ -325,43 +278,40 @@
   border-radius: 20px;
 }
 
-.enroll-section {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 2px dashed #e2e8f0;
-  animation: slideUp 0.3s ease;
+/* Preview Section */
+.preview-section {
+  margin: 20px 0;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 2px dashed #dee2e6;
+  text-align: center;
 }
 
-.enroll-btn {
-  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+.preview-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  padding: 14px 28px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 16px;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
   width: 100%;
-  box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
 }
 
-.enroll-btn:hover {
+.preview-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
-.enroll-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.enroll-note {
-  text-align: center;
+.preview-note {
   font-size: 0.8rem;
   color: #718096;
   margin-top: 8px;
+  margin-bottom: 0;
 }
 
 .course-actions {
@@ -491,17 +441,6 @@
   background: #4a5568;
 }
 
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
   .course-card {
@@ -515,11 +454,6 @@
   .preview-btn {
     padding: 10px 20px;
     font-size: 13px;
-  }
-  
-  .enroll-btn {
-    padding: 12px 20px;
-    font-size: 14px;
   }
   
   .course-meta {

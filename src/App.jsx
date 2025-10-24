@@ -5,7 +5,7 @@ import { ToastContainer } from "react-toastify";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import ErrorBoundary from "./components/ErrorBoundary";
-import Navbar from "./components/Navbar";
+import Navbar from "./components/Navbar";R
 import ProtectedRoute from "./components/ProtectedRoute";
 import Loading from "./components/Loading";
 import Contact from "./components/Contact";
@@ -97,12 +97,31 @@ function AppContent() {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Home />} />
-            <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
-            <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+            <Route
+              path="/register"
+              element={
+                <PublicRoute>
+                  <Register />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              }
+            />
             <Route path="/contact" element={<Contact />} />
             <Route path="/courses" element={<Courses />} />
             <Route path="/courses/:slug" element={<CourseDetail />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
+
+            <Route
+              path="/courses/:courseId/preview"
+              element={<CoursePreviewPage />}
+            />
 
             {/* ✅ Fixed Payment Route (singular) */}
             <Route path="/payment/:courseId" element={<PaymentPage />} />
@@ -114,7 +133,14 @@ function AppContent() {
             <Route path="/dashboard" element={<RoleBasedRedirect />} />
 
             {/* Admin Routes */}
-            <Route path="/admin/*" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout /></ProtectedRoute>}>
+            <Route
+              path="/admin/*"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
               <Route index element={<AdminDashboard />} />
               <Route path="pending-students" element={<PendingStudents />} />
               <Route path="manage-courses" element={<ManageCourses />} />
@@ -124,21 +150,98 @@ function AppContent() {
             </Route>
 
             {/* Teacher Routes */}
-            <Route path="/teacher-dashboard" element={<ProtectedRoute allowedRoles={["teacher"]}><MyTeachingCourses /></ProtectedRoute>} />
-            <Route path="/create-course" element={<ProtectedRoute allowedRoles={["teacher"]}><CreateCourse /></ProtectedRoute>} />
-            <Route path="/courses/:courseId/manage-lessons" element={<ProtectedRoute allowedRoles={["teacher"]}><ManageLessons /></ProtectedRoute>} />
-            <Route path="/courses/:courseId/edit" element={<ProtectedRoute allowedRoles={["teacher"]}><EditCourse /></ProtectedRoute>} />
-            <Route path="/lessons/:lessonId/edit" element={<ProtectedRoute allowedRoles={["teacher"]}><EditLesson /></ProtectedRoute>} />
-            <Route path="/teacher/course/:courseId/progress" element={<ProtectedRoute allowedRoles={["teacher"]}><TeacherCourseProgress /></ProtectedRoute>} />
-            <Route path="/courses/:courseId/lessons/new" element={<ProtectedRoute allowedRoles={["teacher"]}><LessonCreationForm /></ProtectedRoute>} />
+            <Route
+              path="/teacher-dashboard"
+              element={
+                <ProtectedRoute allowedRoles={["teacher"]}>
+                  <MyTeachingCourses />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/create-course"
+              element={
+                <ProtectedRoute allowedRoles={["teacher"]}>
+                  <CreateCourse />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/courses/:courseId/manage-lessons"
+              element={
+                <ProtectedRoute allowedRoles={["teacher"]}>
+                  <ManageLessons />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/courses/:courseId/edit"
+              element={
+                <ProtectedRoute allowedRoles={["teacher"]}>
+                  <EditCourse />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/lessons/:lessonId/edit"
+              element={
+                <ProtectedRoute allowedRoles={["teacher"]}>
+                  <EditLesson />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teacher/course/:courseId/progress"
+              element={
+                <ProtectedRoute allowedRoles={["teacher"]}>
+                  <TeacherCourseProgress />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/courses/:courseId/lessons/new"
+              element={
+                <ProtectedRoute allowedRoles={["teacher"]}>
+                  <LessonCreationForm />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Student Routes */}
-            <Route path="/my-courses" element={<ProtectedRoute allowedRoles={["student"]}><MyCoursesPage /></ProtectedRoute>} />
-            <Route path="/courses/:courseId/view" element={<ProtectedRoute allowedRoles={["student"]}><CourseViewer /></ProtectedRoute>} />
-            <Route path="/courses/:courseId/view-lessons" element={<ProtectedRoute allowedRoles={["student"]}><CourseLessons /></ProtectedRoute>} />
+            <Route
+              path="/my-courses"
+              element={
+                <ProtectedRoute allowedRoles={["student"]}>
+                  <MyCoursesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/courses/:courseId/view"
+              element={
+                <ProtectedRoute allowedRoles={["student"]}>
+                  <CourseViewer />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/courses/:courseId/view-lessons"
+              element={
+                <ProtectedRoute allowedRoles={["student"]}>
+                  <CourseLessons />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Shared Profile */}
-            <Route path="/profile" element={<ProtectedRoute allowedRoles={["admin","teacher","student"]}><Profile /></ProtectedRoute>} />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute allowedRoles={["admin", "teacher", "student"]}>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
 
             {/* 404 Fallback */}
             <Route path="*" element={<NotFound />} />
