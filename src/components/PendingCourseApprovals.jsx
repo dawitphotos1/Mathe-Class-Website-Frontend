@@ -1,40 +1,143 @@
+// //components/PendingCourseApprovals.jsx
+// import React, { useState, useEffect } from "react";
+// import axios from "../utils/axiosInstance"; // ✅ use custom instance
+// import { toast } from "react-toastify";
+
+// const PendingCourseApprovals = () => {
+//   const [enrollments, setEnrollments] = useState([]);
+
+//   useEffect(() => {
+//     const fetchData = async () => {
+//       try {
+//         const res = await axios.get("/enrollments/pending");
+//         setEnrollments(res.data.enrollments || []);
+//       } catch (err) {
+//         toast.error("Failed to load pending enrollments");
+//       }
+//     };
+//     fetchData();
+//   }, []);
+
+//   const handleApprove = async (userId, courseId) => {
+//     try {
+//       await axios.post("/enrollments/approve", { userId, courseId });
+//       toast.success("Enrollment approved");
+//       setEnrollments((prev) =>
+//         prev.filter((e) => !(e.userId === userId && e.courseId === courseId))
+//       );
+//     } catch (err) {
+//       console.error("❌ Approve failed:", err.response?.data || err.message);
+//       toast.error("Approval failed");
+//     }
+//   };
+
+//   return (
+//     <div className="dashboard-card">
+//       <h3>Pending Course Enrollments</h3>
+//       {enrollments.length === 0 ? (
+//         <p>No pending enrollments</p>
+//       ) : (
+//         <table className="user-table">
+//           <thead>
+//             <tr>
+//               <th>Student</th>
+//               <th>Email</th>
+//               <th>Course</th>
+//               <th>Action</th>
+//             </tr>
+//           </thead>
+//           <tbody>
+//             {enrollments.map((e, i) => (
+//               <tr key={i}>
+//                 <td>{e.user?.name}</td>
+//                 <td>{e.user?.email}</td>
+//                 <td>{e.course?.title}</td>
+//                 <td>
+//                   <button
+//                     onClick={() => handleApprove(e.userId, e.courseId)}
+//                     className="btn-primary"
+//                   >
+//                     Approve
+//                   </button>
+//                 </td>
+//               </tr>
+//             ))}
+//           </tbody>
+//         </table>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default PendingCourseApprovals;
+
+
+
+
 import React, { useState, useEffect } from "react";
-import axios from "../utils/axiosInstance"; // ✅ use custom instance
+import axios from "../utils/axiosInstance";
 import { toast } from "react-toastify";
 
 const PendingCourseApprovals = () => {
   const [enrollments, setEnrollments] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await axios.get("/enrollments/pending");
-        setEnrollments(res.data.enrollments || []);
-      } catch (err) {
-        toast.error("Failed to load pending enrollments");
-      }
-    };
-    fetchData();
+    fetchPendingEnrollments();
   }, []);
 
-  const handleApprove = async (userId, courseId) => {
+  const fetchPendingEnrollments = async () => {
     try {
-      await axios.post("/enrollments/approve", { userId, courseId });
-      toast.success("Enrollment approved");
-      setEnrollments((prev) =>
-        prev.filter((e) => !(e.userId === userId && e.courseId === courseId))
-      );
+      const res = await axios.get("/admin/enrollments?status=pending");
+      setEnrollments(res.data.enrollments || []);
+    } catch (err) {
+      console.error("❌ Failed to load pending enrollments:", err);
+      toast.error("Failed to load pending enrollments");
+    }
+  };
+
+  const handleApprove = async (enrollmentId) => {
+    setLoading(true);
+    try {
+      await axios.patch(`/admin/enrollments/${enrollmentId}/approve`);
+      toast.success("🎉 Enrollment approved successfully!");
+
+      // Refresh the list
+      fetchPendingEnrollments();
     } catch (err) {
       console.error("❌ Approve failed:", err.response?.data || err.message);
-      toast.error("Approval failed");
+
+      if (err.code === "ECONNABORTED") {
+        toast.error("Backend is waking up... Please try again in a moment.");
+      } else {
+        toast.error("Approval failed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReject = async (enrollmentId) => {
+    setLoading(true);
+    try {
+      await axios.patch(`/admin/enrollments/${enrollmentId}/reject`);
+      toast.success("Enrollment rejected");
+
+      // Refresh the list
+      fetchPendingEnrollments();
+    } catch (err) {
+      console.error("❌ Reject failed:", err.response?.data || err.message);
+      toast.error("Rejection failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="dashboard-card">
-      <h3>Pending Course Enrollments</h3>
+      <h3>📋 Pending Course Enrollments</h3>
       {enrollments.length === 0 ? (
-        <p>No pending enrollments</p>
+        <p>No pending enrollments 🎉</p>
       ) : (
         <table className="user-table">
           <thead>
@@ -42,22 +145,38 @@ const PendingCourseApprovals = () => {
               <th>Student</th>
               <th>Email</th>
               <th>Course</th>
-              <th>Action</th>
+              <th>Payment Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {enrollments.map((e, i) => (
-              <tr key={i}>
-                <td>{e.user?.name}</td>
-                <td>{e.user?.email}</td>
-                <td>{e.course?.title}</td>
+            {enrollments.map((enrollment) => (
+              <tr key={enrollment.id}>
+                <td>{enrollment.student?.name || "N/A"}</td>
+                <td>{enrollment.student?.email || "N/A"}</td>
+                <td>{enrollment.course?.title || "N/A"}</td>
                 <td>
-                  <button
-                    onClick={() => handleApprove(e.userId, e.courseId)}
-                    className="btn-primary"
-                  >
-                    Approve
-                  </button>
+                  <span className={`status-badge ${enrollment.payment_status}`}>
+                    {enrollment.payment_status}
+                  </span>
+                </td>
+                <td>
+                  <div className="action-buttons">
+                    <button
+                      onClick={() => handleApprove(enrollment.id)}
+                      disabled={loading}
+                      className="btn-success"
+                    >
+                      {loading ? "Approving..." : "✅ Approve"}
+                    </button>
+                    <button
+                      onClick={() => handleReject(enrollment.id)}
+                      disabled={loading}
+                      className="btn-danger"
+                    >
+                      {loading ? "Rejecting..." : "❌ Reject"}
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
