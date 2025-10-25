@@ -130,6 +130,7 @@ function AppContent() {
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-cancel" element={<PaymentCancel />} />
             <Route path="/cancel" element={<Cancel />} />
+            <Route path="/confirm-account" element={<ConfirmAccount />} />
 
             {/* Dashboards */}
             <Route path="/dashboard" element={<RoleBasedRedirect />} />
