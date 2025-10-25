@@ -12,6 +12,7 @@ import Contact from "./components/Contact";
 import AdminLayout from "./components/AdminLayout";
 import PendingStudents from "./components/PendingStudents";
 import CSSDebug from "./components/CSSDebug";
+import ConfirmAccount from "./pages/ConfirmAccount";
 import "./pages/AdminDashboard.css";
 
 // ✅ Lazy-loaded pages
