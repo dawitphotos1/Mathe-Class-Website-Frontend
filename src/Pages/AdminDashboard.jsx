@@ -514,8 +514,6 @@
 
 
 
-
-
 // src/pages/AdminDashboard.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -625,25 +623,15 @@ const AdminDashboard = () => {
   );
 
   /* ============================================================
-     ✅ Approve Student
+     ✅ Approve Student (Final)
   ============================================================ */
   const handleApproveStudent = async (id) => {
     setApprovingId(id);
     try {
       toast.info("⚙️ Approving student... please wait", { autoClose: 1500 });
-
-      // 💤 Wake up Render backend first (avoids cold-start timeout)
       await axiosInstance.get("/health").catch(() => {});
 
-      // ✅ Try approving with longer timeout
-      const res = await axiosInstance.patch(
-        `/admin/students/${id}/approve`,
-        null,
-        {
-          timeout: 30000, // 30s instead of default 15s
-        }
-      );
-
+      const res = await axiosInstance.patch(`/admin/students/${id}/approve`, null, { timeout: 30000 });
       if (res.data?.success) {
         toast.success(res.data.message || "✅ Student approved successfully!");
         await Promise.all([
@@ -656,16 +644,9 @@ const AdminDashboard = () => {
       }
     } catch (err) {
       if (err.code === "ECONNABORTED") {
-        toast.warn("⏰ Server is waking up. Retrying...");
-
+        toast.warn("⏰ Server is waking up... retrying");
         try {
-          const retry = await axiosInstance.patch(
-            `/admin/students/${id}/approve`,
-            null,
-            {
-              timeout: 30000,
-            }
-          );
+          const retry = await axiosInstance.patch(`/admin/students/${id}/approve`, null, { timeout: 30000 });
           if (retry.data?.success) {
             toast.success("✅ Student approved after retry!");
             await Promise.all([
@@ -676,13 +657,10 @@ const AdminDashboard = () => {
             return;
           }
         } catch {
-          toast.error(
-            "❌ Failed again. Please try once more in a few seconds."
-          );
+          toast.error("❌ Failed again. Please retry shortly.");
         }
       } else {
-        const msg =
-          err.response?.data?.error || "❌ Failed to approve student.";
+        const msg = err.response?.data?.error || "❌ Failed to approve student.";
         toast.error(msg);
         handleError(err, setErrorStudents);
       }
@@ -691,58 +669,6 @@ const AdminDashboard = () => {
     }
   };
 
-const handleApproveStudent = async (id) => {
-  setApprovingId(id);
-  try {
-    toast.info("⚙️ Approving student... please wait", { autoClose: 1500 });
-    await axiosInstance.get("/health").catch(() => {});
-
-    const res = await axiosInstance.patch(
-      `/admin/students/${id}/approve`,
-      null,
-      { timeout: 30000 }
-    );
-    if (res.data?.success) {
-      toast.success(res.data.message || "✅ Student approved successfully!");
-      await Promise.all([
-        fetchStudentsByStatus("pending", setPendingStudents),
-        fetchStudentsByStatus("approved", setApprovedStudents),
-        fetchStudentsByStatus("rejected", setRejectedStudents),
-      ]);
-    } else {
-      toast.error(res.data?.error || "❌ Failed to approve student.");
-    }
-  } catch (err) {
-    if (err.code === "ECONNABORTED") {
-      toast.warn("⏰ Server is waking up... retrying");
-      try {
-        const retry = await axiosInstance.patch(
-          `/admin/students/${id}/approve`,
-          null,
-          { timeout: 30000 }
-        );
-        if (retry.data?.success) {
-          toast.success("✅ Student approved after retry!");
-          await Promise.all([
-            fetchStudentsByStatus("pending", setPendingStudents),
-            fetchStudentsByStatus("approved", setApprovedStudents),
-            fetchStudentsByStatus("rejected", setRejectedStudents),
-          ]);
-          return;
-        }
-      } catch {
-        toast.error("❌ Failed again. Please retry shortly.");
-      }
-    } else {
-      const msg = err.response?.data?.error || "❌ Failed to approve student.";
-      toast.error(msg);
-      handleError(err, setErrorStudents);
-    }
-  } finally {
-    setApprovingId(null);
-  }
-};
-
   /* ============================================================
      ❌ Reject Student
   ============================================================ */
@@ -750,16 +676,18 @@ const handleApproveStudent = async (id) => {
     try {
       const res = await axiosInstance.patch(`/admin/students/${id}/reject`);
       toast.info(res.data.message || "🚫 Student rejected successfully.");
-      fetchStudentsByStatus("pending", setPendingStudents);
-      fetchStudentsByStatus("approved", setApprovedStudents);
-      fetchStudentsByStatus("rejected", setRejectedStudents);
+      await Promise.all([
+        fetchStudentsByStatus("pending", setPendingStudents),
+        fetchStudentsByStatus("approved", setApprovedStudents),
+        fetchStudentsByStatus("rejected", setRejectedStudents),
+      ]);
     } catch (err) {
       handleError(err, setErrorStudents);
     }
   };
 
   /* ============================================================
-     ✅ Approve Enrollment
+     ✅ Approve Enrollment (Final)
   ============================================================ */
   const handleApproveEnrollment = async (id) => {
     setApprovingId(id);
@@ -767,15 +695,9 @@ const handleApproveStudent = async (id) => {
       toast.info("⚙️ Approving enrollment... please wait", { autoClose: 1500 });
       await axiosInstance.get("/health").catch(() => {});
 
-      const res = await axiosInstance.patch(
-        `/admin/enrollments/${id}/approve`,
-        null,
-        { timeout: 30000 }
-      );
+      const res = await axiosInstance.patch(`/admin/enrollments/${id}/approve`, null, { timeout: 30000 });
       if (res.data?.success) {
-        toast.success(
-          res.data.message || "✅ Enrollment approved successfully!"
-        );
+        toast.success(res.data.message || "✅ Enrollment approved successfully!");
         await Promise.all([
           fetchEnrollmentsByStatus("pending", setPendingEnrollments),
           fetchEnrollmentsByStatus("approved", setApprovedEnrollments),
@@ -788,11 +710,7 @@ const handleApproveStudent = async (id) => {
       if (err.code === "ECONNABORTED") {
         toast.warn("⏰ Server waking up... retrying");
         try {
-          const retry = await axiosInstance.patch(
-            `/admin/enrollments/${id}/approve`,
-            null,
-            { timeout: 30000 }
-          );
+          const retry = await axiosInstance.patch(`/admin/enrollments/${id}/approve`, null, { timeout: 30000 });
           if (retry.data?.success) {
             toast.success("✅ Enrollment approved after retry!");
             await Promise.all([
@@ -806,8 +724,7 @@ const handleApproveStudent = async (id) => {
           toast.error("❌ Second attempt failed. Try again soon.");
         }
       } else {
-        const msg =
-          err.response?.data?.error || "❌ Failed to approve enrollment.";
+        const msg = err.response?.data?.error || "❌ Failed to approve enrollment.";
         toast.error(msg);
         handleError(err, setErrorEnrollments);
       }
@@ -823,9 +740,11 @@ const handleApproveStudent = async (id) => {
     try {
       const res = await axiosInstance.patch(`/admin/enrollments/${id}/reject`);
       toast.info(res.data.message || "🚫 Enrollment rejected successfully.");
-      await fetchEnrollmentsByStatus("pending", setPendingEnrollments);
-      await fetchEnrollmentsByStatus("approved", setApprovedEnrollments);
-      await fetchEnrollmentsByStatus("rejected", setRejectedEnrollments);
+      await Promise.all([
+        fetchEnrollmentsByStatus("pending", setPendingEnrollments),
+        fetchEnrollmentsByStatus("approved", setApprovedEnrollments),
+        fetchEnrollmentsByStatus("rejected", setRejectedEnrollments),
+      ]);
     } catch (err) {
       handleError(err, setErrorEnrollments);
     }
@@ -839,7 +758,6 @@ const handleApproveStudent = async (id) => {
       fetchStudentsByStatus("pending", setPendingStudents);
       fetchStudentsByStatus("approved", setApprovedStudents);
       fetchStudentsByStatus("rejected", setRejectedStudents);
-
       fetchEnrollmentsByStatus("pending", setPendingEnrollments);
       fetchEnrollmentsByStatus("approved", setApprovedEnrollments);
       fetchEnrollmentsByStatus("rejected", setRejectedEnrollments);
@@ -922,9 +840,7 @@ const handleApproveStudent = async (id) => {
             <button
               key={tab}
               onClick={() => setActiveStudentTab(tab)}
-              className={`tab-button ${
-                activeStudentTab === tab ? "tab-active" : ""
-              }`}
+              className={`tab-button ${activeStudentTab === tab ? "tab-active" : ""}`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)} (
               {tab === "pending"
@@ -968,28 +884,26 @@ const handleApproveStudent = async (id) => {
                       <td>{student.email}</td>
                       <td>{student.subject || "N/A"}</td>
                       <td>
-                        <span
-                          className={`status-badge status-${student.approval_status}`}
-                        >
+                        <span className={`status-badge status-${student.approval_status}`}>
                           {student.approval_status}
                         </span>
                       </td>
                       <td>
-                        {new Date(
-                          student.updatedAt || student.createdAt
-                        ).toLocaleDateString()}
+                        {new Date(student.updatedAt || student.createdAt).toLocaleDateString()}
                       </td>
                       {activeStudentTab === "pending" && (
                         <td className="action-buttons">
                           <button
                             className="btn-approve"
                             onClick={() => handleApproveStudent(student.id)}
+                            disabled={approvingId === student.id}
                           >
-                            Approve
+                            {approvingId === student.id ? "Approving..." : "Approve"}
                           </button>
                           <button
                             className="btn-reject"
                             onClick={() => handleRejectStudent(student.id)}
+                            disabled={approvingId === student.id}
                           >
                             Reject
                           </button>
@@ -1012,9 +926,7 @@ const handleApproveStudent = async (id) => {
             <button
               key={tab}
               onClick={() => setActiveEnrollTab(tab)}
-              className={`tab-button ${
-                activeEnrollTab === tab ? "tab-active" : ""
-              }`}
+              className={`tab-button ${activeEnrollTab === tab ? "tab-active" : ""}`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)} (
               {tab === "pending"
@@ -1027,9 +939,7 @@ const handleApproveStudent = async (id) => {
           ))}
         </div>
 
-        {errorEnrollments && (
-          <div className="error-message">{errorEnrollments}</div>
-        )}
+        {errorEnrollments && <div className="error-message">{errorEnrollments}</div>}
 
         {loading.enrollments ? (
           <div className="loading">Loading enrollments...</div>
@@ -1061,22 +971,16 @@ const handleApproveStudent = async (id) => {
                       <td>{enrollment.student?.email || "N/A"}</td>
                       <td>{enrollment.course?.title || "N/A"}</td>
                       <td>
-                        <span
-                          className={`status-badge status-${enrollment.payment_status}`}
-                        >
+                        <span className={`status-badge status-${enrollment.payment_status}`}>
                           {enrollment.payment_status}
                         </span>
                       </td>
                       <td>
-                        <span
-                          className={`status-badge status-${enrollment.approval_status}`}
-                        >
+                        <span className={`status-badge status-${enrollment.approval_status}`}>
                           {enrollment.approval_status}
                         </span>
                       </td>
-                      <td>
-                        {new Date(enrollment.createdAt).toLocaleDateString()}
-                      </td>
+                      <td>{new Date(enrollment.createdAt).toLocaleDateString()}</td>
                       {activeEnrollTab === "pending" && (
                         <td className="action-buttons">
                           <button
@@ -1084,9 +988,7 @@ const handleApproveStudent = async (id) => {
                             onClick={() => handleApproveEnrollment(enrollment.id)}
                             disabled={approvingId === enrollment.id}
                           >
-                            {approvingId === enrollment.id
-                              ? "Approving..."
-                              : "Approve"}
+                            {approvingId === enrollment.id ? "Approving..." : "Approve"}
                           </button>
                           <button
                             className="btn-reject"
