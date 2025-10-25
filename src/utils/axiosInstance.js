@@ -74,7 +74,6 @@
 
 // export default axiosInstance;
 
-
 import axios from "axios";
 
 const baseURL = "https://mathe-class-website-backend-1.onrender.com/api/v1";
@@ -82,48 +81,74 @@ console.log("🚀 Using Production API URL:", baseURL);
 
 const axiosInstance = axios.create({
   baseURL,
-  timeout: 45000, // Increased to 45 seconds for Render cold starts
+  timeout: 60000, // Increased to 60 seconds for Render cold starts
   withCredentials: true,
 });
 
-// Enhanced retry configuration
-const MAX_RETRIES = 5;
-const RETRY_DELAY = 5000; // 5 seconds between retries
+// Ultra aggressive retry configuration for Render free tier
+const MAX_RETRIES = 8;
+const RETRY_DELAY = 8000; // 8 seconds between retries
 
 // Track backend warmup state
 let isBackendWarming = false;
 let warmupPromise = null;
+let lastWarmupTime = 0;
+const WARMUP_COOLDOWN = 30000; // 30 seconds cooldown
 
-const warmUpBackend = async () => {
-  if (isBackendWarming) {
+const warmUpBackend = async (force = false) => {
+  const now = Date.now();
+
+  // Don't warm up too frequently
+  if (!force && now - lastWarmupTime < WARMUP_COOLDOWN && isBackendWarming) {
     return warmupPromise;
   }
 
   isBackendWarming = true;
-  warmupPromise = new Promise(async (resolve) => {
-    console.log("🔥 Starting backend warmup process...");
+  lastWarmupTime = now;
 
-    for (let attempt = 1; attempt <= 3; attempt++) {
+  warmupPromise = new Promise(async (resolve) => {
+    console.log("🔥 Starting aggressive backend warmup process...");
+
+    for (let attempt = 1; attempt <= 5; attempt++) {
       try {
-        console.log(`🔥 Warmup attempt ${attempt}/3...`);
-        await axios.get(`${baseURL}/health`, { timeout: 10000 });
+        console.log(`🔥 Warmup attempt ${attempt}/5...`);
+        // Use a longer timeout for warmup
+        await axios.get(`${baseURL}/health`, { timeout: 15000 });
         console.log("✅ Backend is warm and ready!");
+        isBackendWarming = false;
         resolve(true);
         return;
       } catch (error) {
-        console.log(`🔥 Warmup attempt ${attempt} failed, waiting 5s...`);
-        if (attempt < 3) {
-          await new Promise((resolve) => setTimeout(resolve, 5000));
+        console.log(`🔥 Warmup attempt ${attempt} failed, waiting 8s...`);
+        if (attempt < 5) {
+          await new Promise((resolve) => setTimeout(resolve, 8000));
         }
       }
     }
 
-    console.log("⚠️ Backend warmup failed after 3 attempts");
-    resolve(false);
+    console.log("⚠️ Backend warmup failed after 5 attempts");
     isBackendWarming = false;
+    resolve(false);
   });
 
   return warmupPromise;
+};
+
+// Special aggressive warmup for critical operations
+const aggressiveWarmup = async () => {
+  console.log("⚡ Starting aggressive warmup for critical operation...");
+
+  // Fire multiple warmup requests in parallel
+  const warmupPromises = [];
+  for (let i = 0; i < 3; i++) {
+    warmupPromises.push(
+      axios.get(`${baseURL}/health`, { timeout: 20000 }).catch(() => {})
+    );
+  }
+
+  await Promise.all(warmupPromises);
+  console.log("✅ Aggressive warmup completed");
+  return true;
 };
 
 axiosInstance.interceptors.request.use(
@@ -135,18 +160,21 @@ axiosInstance.interceptors.request.use(
 
     // Initialize retry count
     config._retryCount = config._retryCount || 0;
+    config._startTime = config._startTime || Date.now();
 
-    console.log(`🚀 ${config.method?.toUpperCase()} → ${config.url}`);
+    console.log(
+      `🚀 ${config.method?.toUpperCase()} → ${config.url} (Attempt: ${
+        config._retryCount + 1
+      })`
+    );
 
-    // For critical operations, ensure backend is warm
+    // For critical operations, ensure backend is VERY warm
     if (
       config.method?.toUpperCase() === "PATCH" &&
       config.url?.includes("/approve")
     ) {
-      console.log(
-        "⚡ Critical operation detected - ensuring backend is warm..."
-      );
-      await warmUpBackend();
+      console.log("⚡ CRITICAL OPERATION - Aggressive backend warming...");
+      await aggressiveWarmup();
     }
 
     return config;
@@ -161,7 +189,10 @@ let hasShownSessionAlert = false;
 
 axiosInstance.interceptors.response.use(
   (response) => {
-    console.log(`✅ ${response.status} → ${response.config.url}`);
+    const duration = Date.now() - response.config._startTime;
+    console.log(
+      `✅ ${response.status} → ${response.config.url} (${duration}ms)`
+    );
     return response;
   },
   async (error) => {
@@ -169,8 +200,9 @@ axiosInstance.interceptors.response.use(
     const status = error.response?.status;
     const url = error.config?.url;
     const method = error.config?.method?.toUpperCase();
+    const duration = Date.now() - originalRequest._startTime;
 
-    // Enhanced retry logic for timeout and network errors
+    // Ultra aggressive retry logic for Render free tier
     if (
       (error.code === "ECONNABORTED" ||
         error.message.includes("timeout") ||
@@ -181,30 +213,35 @@ axiosInstance.interceptors.response.use(
       const delay = RETRY_DELAY * originalRequest._retryCount; // Progressive delay
 
       console.log(
-        `⏰ Backend sleeping, retry ${originalRequest._retryCount}/${MAX_RETRIES} in ${delay}ms...`
+        `⏰ Backend sleeping, retry ${originalRequest._retryCount}/${MAX_RETRIES} in ${delay}ms... (Total: ${duration}ms)`
       );
 
       // Wait with progressive backoff
       await new Promise((resolve) => setTimeout(resolve, delay));
 
-      // Warm up backend before retry for critical operations
+      // Force warmup before retry for critical operations
       if (method === "PATCH" && url?.includes("/approve")) {
-        await warmUpBackend();
+        console.log("🔥 Forcing warmup before retry...");
+        await warmUpBackend(true);
       }
 
       return axiosInstance(originalRequest);
     }
 
-    console.error(`❌ ${method} ${url} failed:`, {
-      status: status || "No Status",
-      message: error.message,
-      code: error.code,
-      retries: originalRequest._retryCount,
-    });
+    console.error(
+      `💥 ${method} ${url} FAILED after ${originalRequest._retryCount} retries:`,
+      {
+        status: status || "No Status",
+        message: error.message,
+        code: error.code,
+        retries: originalRequest._retryCount,
+        totalTime: duration + "ms",
+      }
+    );
 
     if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
       console.error(
-        "⏰ Request timeout - Backend might be sleeping or overloaded"
+        "🚨 ULTIMATE TIMEOUT - Backend is taking too long to wake up"
       );
     }
 
@@ -227,4 +264,5 @@ axiosInstance.interceptors.response.use(
 
 // Export warmup function for manual use
 export const ensureBackendWarm = warmUpBackend;
+export const forceBackendWarmup = () => warmUpBackend(true); // ✅ ADDED THIS EXPORT
 export default axiosInstance;

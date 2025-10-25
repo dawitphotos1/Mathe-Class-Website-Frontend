@@ -1004,7 +1004,7 @@ const AdminDashboard = () => {
         )}
       </div>
 
-      {/* Main Dashboard Header - ONLY ONE INSTANCE */}
+      {/* Main Dashboard Header */}
       <div className="dashboard-header">
         <h2>Admin Dashboard</h2>
         <div className="header-actions">
