@@ -107,7 +107,7 @@ const Register = () => {
       } else {
         // Generic success
         toast.success(
-          "Your account is under review by our admin team. You’ll be able to log in as soon as your registration is approved."
+          "Your account is currently under review by our admin team. You’ll receive an email notification and be able to log in as soon as your registration is approved."
         );
         navigate("/login");
       }
