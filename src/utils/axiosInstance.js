@@ -67,7 +67,6 @@
 
 
 
-
 // utils/axiosInstance.js
 import axios from 'axios';
 
@@ -100,10 +99,7 @@ axiosInstance.interceptors.request.use(
     
     // Log API calls in development
     if (process.env.NODE_ENV === 'development') {
-      console.log(`🚀 ${config.method?.toUpperCase()} → ${config.url}`, {
-        data: config.data,
-        params: config.params
-      });
+      console.log(`🚀 ${config.method?.toUpperCase()} → ${config.url}`);
     }
     
     return config;
@@ -139,8 +135,4 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-// Export the instance as default
 export default axiosInstance;
-
-// Also export as named export for backward compatibility
-export { axiosInstance };

@@ -300,7 +300,6 @@
 
 
 
-
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -315,13 +314,11 @@ import {
   TableRow,
   Paper,
   Chip,
-  Button,
   Alert,
   CircularProgress,
   Grid,
   IconButton,
   Tooltip,
-  Divider,
 } from "@mui/material";
 import {
   CheckCircle,
@@ -332,7 +329,7 @@ import {
   Group,
   Block,
 } from "@mui/icons-material";
-import axiosInstance from "../utils/axiosInstance";
+import axiosInstance from "../../utils/axiosInstance";
 
 const PendingStudents = () => {
   const [students, setStudents] = useState({
