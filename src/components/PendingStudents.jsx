@@ -301,7 +301,6 @@
 
 
 
-
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -333,7 +332,7 @@ import {
   Group,
   Block,
 } from "@mui/icons-material";
-import { axiosInstance } from "../utils/axiosInstance";
+import axiosInstance from "../utils/axiosInstance";
 
 const PendingStudents = () => {
   const [students, setStudents] = useState({
