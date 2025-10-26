@@ -136,10 +136,9 @@
 
 
 
-
 // src/context/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from "react";
-import axiosInstance from "../utils/axiosInstance";
+import axiosInstance, { ensureBackendWarm } from "../utils/axiosInstance";
 
 const AuthContext = createContext();
 
@@ -149,11 +148,18 @@ export const AuthProvider = ({ children }) => {
   const [checked, setChecked] = useState(false);
 
   /* ============================================================
-     📝 Register New User (with timeout + token handling)
+     🧊 Warm up backend when app starts (Render cold-start fix)
+  ============================================================ */
+  useEffect(() => {
+    ensureBackendWarm();
+  }, []);
+
+  /* ============================================================
+     📝 Register User
   ============================================================ */
   const registerUser = async (userData) => {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000); // 15s cap
+    const timeout = setTimeout(() => controller.abort(), 15000);
 
     try {
       console.log("📝 Registering user:", userData);
@@ -164,7 +170,6 @@ export const AuthProvider = ({ children }) => {
 
       console.log("✅ Registration response:", response.data);
 
-      // If backend returns a token → auto login
       if (response.data.token) {
         const { user, token } = response.data;
         setUser(user);
@@ -181,11 +186,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   /* ============================================================
-     🔐 Login Existing User (with timeout)
+     🔐 Login User
   ============================================================ */
   const loginUser = async ({ email, password }) => {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000); // 15s cap
+    const timeout = setTimeout(() => controller.abort(), 15000);
 
     try {
       const response = await axiosInstance.post(
@@ -213,7 +218,6 @@ export const AuthProvider = ({ children }) => {
   ============================================================ */
   const logoutUser = async () => {
     try {
-      // Clear local session first
       localStorage.removeItem("user");
       localStorage.removeItem("token");
       setUser(null);
@@ -227,7 +231,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   /* ============================================================
-     👤 Get Current Authenticated User
+     👤 Get Current User
   ============================================================ */
   const getCurrentUser = async () => {
     try {
@@ -254,7 +258,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   /* ============================================================
-     🔍 Check Auth Status on App Load
+     🔍 Check Auth on App Load
   ============================================================ */
   useEffect(() => {
     const checkAuth = async () => {
@@ -263,7 +267,7 @@ export const AuthProvider = ({ children }) => {
 
       if (savedUser && token) {
         try {
-          await getCurrentUser(); // verify still valid
+          await getCurrentUser();
         } catch (error) {
           console.error("Auth check failed:", error);
         }
@@ -290,15 +294,11 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: !!user,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 /* ============================================================
-   🔗 Hook for Components
+   🔗 Hook
 ============================================================ */
 export const useAuth = () => {
   const context = useContext(AuthContext);

@@ -195,173 +195,72 @@
 
 
 
-
-
 // src/utils/axiosInstance.js
 import axios from "axios";
 
+// ✅ Backend API base URL
 const baseURL = "https://mathe-class-website-backend-1.onrender.com/api/v1";
 console.log("🚀 Using Production API URL:", baseURL);
 
+// ✅ Create Axios instance
 const axiosInstance = axios.create({
   baseURL,
-  timeout: 60000, // allow up to 60s total for heavy endpoints
+  timeout: 15000, // 15 seconds cap
   withCredentials: true,
 });
 
-/* ============================================================
-   ⚙️ Configuration
-============================================================ */
-const MAX_RETRIES = 5;      // shorter retry loop
-const RETRY_DELAY = 3000;   // 3s per retry
-const WARMUP_COOLDOWN = 30000; // 30s between warmups
-
-let isBackendWarming = false;
-let warmupPromise = null;
-let lastWarmupTime = 0;
-
-/* ============================================================
-   🔥 Backend Warmup Helpers (for Render cold starts)
-============================================================ */
-const warmUpBackend = async (force = false) => {
-  const now = Date.now();
-
-  if (!force && now - lastWarmupTime < WARMUP_COOLDOWN && isBackendWarming) {
-    return warmupPromise;
+// ✅ Optional backend warmup (for Render cold starts)
+export const ensureBackendWarm = async () => {
+  try {
+    console.log("🔥 Warming up backend...");
+    await axios.get(`${baseURL}/health`, { timeout: 10000 });
+    console.log("✅ Backend is awake!");
+  } catch (err) {
+    console.warn("⚠️ Backend warmup failed:", err.message);
   }
-
-  isBackendWarming = true;
-  lastWarmupTime = now;
-
-  warmupPromise = new Promise(async (resolve) => {
-    console.log("🔥 Starting backend warmup...");
-    for (let i = 1; i <= 3; i++) {
-      try {
-        console.log(`🔥 Warmup attempt ${i}/3`);
-        await axios.get(`${baseURL}/health`, { timeout: 10000 });
-        console.log("✅ Backend is warm!");
-        isBackendWarming = false;
-        resolve(true);
-        return;
-      } catch {
-        if (i < 3) await new Promise((r) => setTimeout(r, 3000));
-      }
-    }
-    console.warn("⚠️ Warmup failed after 3 attempts");
-    isBackendWarming = false;
-    resolve(false);
-  });
-
-  return warmupPromise;
 };
 
-export const ensureBackendWarm = warmUpBackend;
-export const forceBackendWarmup = () => warmUpBackend(true);
-
-/* ============================================================
-   🧩 Request Interceptor
-============================================================ */
+// ✅ Attach token to all requests
 axiosInstance.interceptors.request.use(
-  async (config) => {
+  (config) => {
     const token = localStorage.getItem("token");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-
-    config._retryCount = config._retryCount || 0;
-    config._startTime = Date.now();
-
-    console.log(
-      `🚀 ${config.method?.toUpperCase()} → ${config.url} (Attempt ${
-        config._retryCount + 1
-      })`
-    );
-
-    // Aggressive warmup only for admin approval PATCH
-    if (
-      config.method?.toUpperCase() === "PATCH" &&
-      config.url?.includes("/approve")
-    ) {
-      console.log("⚡ Aggressive warmup for critical operation...");
-      await warmUpBackend(true);
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-
+    console.log(`🚀 ${config.method?.toUpperCase()} → ${config.url}`);
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error("❌ Request Interceptor Error:", error);
+    return Promise.reject(error);
+  }
 );
 
-/* ============================================================
-   🧩 Response Interceptor with Retry Logic
-============================================================ */
-let hasShownSessionAlert = false;
-
+// ✅ Clean response/error handling
 axiosInstance.interceptors.response.use(
   (response) => {
-    const duration = Date.now() - response.config._startTime;
-    console.log(`✅ ${response.status} → ${response.config.url} (${duration}ms)`);
+    console.log(`✅ ${response.status} → ${response.config.url}`);
     return response;
   },
-  async (error) => {
-    const originalRequest = error.config || {};
+  (error) => {
     const status = error.response?.status;
-    const url = originalRequest.url || "";
-    const method = originalRequest.method?.toUpperCase();
-    const duration = Date.now() - (originalRequest._startTime || Date.now());
+    const message = error.message || "Network Error";
 
-    /* ----------------------------------------------
-       🚫 1. Skip retry for login/register/logout
-    ---------------------------------------------- */
-    const noRetryRoutes = ["/auth/register", "/auth/login", "/auth/logout"];
-    if (noRetryRoutes.some((r) => url.includes(r))) {
-      console.warn(`🚫 No retry for auth route: ${url}`);
-      return Promise.reject(error);
+    console.error("💥 API Error:", { status, message });
+
+    if (message.includes("timeout") || message.includes("Network Error")) {
+      error.message =
+        "Server is waking up or slow to respond. Please try again shortly.";
     }
 
-    /* ----------------------------------------------
-       ♻️ 2. Retry logic for Render cold starts
-    ---------------------------------------------- */
-    if (
-      (error.code === "ECONNABORTED" ||
-        error.message.includes("timeout") ||
-        error.message.includes("Network Error")) &&
-      originalRequest._retryCount < MAX_RETRIES
-    ) {
-      originalRequest._retryCount += 1;
-      const delay = RETRY_DELAY * originalRequest._retryCount;
-
-      console.log(
-        `⏰ Retry ${originalRequest._retryCount}/${MAX_RETRIES} in ${delay}ms... (Total: ${duration}ms)`
-      );
-
-      await new Promise((resolve) => setTimeout(resolve, delay));
-
-      // Warm backend before retry for admin actions
-      if (method === "PATCH" && url.includes("/approve")) {
-        await warmUpBackend(true);
-      }
-
-      return axiosInstance(originalRequest);
-    }
-
-    /* ----------------------------------------------
-       ❌ 3. Handle authentication errors
-    ---------------------------------------------- */
     if (status === 401) {
-      const token = localStorage.getItem("token");
-      if (token && !url.includes("/auth/") && !hasShownSessionAlert) {
-        hasShownSessionAlert = true;
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        if (!window.location.pathname.includes("/login")) {
-          window.location.href = "/login?session=expired";
-        }
-        setTimeout(() => (hasShownSessionAlert = false), 5000);
+      console.warn("⚠️ Session expired. Redirecting to login...");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      if (!window.location.pathname.includes("/login")) {
+        window.location.href = "/login?session=expired";
       }
     }
-
-    console.error(
-      `💥 ${method} ${url} failed after ${originalRequest._retryCount} retries`,
-      { status, message: error.message, code: error.code, totalTime: `${duration}ms` }
-    );
 
     return Promise.reject(error);
   }
