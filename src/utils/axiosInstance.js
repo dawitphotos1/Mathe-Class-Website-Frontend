@@ -73,33 +73,44 @@
 
 
 
-
-
+// src/utils/axiosInstance.js
 import axios from "axios";
 
 // ✅ Backend API base URL
 const baseURL = "https://mathe-class-website-backend-1.onrender.com/api/v1";
 console.log("🚀 Using Production API URL:", baseURL);
 
-// ✅ Create Axios instance
+// ✅ Create Axios instance with longer timeout for slow Render starts
 const axiosInstance = axios.create({
   baseURL,
-  timeout: 30000, // ⬅️ INCREASED to 30 seconds for slow Render starts
+  timeout: 45000, // ⬅️ INCREASED to 45 seconds
   withCredentials: true,
 });
 
-// ✅ Backend warmup using THE SAME axios instance
+// ✅ SIMPLIFIED Backend warmup - only runs once and doesn't interfere
+let warmupCompleted = false;
 export const ensureBackendWarm = async () => {
+  if (warmupCompleted) return; // ⬅️ Prevent multiple warmups
+
   try {
-    console.log("🔥 Warming up backend...");
-    await axiosInstance.get("/health", { timeout: 25000 }); // ⬅️ Use axiosInstance, not global axios
-    console.log("✅ Backend is awake!");
+    console.log("🔥 Warming up backend (one-time)...");
+    warmupCompleted = true;
+
+    // Use a separate axios instance for warmup to avoid conflicts
+    const warmupAxios = axios.create({
+      baseURL,
+      timeout: 30000,
+    });
+
+    await warmupAxios.get("/health");
+    console.log("✅ Backend warmup completed!");
   } catch (err) {
-    console.warn("⚠️ Backend warmup failed:", err.message);
+    console.warn("⚠️ Backend warmup failed (non-critical):", err.message);
+    warmupCompleted = true; // Mark as completed even if failed
   }
 };
 
-// ✅ Attach token to all requests
+// ✅ Request interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -115,24 +126,28 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// ✅ Clean response/error handling
+// ✅ Response interceptor
 axiosInstance.interceptors.response.use(
   (response) => {
     console.log(`✅ ${response.status} → ${response.config.url}`);
     return response;
   },
   (error) => {
-    const status = error.response?.status;
-    const message = error.message || "Network Error";
+    console.error("💥 API Error:", {
+      status: error.response?.status,
+      message: error.message,
+      code: error.code,
+    });
 
-    console.error("💥 API Error:", { status, message });
-
-    if (message.includes("timeout") || message.includes("Network Error")) {
+    // Handle timeout specifically
+    if (error.code === "ECONNABORTED") {
       error.message =
-        "Server is waking up or slow to respond. Please try again shortly.";
+        "Request timeout. The server is taking too long to respond.";
+    } else if (error.message.includes("Network Error")) {
+      error.message = "Network connection failed. Please check your internet.";
     }
 
-    if (status === 401) {
+    if (error.response?.status === 401) {
       console.warn("⚠️ Session expired. Redirecting to login...");
       localStorage.removeItem("token");
       localStorage.removeItem("user");

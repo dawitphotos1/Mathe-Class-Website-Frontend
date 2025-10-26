@@ -186,23 +186,28 @@ export const AuthProvider = ({ children }) => {
   const [checked, setChecked] = useState(false);
 
   /* ============================================================
-     🧊 Warm up backend when app starts (Render cold-start fix)
+     🧊 ONE-TIME backend warmup
   ============================================================ */
   useEffect(() => {
-    ensureBackendWarm();
+    // Delay warmup to avoid interfering with initial page load
+    const timer = setTimeout(() => {
+      ensureBackendWarm();
+    }, 2000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   /* ============================================================
-     📝 Register User - FIXED VERSION
+     📝 Register User - SIMPLIFIED (no manual timeouts)
   ============================================================ */
   const registerUser = async (userData) => {
-    // ⬅️ REMOVED AbortController and timeout - let axios handle it
     try {
       console.log("📝 Registering user:", userData);
-      
+
+      // ⬅️ NO AbortController, NO manual timeout - let axios handle it
       const response = await axiosInstance.post("/auth/register", userData);
-      
-      console.log("✅ Registration response:", response.data);
+
+      console.log("✅ Registration successful:", response.data);
 
       if (response.data.token) {
         const { user, token } = response.data;
@@ -214,27 +219,38 @@ export const AuthProvider = ({ children }) => {
       return response.data;
     } catch (error) {
       console.error("❌ Registration error:", error);
-      
-      // Handle specific error cases
-      if (error.code === 'ECONNABORTED') {
-        throw new Error("Registration timeout. Please try again.");
-      } else if (error.response?.status === 400 && error.response.data?.error?.includes("already exists")) {
-        throw new Error("User already registered. Please try logging in.");
-      } else if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+
+      // Provide specific error messages
+      if (error.response?.status === 400) {
+        if (error.response.data?.error?.includes("already exists")) {
+          throw new Error(
+            "This email is already registered. Please try logging in."
+          );
+        }
+        throw new Error(
+          error.response.data?.error || "Invalid registration data."
+        );
+      } else if (error.code === "ECONNABORTED") {
+        throw new Error(
+          "Registration is taking longer than expected. Please wait a moment and try again."
+        );
       } else {
-        throw new Error("Registration failed. Please try again.");
+        throw new Error(
+          "Registration failed. Please check your connection and try again."
+        );
       }
     }
   };
 
-  // ... rest of your AuthContext code remains the same
   /* ============================================================
-     🔐 Login User
+     🔐 Login User - SIMPLIFIED
   ============================================================ */
   const loginUser = async ({ email, password }) => {
     try {
-      const response = await axiosInstance.post("/auth/login", { email, password });
+      const response = await axiosInstance.post("/auth/login", {
+        email,
+        password,
+      });
       const { user, token } = response.data;
       setUser(user);
       localStorage.setItem("user", JSON.stringify(user));
@@ -242,7 +258,14 @@ export const AuthProvider = ({ children }) => {
       return user;
     } catch (error) {
       console.error("❌ Login error:", error);
-      throw error;
+
+      if (error.response?.status === 401) {
+        throw new Error("Invalid email or password.");
+      } else if (error.code === "ECONNABORTED") {
+        throw new Error("Login timeout. Please try again.");
+      } else {
+        throw new Error("Login failed. Please try again.");
+      }
     }
   };
 
@@ -329,9 +352,6 @@ export const AuthProvider = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-/* ============================================================
-   🔗 Hook
-============================================================ */
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
