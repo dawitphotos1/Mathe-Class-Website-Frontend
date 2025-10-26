@@ -1,6 +1,6 @@
 // // src/context/AuthContext.jsx
 // import React, { createContext, useContext, useState, useEffect } from "react";
-// import axiosInstance, { ensureBackendWarm } from "../utils/axiosInstance";
+// import axiosInstance from "../utils/axiosInstance";
 
 // const AuthContext = createContext();
 
@@ -10,68 +10,96 @@
 //   const [checked, setChecked] = useState(false);
 
 //   /* ============================================================
-//      🧊 Warm up backend when app starts (Render cold-start fix)
-//   ============================================================ */
-//   useEffect(() => {
-//     ensureBackendWarm();
-//   }, []);
-
-//   /* ============================================================
-//      📝 Register User
+//      📝 Register User - OPTIMISTIC (FAST RESPONSE)
 //   ============================================================ */
 //   const registerUser = async (userData) => {
-//     const controller = new AbortController();
-//     const timeout = setTimeout(() => controller.abort(), 15000);
+//     return new Promise(async (resolve, reject) => {
+//       // ⬅️ IMMEDIATE optimistic success
+//       const optimisticResponse = {
+//         success: true,
+//         message: "Registration submitted successfully!",
+//         optimistic: true,
+//         user: {
+//           email: userData.email,
+//           name: userData.name,
+//           role: userData.role,
+//           status: "processing",
+//         },
+//       };
 
-//     try {
-//       console.log("📝 Registering user:", userData);
-//       const response = await axiosInstance.post("/auth/register", userData, {
-//         signal: controller.signal,
-//       });
-//       clearTimeout(timeout);
+//       // ⬅️ Resolve immediately for fast UX
+//       resolve(optimisticResponse);
 
-//       console.log("✅ Registration response:", response.data);
+//       // ⬅️ BACKGROUND processing (don't block user)
+//       try {
+//         console.log("🔄 Background registration for:", userData.email);
 
-//       if (response.data.token) {
-//         const { user, token } = response.data;
-//         setUser(user);
-//         localStorage.setItem("user", JSON.stringify(user));
-//         localStorage.setItem("token", token);
+//         // Use longer timeout for background process
+//         const backgroundAxios = axiosInstance;
+//         backgroundAxios.defaults.timeout = 120000;
+
+//         const response = await backgroundAxios.post("/auth/register", userData);
+
+//         console.log("✅ Background registration completed:", response.data);
+
+//         // Update with real data if successful
+//         if (response.data.token) {
+//           const { user, token } = response.data;
+//           setUser(user);
+//           localStorage.setItem("user", JSON.stringify(user));
+//           localStorage.setItem("token", token);
+
+//           // Show subtle success notification
+//           setTimeout(() => {
+//             if (window.location.pathname.includes("/login")) {
+//               // User is on login page, show notification
+//               const event = new CustomEvent("registrationCompleted", {
+//                 detail: { email: userData.email },
+//               });
+//               window.dispatchEvent(event);
+//             }
+//           }, 1000);
+//         }
+//       } catch (error) {
+//         console.error("❌ Background registration failed:", error);
+
+//         // Log error but don't show to user (they already got success message)
+//         if (
+//           error.response?.status === 400 &&
+//           error.response.data?.error?.includes("already exists")
+//         ) {
+//           console.log(
+//             "✅ User was actually created (duplicate error means success)"
+//           );
+//         }
 //       }
-
-//       return response.data;
-//     } catch (error) {
-//       clearTimeout(timeout);
-//       console.error("❌ Registration error:", error);
-//       throw error;
-//     }
+//     });
 //   };
 
 //   /* ============================================================
 //      🔐 Login User
 //   ============================================================ */
 //   const loginUser = async ({ email, password }) => {
-//     const controller = new AbortController();
-//     const timeout = setTimeout(() => controller.abort(), 15000);
-
 //     try {
-//       const response = await axiosInstance.post(
-//         "/auth/login",
-//         { email, password },
-//         { signal: controller.signal }
-//       );
-//       clearTimeout(timeout);
-
+//       const response = await axiosInstance.post("/auth/login", {
+//         email,
+//         password,
+//       });
 //       const { user, token } = response.data;
 //       setUser(user);
 //       localStorage.setItem("user", JSON.stringify(user));
 //       localStorage.setItem("token", token);
-
 //       return user;
 //     } catch (error) {
-//       clearTimeout(timeout);
 //       console.error("❌ Login error:", error);
-//       throw error;
+
+//       if (error.response?.status === 401) {
+//         throw new Error("Invalid email or password.");
+//       } else if (error.code === "ECONNABORTED") {
+//         throw new Error("Login timeout. Please try again.");
+//       } else {
+//         throw new Error("Login failed. Please try again.");
+//       }
 //     }
 //   };
 
@@ -83,7 +111,6 @@
 //       localStorage.removeItem("user");
 //       localStorage.removeItem("token");
 //       setUser(null);
-
 //       await axiosInstance.post("/auth/logout");
 //     } catch (err) {
 //       console.error("Logout API error:", err);
@@ -159,9 +186,6 @@
 //   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 // };
 
-// /* ============================================================
-//    🔗 Hook
-// ============================================================ */
 // export const useAuth = () => {
 //   const context = useContext(AuthContext);
 //   if (!context) {
@@ -251,7 +275,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   /* ============================================================
-     🔐 Login User
+     🔐 Login User - COMPLETE ERROR HANDLING
   ============================================================ */
   const loginUser = async ({ email, password }) => {
     try {
@@ -265,14 +289,44 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", token);
       return user;
     } catch (error) {
-      console.error("❌ Login error:", error);
+      console.error("❌ Login error details:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
 
+      // ⬅️ COMPREHENSIVE ERROR HANDLING
       if (error.response?.status === 401) {
         throw new Error("Invalid email or password.");
+      } else if (error.response?.status === 403) {
+        const errorMsg =
+          error.response.data?.error || error.response.data?.message;
+        if (errorMsg?.includes("pending") || errorMsg?.includes("approval")) {
+          throw new Error(
+            "Your account is pending admin approval. You will be notified when approved."
+          );
+        } else if (errorMsg?.includes("rejected")) {
+          throw new Error(
+            "Your account has been rejected. Please contact support."
+          );
+        }
+        throw new Error(
+          "Access denied: " + (errorMsg || "Account not approved")
+        );
       } else if (error.code === "ECONNABORTED") {
         throw new Error("Login timeout. Please try again.");
+      } else if (error.response?.status === 500) {
+        throw new Error("Server error. Please try again later.");
       } else {
-        throw new Error("Login failed. Please try again.");
+        // Show the actual backend error message if available
+        const backendError =
+          error.response?.data?.error || error.response?.data?.message;
+        if (backendError) {
+          throw new Error(backendError);
+        }
+        throw new Error(
+          "Login failed. Please check your credentials and try again."
+        );
       }
     }
   };
