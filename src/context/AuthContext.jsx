@@ -1,6 +1,6 @@
 // // src/context/AuthContext.jsx
 // import React, { createContext, useContext, useState, useEffect } from "react";
-// import axiosInstance from "../utils/axiosInstance";
+// import axiosInstance, { ensureBackendWarm } from "../utils/axiosInstance";
 
 // const AuthContext = createContext();
 
@@ -9,56 +9,92 @@
 //   const [loading, setLoading] = useState(true);
 //   const [checked, setChecked] = useState(false);
 
-//   // ✅ ADDED: Register function
+//   /* ============================================================
+//      🧊 Warm up backend when app starts (Render cold-start fix)
+//   ============================================================ */
+//   useEffect(() => {
+//     ensureBackendWarm();
+//   }, []);
+
+//   /* ============================================================
+//      📝 Register User
+//   ============================================================ */
 //   const registerUser = async (userData) => {
+//     const controller = new AbortController();
+//     const timeout = setTimeout(() => controller.abort(), 15000);
+
 //     try {
 //       console.log("📝 Registering user:", userData);
-//       const response = await axiosInstance.post("/auth/register", userData);
-      
+//       const response = await axiosInstance.post("/auth/register", userData, {
+//         signal: controller.signal,
+//       });
+//       clearTimeout(timeout);
+
 //       console.log("✅ Registration response:", response.data);
-      
-//       // If registration includes token (auto-login), set user
+
 //       if (response.data.token) {
-//         setUser(response.data.user);
-//         localStorage.setItem("user", JSON.stringify(response.data.user));
-//         localStorage.setItem("token", response.data.token);
+//         const { user, token } = response.data;
+//         setUser(user);
+//         localStorage.setItem("user", JSON.stringify(user));
+//         localStorage.setItem("token", token);
 //       }
-      
+
 //       return response.data;
 //     } catch (error) {
+//       clearTimeout(timeout);
 //       console.error("❌ Registration error:", error);
 //       throw error;
 //     }
 //   };
 
+//   /* ============================================================
+//      🔐 Login User
+//   ============================================================ */
 //   const loginUser = async ({ email, password }) => {
+//     const controller = new AbortController();
+//     const timeout = setTimeout(() => controller.abort(), 15000);
+
 //     try {
-//       const response = await axiosInstance.post("/auth/login", { email, password });
-//       setUser(response.data.user);
-//       localStorage.setItem("user", JSON.stringify(response.data.user));
-//       localStorage.setItem("token", response.data.token);
-//       return response.data.user;
+//       const response = await axiosInstance.post(
+//         "/auth/login",
+//         { email, password },
+//         { signal: controller.signal }
+//       );
+//       clearTimeout(timeout);
+
+//       const { user, token } = response.data;
+//       setUser(user);
+//       localStorage.setItem("user", JSON.stringify(user));
+//       localStorage.setItem("token", token);
+
+//       return user;
 //     } catch (error) {
+//       clearTimeout(timeout);
 //       console.error("❌ Login error:", error);
 //       throw error;
 //     }
 //   };
 
-//   const logoutUser = () => {
-//     // Clear local storage first
-//     localStorage.removeItem("user");
-//     localStorage.removeItem("token");
-//     setUser(null);
-    
-//     // Then call backend logout
-//     axiosInstance.post("/auth/logout").catch(err => {
+//   /* ============================================================
+//      🚪 Logout User
+//   ============================================================ */
+//   const logoutUser = async () => {
+//     try {
+//       localStorage.removeItem("user");
+//       localStorage.removeItem("token");
+//       setUser(null);
+
+//       await axiosInstance.post("/auth/logout");
+//     } catch (err) {
 //       console.error("Logout API error:", err);
-//     }).finally(() => {
+//     } finally {
 //       window.location.href = "/login";
-//     });
+//     }
 //   };
 
-//   // Get current user
+//   /* ============================================================
+//      👤 Get Current User
+//   ============================================================ */
 //   const getCurrentUser = async () => {
 //     try {
 //       const token = localStorage.getItem("token");
@@ -70,9 +106,9 @@
 
 //       const response = await axiosInstance.get("/auth/me");
 //       setUser(response.data.user);
-//       return response.data;
+//       return response.data.user;
 //     } catch (error) {
-//       console.error("Get current user error:", error);
+//       console.error("❌ Get current user error:", error);
 //       localStorage.removeItem("user");
 //       localStorage.removeItem("token");
 //       setUser(null);
@@ -83,20 +119,19 @@
 //     }
 //   };
 
-//   // Check authentication status on app load
+//   /* ============================================================
+//      🔍 Check Auth on App Load
+//   ============================================================ */
 //   useEffect(() => {
 //     const checkAuth = async () => {
 //       const savedUser = localStorage.getItem("user");
 //       const token = localStorage.getItem("token");
-      
+
 //       if (savedUser && token) {
 //         try {
-//           // Verify token is still valid
 //           await getCurrentUser();
 //         } catch (error) {
 //           console.error("Auth check failed:", error);
-//           setLoading(false);
-//           setChecked(true);
 //         }
 //       } else {
 //         setLoading(false);
@@ -107,24 +142,26 @@
 //     checkAuth();
 //   }, []);
 
+//   /* ============================================================
+//      📦 Context Value
+//   ============================================================ */
 //   const value = {
 //     user,
 //     loading,
 //     checked,
-//     registerUser, // ✅ ADDED - This was missing!
+//     registerUser,
 //     loginUser,
 //     logoutUser,
 //     getCurrentUser,
 //     isAuthenticated: !!user,
 //   };
 
-//   return (
-//     <AuthContext.Provider value={value}>
-//       {children}
-//     </AuthContext.Provider>
-//   );
+//   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 // };
 
+// /* ============================================================
+//    🔗 Hook
+// ============================================================ */
 // export const useAuth = () => {
 //   const context = useContext(AuthContext);
 //   if (!context) {
@@ -132,6 +169,7 @@
 //   }
 //   return context;
 // };
+
 
 
 
@@ -155,19 +193,15 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   /* ============================================================
-     📝 Register User
+     📝 Register User - FIXED VERSION
   ============================================================ */
   const registerUser = async (userData) => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-
+    // ⬅️ REMOVED AbortController and timeout - let axios handle it
     try {
       console.log("📝 Registering user:", userData);
-      const response = await axiosInstance.post("/auth/register", userData, {
-        signal: controller.signal,
-      });
-      clearTimeout(timeout);
-
+      
+      const response = await axiosInstance.post("/auth/register", userData);
+      
       console.log("✅ Registration response:", response.data);
 
       if (response.data.token) {
@@ -179,35 +213,34 @@ export const AuthProvider = ({ children }) => {
 
       return response.data;
     } catch (error) {
-      clearTimeout(timeout);
       console.error("❌ Registration error:", error);
-      throw error;
+      
+      // Handle specific error cases
+      if (error.code === 'ECONNABORTED') {
+        throw new Error("Registration timeout. Please try again.");
+      } else if (error.response?.status === 400 && error.response.data?.error?.includes("already exists")) {
+        throw new Error("User already registered. Please try logging in.");
+      } else if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      } else {
+        throw new Error("Registration failed. Please try again.");
+      }
     }
   };
 
+  // ... rest of your AuthContext code remains the same
   /* ============================================================
      🔐 Login User
   ============================================================ */
   const loginUser = async ({ email, password }) => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-
     try {
-      const response = await axiosInstance.post(
-        "/auth/login",
-        { email, password },
-        { signal: controller.signal }
-      );
-      clearTimeout(timeout);
-
+      const response = await axiosInstance.post("/auth/login", { email, password });
       const { user, token } = response.data;
       setUser(user);
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("token", token);
-
       return user;
     } catch (error) {
-      clearTimeout(timeout);
       console.error("❌ Login error:", error);
       throw error;
     }
@@ -221,7 +254,6 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem("user");
       localStorage.removeItem("token");
       setUser(null);
-
       await axiosInstance.post("/auth/logout");
     } catch (err) {
       console.error("Logout API error:", err);

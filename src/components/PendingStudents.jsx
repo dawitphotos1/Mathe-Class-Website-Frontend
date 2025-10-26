@@ -1,5 +1,5 @@
 
-// // src/components/PendingStudents.jsx
+// src/components/PendingStudents.jsx
 
 import React, { useEffect, useState, useCallback } from "react";
 import axiosInstance from "../utils/axiosInstance";
