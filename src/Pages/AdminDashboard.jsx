@@ -875,7 +875,7 @@ const AdminDashboard = () => {
   ============================================================ */
   const handleRejectStudent = async (id) => {
     try {
-      const res = await axiosInstance.patch(`/admin/students/${id}/reject`);
+      await axiosInstance.patch(`/admin/students/${id}/reject`); // ⬅️ Removed unused 'res'
       toast.info("🚫 Student rejected successfully.");
       await Promise.all([
         fetchStudentsByStatus("pending", setPendingStudents),
@@ -886,7 +886,6 @@ const AdminDashboard = () => {
       handleError(err, setErrorStudents);
     }
   };
-
   /* ============================================================
      ✅ APPROVE Enrollment (SIMPLIFIED - no warmup)
   ============================================================ */
@@ -926,19 +925,19 @@ const AdminDashboard = () => {
   /* ============================================================
      ❌ Reject Enrollment
   ============================================================ */
-  const handleRejectEnrollment = async (id) => {
-    try {
-      const res = await axiosInstance.patch(`/admin/enrollments/${id}/reject`);
-      toast.info("🚫 Enrollment rejected successfully.");
-      await Promise.all([
-        fetchEnrollmentsByStatus("pending", setPendingEnrollments),
-        fetchEnrollmentsByStatus("approved", setApprovedEnrollments),
-        fetchEnrollmentsByStatus("rejected", setRejectedEnrollments),
-      ]);
-    } catch (err) {
-      handleError(err, setErrorEnrollments);
-    }
-  };
+ const handleRejectEnrollment = async (id) => {
+   try {
+     await axiosInstance.patch(`/admin/enrollments/${id}/reject`); // ⬅️ Removed unused 'res'
+     toast.info("🚫 Enrollment rejected successfully.");
+     await Promise.all([
+       fetchEnrollmentsByStatus("pending", setPendingEnrollments),
+       fetchEnrollmentsByStatus("approved", setApprovedEnrollments),
+       fetchEnrollmentsByStatus("rejected", setRejectedEnrollments),
+     ]);
+   } catch (err) {
+     handleError(err, setErrorEnrollments);
+   }
+ };
 
   /* ============================================================
      🚀 Load Data on Mount
