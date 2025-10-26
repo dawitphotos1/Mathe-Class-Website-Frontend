@@ -164,3 +164,23 @@
   font-size: 0.85rem;
   border: 1px solid #ffeeba;
 }
+
+
+
+/* Optimistic registration styles */
+.btn-primary:disabled {
+  background: linear-gradient(135deg, #28a745, #20c997) !important;
+  cursor: not-allowed;
+}
+
+.test-card-notice {
+  margin-top: 0.75rem;
+  background-color: #d4edda;
+  color: #155724;
+  padding: 0.7rem;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.85rem;
+  border: 1px solid #c3e6cb;
+  font-weight: 500;
+}

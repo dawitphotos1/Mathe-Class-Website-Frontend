@@ -78,10 +78,10 @@ import axios from "axios";
 const baseURL = "https://mathe-class-website-backend-1.onrender.com/api/v1";
 console.log("🚀 Using Production API URL:", baseURL);
 
-// ✅ Create Axios instance with LONG timeout for Render cold starts
+// ✅ Create Axios instance with SHORT timeout for fast UX
 const axiosInstance = axios.create({
   baseURL,
-  timeout: 60000, // ⬅️ 60 seconds for cold starts
+  timeout: 10000, // ⬅️ SHORT timeout for immediate feedback
   withCredentials: true,
 });
 
@@ -101,7 +101,7 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// ✅ Response interceptor - IMPROVED for cold starts
+// ✅ Response interceptor - OPTIMISTIC for registration
 axiosInstance.interceptors.response.use(
   (response) => {
     console.log(`✅ ${response.status} → ${response.config.url}`);
@@ -111,14 +111,15 @@ axiosInstance.interceptors.response.use(
     console.error("💥 API Error:", {
       status: error.response?.status,
       message: error.message,
-      code: error.code
+      code: error.code,
     });
 
-    // Handle Render cold starts specifically
-    if (error.code === 'ECONNABORTED') {
-      error.message = "Server is starting up (this can take 30-60 seconds on first request). Please wait and try again.";
-    } else if (error.message.includes("Network Error")) {
-      error.message = "Server is waking up. Please wait a moment and try again.";
+    // Special handling for registration timeouts
+    if (
+      error.code === "ECONNABORTED" &&
+      error.config.url.includes("/auth/register")
+    ) {
+      error.optimisticSuccess = true; // Mark for optimistic handling
     }
 
     if (error.response?.status === 401) {
@@ -134,4 +135,4 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-export default axiosInstance; // ⬅️ Only export axiosInstance, nothing else
+export default axiosInstance;

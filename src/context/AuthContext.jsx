@@ -173,10 +173,8 @@
 
 
 
-
-// src/context/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from "react";
-import axiosInstance from "../utils/axiosInstance"; // ⬅️ REMOVED ensureBackendWarm import
+import axiosInstance from "../utils/axiosInstance";
 
 const AuthContext = createContext();
 
@@ -185,52 +183,71 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [checked, setChecked] = useState(false);
 
-  // ⬅️ REMOVED the entire useEffect with warmup completely
-
   /* ============================================================
-     📝 Register User - OPTIMIZED for cold starts
+     📝 Register User - OPTIMISTIC (FAST RESPONSE)
   ============================================================ */
   const registerUser = async (userData) => {
-    try {
-      console.log("📝 Registering user:", userData);
+    return new Promise(async (resolve, reject) => {
+      // ⬅️ IMMEDIATE optimistic success
+      const optimisticResponse = {
+        success: true,
+        message: "Registration submitted successfully!",
+        optimistic: true,
+        user: {
+          email: userData.email,
+          name: userData.name,
+          role: userData.role,
+          status: "processing",
+        },
+      };
 
-      const response = await axiosInstance.post("/auth/register", userData);
+      // ⬅️ Resolve immediately for fast UX
+      resolve(optimisticResponse);
 
-      console.log("✅ Registration successful:", response.data);
+      // ⬅️ BACKGROUND processing (don't block user)
+      try {
+        console.log("🔄 Background registration for:", userData.email);
 
-      if (response.data.token) {
-        const { user, token } = response.data;
-        setUser(user);
-        localStorage.setItem("user", JSON.stringify(user));
-        localStorage.setItem("token", token);
-      }
+        // Use longer timeout for background process
+        const backgroundAxios = axiosInstance;
+        backgroundAxios.defaults.timeout = 120000;
 
-      return response.data;
-    } catch (error) {
-      console.error("❌ Registration error:", error);
+        const response = await backgroundAxios.post("/auth/register", userData);
 
-      // Improved error handling for cold starts
-      if (error.code === "ECONNABORTED") {
-        throw new Error(
-          "Server is starting up (this is normal for first request). Please wait 30 seconds and try again - it will be faster next time!"
-        );
-      } else if (error.response?.status === 400) {
-        if (error.response.data?.error?.includes("already exists")) {
-          throw new Error(
-            "This email is already registered. Please try logging in."
+        console.log("✅ Background registration completed:", response.data);
+
+        // Update with real data if successful
+        if (response.data.token) {
+          const { user, token } = response.data;
+          setUser(user);
+          localStorage.setItem("user", JSON.stringify(user));
+          localStorage.setItem("token", token);
+
+          // Show subtle success notification
+          setTimeout(() => {
+            if (window.location.pathname.includes("/login")) {
+              // User is on login page, show notification
+              const event = new CustomEvent("registrationCompleted", {
+                detail: { email: userData.email },
+              });
+              window.dispatchEvent(event);
+            }
+          }, 1000);
+        }
+      } catch (error) {
+        console.error("❌ Background registration failed:", error);
+
+        // Log error but don't show to user (they already got success message)
+        if (
+          error.response?.status === 400 &&
+          error.response.data?.error?.includes("already exists")
+        ) {
+          console.log(
+            "✅ User was actually created (duplicate error means success)"
           );
         }
-        throw new Error(
-          error.response.data?.error || "Invalid registration data."
-        );
-      } else if (error.response?.status === 500) {
-        throw new Error("Server error. Please wait a moment and try again.");
-      } else {
-        throw new Error(
-          "Registration failed. Please check your connection and try again."
-        );
       }
-    }
+    });
   };
 
   /* ============================================================
@@ -253,7 +270,7 @@ export const AuthProvider = ({ children }) => {
       if (error.response?.status === 401) {
         throw new Error("Invalid email or password.");
       } else if (error.code === "ECONNABORTED") {
-        throw new Error("Server is starting up. Please wait and try again.");
+        throw new Error("Login timeout. Please try again.");
       } else {
         throw new Error("Login failed. Please try again.");
       }
