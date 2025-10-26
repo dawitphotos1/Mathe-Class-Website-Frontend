@@ -175,8 +175,9 @@
 
 
 // src/context/AuthContext.jsx
+
 import React, { createContext, useContext, useState, useEffect } from "react";
-import axiosInstance, { ensureBackendWarm } from "../utils/axiosInstance";
+import axiosInstance from "../utils/axiosInstance"; // ⬅️ Remove ensureBackendWarm import
 
 const AuthContext = createContext();
 
@@ -186,25 +187,12 @@ export const AuthProvider = ({ children }) => {
   const [checked, setChecked] = useState(false);
 
   /* ============================================================
-     🧊 ONE-TIME backend warmup
-  ============================================================ */
-  useEffect(() => {
-    // Delay warmup to avoid interfering with initial page load
-    const timer = setTimeout(() => {
-      ensureBackendWarm();
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  /* ============================================================
-     📝 Register User - SIMPLIFIED (no manual timeouts)
+     📝 Register User - OPTIMIZED for cold starts
   ============================================================ */
   const registerUser = async (userData) => {
     try {
       console.log("📝 Registering user:", userData);
 
-      // ⬅️ NO AbortController, NO manual timeout - let axios handle it
       const response = await axiosInstance.post("/auth/register", userData);
 
       console.log("✅ Registration successful:", response.data);
@@ -220,8 +208,12 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("❌ Registration error:", error);
 
-      // Provide specific error messages
-      if (error.response?.status === 400) {
+      // Improved error handling for cold starts
+      if (error.code === "ECONNABORTED") {
+        throw new Error(
+          "Server is starting up (this is normal for first request). Please wait 30 seconds and try again - it will be faster next time!"
+        );
+      } else if (error.response?.status === 400) {
         if (error.response.data?.error?.includes("already exists")) {
           throw new Error(
             "This email is already registered. Please try logging in."
@@ -230,10 +222,8 @@ export const AuthProvider = ({ children }) => {
         throw new Error(
           error.response.data?.error || "Invalid registration data."
         );
-      } else if (error.code === "ECONNABORTED") {
-        throw new Error(
-          "Registration is taking longer than expected. Please wait a moment and try again."
-        );
+      } else if (error.response?.status === 500) {
+        throw new Error("Server error. Please wait a moment and try again.");
       } else {
         throw new Error(
           "Registration failed. Please check your connection and try again."
@@ -243,7 +233,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   /* ============================================================
-     🔐 Login User - SIMPLIFIED
+     🔐 Login User
   ============================================================ */
   const loginUser = async ({ email, password }) => {
     try {
@@ -262,7 +252,7 @@ export const AuthProvider = ({ children }) => {
       if (error.response?.status === 401) {
         throw new Error("Invalid email or password.");
       } else if (error.code === "ECONNABORTED") {
-        throw new Error("Login timeout. Please try again.");
+        throw new Error("Server is starting up. Please wait and try again.");
       } else {
         throw new Error("Login failed. Please try again.");
       }

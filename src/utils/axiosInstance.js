@@ -72,43 +72,20 @@
 // export default axiosInstance;
 
 
-
-// src/utils/axiosInstance.js
 import axios from "axios";
 
 // ✅ Backend API base URL
 const baseURL = "https://mathe-class-website-backend-1.onrender.com/api/v1";
 console.log("🚀 Using Production API URL:", baseURL);
 
-// ✅ Create Axios instance with longer timeout for slow Render starts
+// ✅ Create Axios instance with LONG timeout for Render cold starts
 const axiosInstance = axios.create({
   baseURL,
-  timeout: 45000, // ⬅️ INCREASED to 45 seconds
+  timeout: 60000, // ⬅️ 60 seconds for cold starts
   withCredentials: true,
 });
 
-// ✅ SIMPLIFIED Backend warmup - only runs once and doesn't interfere
-let warmupCompleted = false;
-export const ensureBackendWarm = async () => {
-  if (warmupCompleted) return; // ⬅️ Prevent multiple warmups
-
-  try {
-    console.log("🔥 Warming up backend (one-time)...");
-    warmupCompleted = true;
-
-    // Use a separate axios instance for warmup to avoid conflicts
-    const warmupAxios = axios.create({
-      baseURL,
-      timeout: 30000,
-    });
-
-    await warmupAxios.get("/health");
-    console.log("✅ Backend warmup completed!");
-  } catch (err) {
-    console.warn("⚠️ Backend warmup failed (non-critical):", err.message);
-    warmupCompleted = true; // Mark as completed even if failed
-  }
-};
+// ✅ REMOVED ensureBackendWarm function completely
 
 // ✅ Request interceptor
 axiosInstance.interceptors.request.use(
@@ -126,7 +103,7 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// ✅ Response interceptor
+// ✅ Response interceptor - IMPROVED for cold starts
 axiosInstance.interceptors.response.use(
   (response) => {
     console.log(`✅ ${response.status} → ${response.config.url}`);
@@ -139,12 +116,13 @@ axiosInstance.interceptors.response.use(
       code: error.code,
     });
 
-    // Handle timeout specifically
+    // Handle Render cold starts specifically
     if (error.code === "ECONNABORTED") {
       error.message =
-        "Request timeout. The server is taking too long to respond.";
+        "Server is starting up (this can take 30-60 seconds on first request). Please wait and try again.";
     } else if (error.message.includes("Network Error")) {
-      error.message = "Network connection failed. Please check your internet.";
+      error.message =
+        "Server is waking up. Please wait a moment and try again.";
     }
 
     if (error.response?.status === 401) {
