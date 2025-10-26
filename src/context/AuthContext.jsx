@@ -175,9 +175,8 @@
 
 
 // src/context/AuthContext.jsx
-
 import React, { createContext, useContext, useState, useEffect } from "react";
-import axiosInstance from "../utils/axiosInstance"; // ⬅️ Remove ensureBackendWarm import
+import axiosInstance from "../utils/axiosInstance"; // ⬅️ REMOVED ensureBackendWarm import
 
 const AuthContext = createContext();
 
@@ -185,6 +184,8 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [checked, setChecked] = useState(false);
+
+  // ⬅️ REMOVED the entire useEffect with warmup completely
 
   /* ============================================================
      📝 Register User - OPTIMIZED for cold starts

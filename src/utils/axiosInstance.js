@@ -85,8 +85,6 @@ const axiosInstance = axios.create({
   withCredentials: true,
 });
 
-// ✅ REMOVED ensureBackendWarm function completely
-
 // ✅ Request interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
@@ -113,16 +111,14 @@ axiosInstance.interceptors.response.use(
     console.error("💥 API Error:", {
       status: error.response?.status,
       message: error.message,
-      code: error.code,
+      code: error.code
     });
 
     // Handle Render cold starts specifically
-    if (error.code === "ECONNABORTED") {
-      error.message =
-        "Server is starting up (this can take 30-60 seconds on first request). Please wait and try again.";
+    if (error.code === 'ECONNABORTED') {
+      error.message = "Server is starting up (this can take 30-60 seconds on first request). Please wait and try again.";
     } else if (error.message.includes("Network Error")) {
-      error.message =
-        "Server is waking up. Please wait a moment and try again.";
+      error.message = "Server is waking up. Please wait a moment and try again.";
     }
 
     if (error.response?.status === 401) {
@@ -138,4 +134,4 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-export default axiosInstance;
+export default axiosInstance; // ⬅️ Only export axiosInstance, nothing else
