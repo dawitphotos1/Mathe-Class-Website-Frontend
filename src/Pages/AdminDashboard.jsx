@@ -3,10 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import axiosInstance, {
-  ensureBackendWarm,
-  forceBackendWarmup,
-} from "../utils/axiosInstance";
+import axiosInstance, { ensureBackendWarm } from "../utils/axiosInstance";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import "./AdminDashboard.css";
@@ -85,7 +82,7 @@ const AdminDashboard = () => {
       });
     }, 1000);
 
-    const isWarm = await forceBackendWarmup();
+    const isWarm = await ensureBackendWarm();
 
     clearInterval(progressInterval);
     setWarmupProgress(100);
@@ -172,7 +169,7 @@ const AdminDashboard = () => {
       // Step 1: Aggressive warmup
       setWarmupProgress(10);
       toast.info("🔥 Warming up backend...");
-      await forceBackendWarmup();
+      await ensureBackendWarm();
       setWarmupProgress(50);
 
       // Step 2: Try the approval with very long timeout
@@ -281,7 +278,7 @@ const AdminDashboard = () => {
       toast.info("⚡ Starting enrollment approval...");
 
       // Aggressive warmup
-      await forceBackendWarmup();
+      await ensureBackendWarm();
 
       const res = await axiosInstance.patch(
         `/admin/enrollments/${id}/approve`,
