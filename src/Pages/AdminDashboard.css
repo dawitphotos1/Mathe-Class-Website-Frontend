@@ -841,36 +841,3 @@
 
 
 
-
-/* Enhanced Admin Dashboard Styles */
-.admin-dashboard {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-}
-
-.stats-card {
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.student-table {
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.action-button {
-  transition: all 0.3s ease;
-  border-radius: 8px;
-}
-
-.action-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.status-chip {
-  font-weight: 600;
-  border-width: 2px;
-}
