@@ -1,5 +1,5 @@
 <!-- public/payment-success.html -->
-
+<!-- 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -151,6 +151,224 @@
         <h2 class="error">❌ There was an issue</h2>
         <p>${message}</p>
         <button class="btn" onclick="window.location.href='/courses'">Return to Courses</button>
+      `;
+      card.classList.add("fade-in");
+    }
+
+    confirmPayment();
+  </script>
+</body>
+</html> -->
+
+
+
+
+
+<!-- public/payment-success.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Success - Math Class Platform</title>
+  <style>
+    body {
+      font-family: "Inter", Arial, sans-serif;
+      background: #f7f9fc;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: #333;
+    }
+
+    .card {
+      background: white;
+      padding: 2rem 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      max-width: 460px;
+      transition: all 0.3s ease;
+    }
+
+    .spinner {
+      width: 45px;
+      height: 45px;
+      border: 4px solid #e0e0e0;
+      border-top-color: #4CAF50;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 1.2rem auto;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #222;
+    }
+
+    .btn {
+      background-color: #4CAF50;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      margin: 0.5rem;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s ease;
+      text-decoration: none;
+      display: inline-block;
+      min-width: 160px;
+    }
+
+    .btn:hover { 
+      background-color: #43a047; 
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background-color: #FF9800;
+    }
+
+    .btn-secondary:hover {
+      background-color: #F57C00;
+    }
+
+    .btn-support {
+      background-color: #607D8B;
+    }
+
+    .btn-support:hover {
+      background-color: #455A64;
+    }
+
+    .error { color: #d32f2f; font-weight: bold; }
+    .fade-in { animation: fadeIn 0.4s ease; }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .card {
+        padding: 1.5rem;
+        margin: 1rem;
+      }
+      
+      .button-group {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .btn {
+        width: 100%;
+        max-width: 250px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card fade-in" id="status-card">
+    <h2>Processing Your Enrollment...</h2>
+    <div class="spinner"></div>
+    <p>Please wait while we confirm your payment.</p>
+  </div>
+
+  <script>
+    const API_BASE = "https://mathe-class-website-backend-1.onrender.com/api/v1";
+
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("session_id");
+    const courseId = params.get("course_id");
+    const token = localStorage.getItem("token");
+    const card = document.getElementById("status-card");
+
+    async function confirmPayment() {
+      if (!sessionId || !courseId) {
+        showError("Invalid payment information. Please try again.");
+        return;
+      }
+
+      console.log("🔁 Confirming payment:", { sessionId, courseId });
+      console.log("🔗 Using backend:", API_BASE);
+
+      try {
+        if (!token) {
+          console.warn("⚠️ No token found — relying on Stripe webhook only.");
+          showSuccess("Your payment is being verified. Please check your courses soon.");
+          return;
+        }
+
+        const res = await fetch(`${API_BASE}/payments/confirm`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: "include",
+          body: JSON.stringify({ sessionId, courseId }),
+        });
+
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+        const data = await res.json();
+        console.log("💬 Payment confirm response:", data);
+
+        if (data.success) {
+          showSuccess("Your enrollment has been received and is pending admin approval.");
+        } else {
+          let msg = data.error || "We couldn't confirm your payment.";
+          if (msg.includes("Duplicate")) {
+            msg = "You have already paid for this course. Duplicate payments are not allowed.";
+          } else if (msg.includes("Unauthorized") || msg.includes("Not authenticated")) {
+            msg = "Not authenticated. Please log in again.";
+          }
+          showError(msg);
+        }
+      } catch (err) {
+        console.error("💥 Payment confirmation failed:", err);
+        showError("Network issue. Your payment will still be processed automatically via Stripe.");
+      }
+    }
+
+    function showSuccess(message) {
+      card.innerHTML = `
+        <h2>🎉 Payment Successful!</h2>
+        <p>${message}</p>
+        <div class="button-group">
+          <button class="btn" onclick="window.location.href='/courses?fromPayment=true'">Browse More Courses</button>
+          <button class="btn btn-secondary" onclick="window.location.href='/my-courses'">View My Courses</button>
+          <a href="mailto:support@matheclass.com" class="btn btn-support">Contact Support</a>
+        </div>
+      `;
+      card.classList.add("fade-in");
+    }
+
+    function showError(message) {
+      card.innerHTML = `
+        <h2 class="error">❌ There was an issue</h2>
+        <p>${message}</p>
+        <div class="button-group">
+          <button class="btn" onclick="window.location.href='/courses'">Return to Courses</button>
+          <a href="mailto:support@matheclass.com" class="btn btn-support">Contact Support</a>
+        </div>
       `;
       card.classList.add("fade-in");
     }
