@@ -211,10 +211,9 @@
 
 
 
-
 // src/pages/payment/PaymentSuccess.jsx
 import React, { useState, useEffect } from "react";
-import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import axiosInstance from "../../utils/axiosInstance";
 import { toast } from "react-toastify";
@@ -224,7 +223,6 @@ const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const sessionId = searchParams.get("session_id");
   const courseId = searchParams.get("course_id");
@@ -232,6 +230,15 @@ const PaymentSuccess = () => {
   const [status, setStatus] = useState("processing");
   const [countdown, setCountdown] = useState(10);
   const [enrollmentData, setEnrollmentData] = useState(null);
+
+  // Debug: Check what's happening
+  useEffect(() => {
+    console.log("🔍 PaymentSuccess Debug:");
+    console.log("📍 Current URL:", window.location.href);
+    console.log("🎯 User role:", user?.role);
+    console.log("💰 Session ID:", sessionId);
+    console.log("📚 Course ID:", courseId);
+  }, [user, sessionId, courseId]);
 
   useEffect(() => {
     let mounted = true;
@@ -307,6 +314,7 @@ const PaymentSuccess = () => {
 
   // Handle button clicks based on user role
   const handleMyCoursesClick = () => {
+    console.log("🎯 Navigating to My Courses");
     if (user?.role === 'admin') {
       navigate('/admin');
     } else {
@@ -315,8 +323,10 @@ const PaymentSuccess = () => {
   };
 
   const handleBrowseCoursesClick = () => {
-    console.log("🔄 Navigating to MAIN COURSES page from payment success...");
-    // Navigate to the main courses listing page with payment state
+    console.log("🔄 Navigating to MAIN COURSES LISTING page");
+    console.log("📍 Should go to: /courses");
+    
+    // Force navigation to main courses listing page
     navigate('/courses', { 
       state: { fromPayment: true }
     });
@@ -407,7 +417,10 @@ const PaymentSuccess = () => {
           <button className="btn-primary" onClick={handleMyCoursesClick}>
             {countdown > 0 ? `Go to My Courses (${countdown})` : "Go to My Courses"}
           </button>
-          <button className="btn-secondary" onClick={handleBrowseCoursesClick}>
+          <button 
+            className="btn-secondary" 
+            onClick={handleBrowseCoursesClick}
+          >
             Browse More Courses
           </button>
           <a href="mailto:support@matheclass.com" className="btn-support">
