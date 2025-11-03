@@ -1,4 +1,3 @@
-
 <!-- public/ courses.htm -->
 <!-- 
 <!DOCTYPE html>
@@ -409,12 +408,15 @@
 
 
 
+
+<!-- public/ courses.htm -->
+ 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mathematics Courses</title>
+    <title>Mathematics Courses Catalog</title>
     <style>
         * {
             margin: 0;
@@ -542,7 +544,7 @@
             margin-bottom: 15px;
         }
         
-        .enroll-btn {
+        .view-details-btn {
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             color: white;
             border: none;
@@ -555,7 +557,7 @@
             width: 100%;
         }
         
-        .enroll-btn:hover {
+        .view-details-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 10px rgba(106, 17, 203, 0.3);
         }
@@ -623,6 +625,14 @@
             border-color: #6a11cb;
         }
         
+        .info-message {
+            background-color: #e6f0ff;
+            border-left: 4px solid #6a11cb;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
         @media (max-width: 768px) {
             .courses-grid {
                 grid-template-columns: 1fr;
@@ -661,12 +671,16 @@
             <a href="my-courses.html" class="nav-btn">View My Courses</a>
         </div>
         <div class="container">
-            <h1>Mathematics Courses</h1>
-            <p>Advance your mathematical skills with our comprehensive curriculum</p>
+            <h1>Mathematics Courses Catalog</h1>
+            <p>Browse our comprehensive mathematics curriculum</p>
         </div>
     </header>
     
     <div class="container">
+        <div class="info-message">
+            <p>Welcome to our mathematics courses catalog. Here you can explore all available courses. Your enrollment is pending admin approval.</p>
+        </div>
+        
         <div class="search-filter">
             <div class="search-box">
                 <span class="search-icon">🔍</span>
@@ -694,8 +708,7 @@
                         <span>45 Lessons</span>
                     </div>
                     <div class="price">$1200.00</div>
-                    <button class="enroll-btn">Enroll Now</button>
-                    <div class="enrolled-badge">Enrolled - Pending Approval</div>
+                    <button class="view-details-btn">View Course Details</button>
                 </div>
             </div>
             
@@ -712,7 +725,7 @@
                         <span>52 Lessons</span>
                     </div>
                     <div class="price">$1200.00</div>
-                    <button class="enroll-btn">Enroll Now</button>
+                    <button class="view-details-btn">View Course Details</button>
                 </div>
             </div>
             
@@ -729,7 +742,7 @@
                         <span>58 Lessons</span>
                     </div>
                     <div class="price">$1200.00</div>
-                    <button class="enroll-btn">Enroll Now</button>
+                    <button class="view-details-btn">View Course Details</button>
                 </div>
             </div>
             
@@ -746,7 +759,7 @@
                         <span>60 Lessons</span>
                     </div>
                     <div class="price">$1250.00</div>
-                    <button class="enroll-btn">Enroll Now</button>
+                    <button class="view-details-btn">View Course Details</button>
                 </div>
             </div>
             
@@ -763,7 +776,7 @@
                         <span>48 Lessons</span>
                     </div>
                     <div class="price">$1250.00</div>
-                    <button class="enroll-btn">Enroll Now</button>
+                    <button class="view-details-btn">View Course Details</button>
                 </div>
             </div>
             
@@ -780,7 +793,7 @@
                         <span>42 Lessons</span>
                     </div>
                     <div class="price">$1250.00</div>
-                    <button class="enroll-btn">Enroll Now</button>
+                    <button class="view-details-btn">View Course Details</button>
                 </div>
             </div>
         </div>
@@ -839,28 +852,13 @@
             });
         });
         
-        // Enroll button functionality
-        document.querySelectorAll('.enroll-btn').forEach(button => {
+        // View Details button functionality
+        document.querySelectorAll('.view-details-btn').forEach(button => {
             button.addEventListener('click', () => {
                 const courseTitle = button.closest('.course-card').querySelector('h3').textContent;
-                const coursePrice = button.closest('.course-card').querySelector('.price').textContent;
                 
-                // Show payment confirmation
-                if (confirm(`You are about to enroll in ${courseTitle} for ${coursePrice}. Continue to payment?`)) {
-                    // In a real implementation, this would redirect to payment page
-                    // After payment, user would see the success message with:
-                    // "🎉 Payment Successful! Your enrollment has been received and is pending admin approval."
-                    // Then they could click "Browse More Courses" or "View My Courses"
-                    
-                    // For this demo, we'll simulate successful enrollment
-                    button.style.display = 'none';
-                    const badge = document.createElement('div');
-                    badge.className = 'enrolled-badge';
-                    badge.textContent = 'Enrolled - Pending Approval';
-                    button.parentNode.appendChild(badge);
-                    
-                    alert(`🎉 Payment Successful!\nYour enrollment in ${courseTitle} has been received and is pending admin approval.`);
-                }
+                // Show course details
+                alert(`Course Details for ${courseTitle}\n\nThis page shows the course catalog. Your enrollment is pending admin approval.\n\nYou can view your enrolled courses by clicking "View My Courses" at the top of the page.`);
             });
         });
     </script>
