@@ -164,6 +164,7 @@
 
 
 
+
 <!-- public/payment-success.html -->
 <!DOCTYPE html>
 <html lang="en">
@@ -300,6 +301,13 @@
     const token = localStorage.getItem("token");
     const card = document.getElementById("status-card");
 
+    // Navigation function for Browse More Courses
+    function navigateToMainCourses() {
+      console.log("🔗 Navigating to MAIN courses listing page...");
+      // Navigate to the main courses page with payment parameter
+      window.location.href = '/courses?fromPayment=true';
+    }
+
     async function confirmPayment() {
       if (!sessionId || !courseId) {
         showError("Invalid payment information. Please try again.");
@@ -349,11 +357,12 @@
     }
 
     function showSuccess(message) {
+      console.log("✅ Payment success - showing navigation buttons");
       card.innerHTML = `
         <h2>🎉 Payment Successful!</h2>
         <p>${message}</p>
         <div class="button-group">
-          <button class="btn" onclick="window.location.href='/courses?fromPayment=true'">Browse More Courses</button>
+          <button class="btn" onclick="navigateToMainCourses()">Browse More Courses</button>
           <button class="btn btn-secondary" onclick="window.location.href='/my-courses'">View My Courses</button>
           <a href="mailto:support@matheclass.com" class="btn btn-support">Contact Support</a>
         </div>

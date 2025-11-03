@@ -212,10 +212,9 @@
 
 
 
-
 // src/pages/payment/PaymentSuccess.jsx
 import React, { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import axiosInstance from "../../utils/axiosInstance";
 import { toast } from "react-toastify";
@@ -225,6 +224,7 @@ const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const sessionId = searchParams.get("session_id");
   const courseId = searchParams.get("course_id");
@@ -315,12 +315,11 @@ const PaymentSuccess = () => {
   };
 
   const handleBrowseCoursesClick = () => {
-    // Pass state to indicate coming from payment success
-    if (user?.role === 'admin') {
-      navigate('/admin/courses');
-    } else {
-      navigate('/courses', { state: { fromPayment: true } });
-    }
+    console.log("🔄 Navigating to MAIN COURSES page from payment success...");
+    // Navigate to the main courses listing page with payment state
+    navigate('/courses', { 
+      state: { fromPayment: true }
+    });
   };
 
   return (
