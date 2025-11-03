@@ -211,6 +211,9 @@
 
 
 
+
+// src/pages/payment/PaymentSuccess.jsx
+
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -243,9 +246,7 @@ const PaymentSuccess = () => {
         }
 
         if (!user) {
-          console.warn(
-            "⚠️ No user detected — please log in before confirming payment"
-          );
+          console.warn("⚠️ No user detected — please log in before confirming payment");
           setStatus("error");
           toast.error("Please log in again to confirm your payment.");
           return;
@@ -265,16 +266,11 @@ const PaymentSuccess = () => {
         console.log("🔍 Backend response:", res.data);
 
         if (res?.data?.success) {
-          console.log(
-            "✅ Payment confirmed on backend:",
-            res.data.enrollment || res.data
-          );
+          console.log("✅ Payment confirmed on backend:", res.data.enrollment || res.data);
           if (!mounted) return;
           setStatus("success");
           setEnrollmentData(res.data.enrollment);
-          toast.success(
-            "Payment confirmed! Enrollment pending admin approval."
-          );
+          toast.success("Payment confirmed! Enrollment pending admin approval.");
         } else {
           console.error("❌ Payment confirmation failed:", res?.data);
           if (!mounted) return;
@@ -321,13 +317,13 @@ const PaymentSuccess = () => {
     }
   };
 
-  // ✅ Handle Browse More Courses navigation
-  // 🆕 Added { state: { fromPayment: true } } so Courses page shows return buttons
+  // ✅ Clean Fix Option 1 — always go to the main /courses list
   const handleBrowseCoursesClick = () => {
     if (user?.role === "admin") {
       navigate("/admin/courses", { state: { fromPayment: true } });
     } else {
-      navigate("/courses", { state: { fromPayment: true } });
+      // 🆕 Force redirect to course listing page, not a single course
+      navigate("/courses", { state: { fromPayment: true }, replace: true });
     }
   };
 
@@ -349,12 +345,11 @@ const PaymentSuccess = () => {
         {status === "success" ? (
           <>
             <p>
-              Thank you for your purchase! Your payment has been processed
-              successfully.
+              Thank you for your purchase! Your payment has been processed successfully.
             </p>
             <p>
-              Your enrollment is <strong>pending admin approval</strong> and
-              should appear in the Admin Dashboard for review.
+              Your enrollment is <strong>pending admin approval</strong> and should appear
+              in the Admin Dashboard for review.
             </p>
             {enrollmentData && (
               <div className="payment-info">
@@ -371,8 +366,7 @@ const PaymentSuccess = () => {
           <p>Please wait while we confirm your enrollment...</p>
         ) : (
           <p>
-            We couldn't confirm your payment. Please contact support with your
-            Reference ID below.
+            We couldn't confirm your payment. Please contact support with your Reference ID below.
           </p>
         )}
 
@@ -394,8 +388,7 @@ const PaymentSuccess = () => {
               <div className="step-content">
                 <strong>Enrollment Created</strong>
                 <p>
-                  If payment succeeded, an enrollment record is created and set
-                  to <em>pending</em> for admin approval.
+                  If payment succeeded, an enrollment record is created and set to <em>pending</em> for admin approval.
                 </p>
               </div>
             </div>
@@ -404,10 +397,7 @@ const PaymentSuccess = () => {
               <div className="step-number">3</div>
               <div className="step-content">
                 <strong>Admin Approval</strong>
-                <p>
-                  An admin will review and approve the enrollment. Once
-                  approved, you'll get access.
-                </p>
+                <p>An admin will review and approve the enrollment. Once approved, you'll get access.</p>
               </div>
             </div>
           </div>
@@ -416,14 +406,8 @@ const PaymentSuccess = () => {
         <div className="important-notes">
           <h4>📝 Important Notes</h4>
           <ul>
-            <li>
-              Enrollment is processed automatically via Stripe webhooks and a
-              backend confirmation endpoint.
-            </li>
-            <li>
-              If you do not see your course listed after a few minutes, contact
-              support and provide the Reference ID below.
-            </li>
+            <li>Enrollment is processed automatically via Stripe webhooks and a backend confirmation endpoint.</li>
+            <li>If you do not see your course listed after a few minutes, contact support and provide the Reference ID below.</li>
             <li>Admin approval typically takes 1–2 business hours.</li>
           </ul>
         </div>
@@ -449,7 +433,7 @@ const PaymentSuccess = () => {
               : "Go to My Courses"}
           </button>
 
-          {/* 🆕 This now passes `fromPayment` so the Courses page shows Return/Home buttons */}
+          {/* 🆕 Clean redirect to /courses */}
           <button className="btn-secondary" onClick={handleBrowseCoursesClick}>
             Browse More Courses
           </button>

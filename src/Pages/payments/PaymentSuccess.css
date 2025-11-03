@@ -1,14 +1,18 @@
-/* src/pages/payment/PaymentSuccess.css */
+/* ===========================
+   Payment Success Page Styles
+   =========================== */
+
 .payment-success-container {
   min-height: 70vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2rem;
+  background: #f7f9fc;
 }
 
 .payment-status {
-  background: white;
+  background: #ffffff;
   border-radius: 12px;
   padding: 3rem;
   text-align: center;
@@ -16,6 +20,7 @@
   max-width: 700px;
   width: 100%;
   border-left: 4px solid #2ecc71;
+  animation: fadeIn 0.4s ease-in-out;
 }
 
 .success-icon {
@@ -61,7 +66,7 @@
 
 .step-number {
   background: #3498db;
-  color: white;
+  color: #fff;
   width: 30px;
   height: 30px;
   border-radius: 50%;
@@ -134,7 +139,9 @@
   flex-wrap: wrap;
 }
 
-.btn-primary, .btn-secondary, .btn-support {
+.btn-primary,
+.btn-secondary,
+.btn-support {
   padding: 0.75rem 1.5rem;
   border-radius: 6px;
   text-decoration: none;
@@ -149,59 +156,64 @@
 
 .btn-primary {
   background: #3498db;
-  color: white;
+  color: #fff;
 }
-
 .btn-primary:hover {
   background: #2980b9;
+  transform: translateY(-2px);
 }
 
 .btn-secondary {
   background: #95a5a6;
-  color: white;
+  color: #fff;
 }
-
 .btn-secondary:hover {
   background: #7f8c8d;
+  transform: translateY(-2px);
 }
 
 .btn-support {
   background: #34495e;
-  color: white;
+  color: #fff;
 }
-
 .btn-support:hover {
   background: #2c3e50;
+  transform: translateY(-2px);
 }
 
+/* --- Responsive Layout --- */
 @media (max-width: 768px) {
   .payment-success-container {
     padding: 1rem;
   }
-  
+
   .payment-status {
     padding: 2rem 1.5rem;
   }
-  
+
   .action-buttons {
     flex-direction: column;
   }
-  
-  .btn-primary, .btn-secondary, .btn-support {
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-support {
     width: 100%;
   }
-  
+
   .step {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .step-number {
     align-self: center;
   }
 }
 
-/* --- Payment Success Navigation Banner (after Browse More Courses click) --- */
+/* ==============================
+   Payment Success Banner on /courses
+   ============================== */
 .payment-success-navigation {
   background: #eafaf1;
   border: 1px solid #d4edda;
@@ -244,7 +256,7 @@
   min-width: 150px;
 }
 
-/* Match styles with PaymentSuccess buttons */
+/* Match PaymentSuccess button styles */
 .home-btn {
   background-color: #3498db;
   color: white;
@@ -263,15 +275,24 @@
   transform: translateY(-2px);
 }
 
+/* Fade-in animation for banners/cards */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
+/* Responsive for banner */
 @media (max-width: 768px) {
   .navigation-buttons {
     flex-direction: column;
   }
+
   .nav-btn {
     width: 100%;
   }
