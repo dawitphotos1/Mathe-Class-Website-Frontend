@@ -1,4 +1,4 @@
-/* src/pages/courses/CourseDetail.css */
+/* 
 .course-detail-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -64,7 +64,7 @@
   border-bottom: 3px solid #007bff;
   font-weight: 600;
 }
-/* Add these styles to your existing CourseDetail.css */
+
 
 .course-meta {
   display: flex;
@@ -140,7 +140,7 @@
   background: #2980b9;
   transform: translateY(-2px);
 }
-/* ---------- EXPANDABLE UNIT CARDS ---------- */
+
 .unit-card {
   background: #f8f9fa;
   border-radius: 12px;
@@ -191,10 +191,9 @@
   margin-left: 1rem;
 }
 
-/* ---------- LESSON LIST WITH PROPER INDENTATION ---------- */
 .lesson-list {
   margin: 0;
-  padding: 1rem 1.5rem 1.5rem 1.5rem; /* Proper left indent */
+  padding: 1rem 1.5rem 1.5rem 1.5rem; 
   list-style: none;
   background: #f8f9fa;
 }
@@ -221,9 +220,9 @@
 }
 
 .lesson-icon {
-  margin-right: 8px; /* Reduced space between 📘 and text */
+  margin-right: 8px; 
   font-size: 1.1rem;
-  min-width: 24px; /* Reduced min-width */
+  min-width: 24px; 
   text-align: center;
   color: #007bff;
   flex-shrink: 0;
@@ -378,13 +377,400 @@
   }
 }
 
-/* Ensure all text alignment is consistent */
+
 .course-content * {
   text-align: left;
 }
 
 .lesson-list,
 .lesson-item,
+.unit-title,
+.curriculum-title {
+  text-align: left !important;
+} */
+
+
+
+
+/* src/pages/courses/CourseDetail.css */
+
+.course-detail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* Payment Success Navigation Styles */
+.payment-success-navigation {
+  background: linear-gradient(135deg, #f8fff8 0%, #f0fff0 100%);
+  border: 2px solid #4CAF50;
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 30px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.1);
+}
+
+.success-banner h3 {
+  color: #2e7d32;
+  margin-bottom: 10px;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.success-banner p {
+  color: #388e3c;
+  margin-bottom: 20px;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.navigation-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.nav-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  min-width: 160px;
+}
+
+.home-btn {
+  background-color: #6c757d;
+  color: white;
+}
+
+.home-btn:hover {
+  background-color: #545b62;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+.courses-btn {
+  background-color: #2196F3;
+  color: white;
+}
+
+.courses-btn:hover {
+  background-color: #1976D2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.browse-btn {
+  background-color: #FF9800;
+  color: white;
+}
+
+.browse-btn:hover {
+  background-color: #F57C00;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+/* Existing Course Detail Styles */
+.course-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 3rem 2rem;
+  border-bottom: 3px solid #e9ecef;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.course-header h1 {
+  font-size: 2.8rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.course-description {
+  font-size: 1.3rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+  opacity: 0.95;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.course-price {
+  font-size: 1.8rem;
+  font-weight: bold;
+  background: rgba(255,255,255,0.2);
+  padding: 0.8rem 2rem;
+  border-radius: 25px;
+  display: inline-block;
+  backdrop-filter: blur(10px);
+  margin-top: 1rem;
+}
+
+.course-content {
+  margin: 3rem 0;
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+}
+
+.curriculum-title {
+  text-align: left;
+  color: #2c3e50;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 3px solid #007bff;
+  font-weight: 600;
+}
+
+.course-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e1e8ed;
+}
+
+.user-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.role-student {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.role-teacher {
+  background: #ffeaa7;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.role-admin {
+  background: #e8d7f7;
+  color: #4a235a;
+  border: 1px solid #d2b4de;
+}
+
+/* ---------- EXPANDABLE UNIT CARDS ---------- */
+.unit-card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  border-left: 6px solid #007bff;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.unit-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.unit-header {
+  padding: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.2s ease;
+}
+
+.unit-header:hover {
+  background-color: #eef4ff;
+}
+
+.unit-title {
+  color: #2c3e50;
+  font-size: 1.3rem;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.unit-toggle {
+  font-size: 1.5rem;
+  color: #007bff;
+  font-weight: bold;
+  margin-left: 1rem;
+}
+
+.lesson-content {
+  padding: 1.5rem;
+  background: white;
+  border-top: 1px solid #e9ecef;
+}
+
+.course-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  align-items: center;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 3px solid #e9ecef;
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+}
+
+.btn-enroll-now {
+  background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+  color: white;
+  padding: 16px 45px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 20px rgba(0, 176, 155, 0.4);
+  min-width: 250px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-enroll-now:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0, 176, 155, 0.6);
+  background: linear-gradient(135deg, #00a18b 0%, #8bc34a 100%);
+}
+
+.btn-enroll-now:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.loading-section, .error-section {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.3rem;
+  color: #6c757d;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+}
+
+.error-section {
+  color: #dc3545;
+}
+
+.error-section h2 {
+  margin-bottom: 1.5rem;
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: #0056b3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .course-detail-container {
+    padding: 1rem;
+  }
+  
+  .course-header {
+    padding: 2rem 1rem;
+  }
+  
+  .course-header h1 {
+    font-size: 2.2rem;
+  }
+  
+  .course-description {
+    font-size: 1.1rem;
+  }
+  
+  .course-content {
+    padding: 1.5rem;
+  }
+  
+  .curriculum-title {
+    font-size: 1.7rem;
+  }
+  
+  .unit-header {
+    padding: 1.2rem;
+  }
+  
+  .unit-title {
+    font-size: 1.1rem;
+  }
+  
+  .payment-success-navigation {
+    padding: 20px 15px;
+    margin-bottom: 20px;
+  }
+  
+  .navigation-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .nav-btn {
+    width: 100%;
+    max-width: 250px;
+  }
+  
+  .btn-enroll-now {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 1rem;
+  }
+  
+  .course-actions {
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+}
+
+/* Ensure all text alignment is consistent */
+.course-content * {
+  text-align: left;
+}
+
 .unit-title,
 .curriculum-title {
   text-align: left !important;
