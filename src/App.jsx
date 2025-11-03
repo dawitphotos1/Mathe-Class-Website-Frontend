@@ -27,7 +27,9 @@ const Courses = React.lazy(() => import("./pages/courses/Courses"));
 const CourseDetail = React.lazy(() => import("./pages/courses/CourseDetail"));
 const CoursePreviewPage = React.lazy(() => import("./pages/CoursePreviewPage"));
 const PaymentPage = React.lazy(() => import("./pages/PaymentPage"));
-const PaymentSuccess = React.lazy(() => import("./pages/payments/PaymentSuccess"));
+const PaymentSuccess = React.lazy(() =>
+  import("./pages/payments/PaymentSuccess")
+);
 const PaymentCancel = React.lazy(() => import("./pages/payments/PaymentCancel"));
 const Cancel = React.lazy(() => import("./pages/payments/Cancel"));
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));

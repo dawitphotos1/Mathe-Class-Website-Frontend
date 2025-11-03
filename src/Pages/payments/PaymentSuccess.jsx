@@ -211,9 +211,7 @@
 
 
 
-
 // src/pages/payment/PaymentSuccess.jsx
-
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -239,39 +237,23 @@ const PaymentSuccess = () => {
     const confirmPayment = async () => {
       try {
         if (!sessionId || !courseId) {
-          console.warn("⚠️ Missing session or course ID for confirmation");
           setStatus("error");
           toast.error("Missing payment/session information.");
           return;
         }
 
         if (!user) {
-          console.warn(
-            "⚠️ No user detected — please log in before confirming payment"
-          );
           setStatus("error");
           toast.error("Please log in again to confirm your payment.");
           return;
         }
-
-        console.log("💰 Confirming payment with backend:", {
-          sessionId,
-          courseId,
-          user: user.email,
-        });
 
         const res = await axiosInstance.post("/payments/confirm", {
           sessionId,
           courseId,
         });
 
-        console.log("🔍 Backend response:", res.data);
-
         if (res?.data?.success) {
-          console.log(
-            "✅ Payment confirmed on backend:",
-            res.data.enrollment || res.data
-          );
           if (!mounted) return;
           setStatus("success");
           setEnrollmentData(res.data.enrollment);
@@ -279,13 +261,11 @@ const PaymentSuccess = () => {
             "Payment confirmed! Enrollment pending admin approval."
           );
         } else {
-          console.error("❌ Payment confirmation failed:", res?.data);
           if (!mounted) return;
           setStatus("error");
           toast.error(res?.data?.error || "Payment confirmation failed.");
         }
       } catch (err) {
-        console.error("❌ Payment confirmation error:", err);
         if (!mounted) return;
         setStatus("error");
         toast.error(
@@ -295,10 +275,8 @@ const PaymentSuccess = () => {
       }
     };
 
-    // Fire off confirmation immediately
     confirmPayment();
 
-    // countdown for the "Go to My Courses" button
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -318,25 +296,22 @@ const PaymentSuccess = () => {
   // ✅ Handle My Courses navigation
   const handleMyCoursesClick = () => {
     if (user?.role === "admin") {
-      navigate("/admin"); // Admin goes to admin dashboard
+      navigate("/admin", { replace: true });
     } else {
-      navigate("/my-courses"); // Student/teacher goes to their courses
+      navigate("/my-courses", { replace: true });
     }
   };
 
-  // ✅ Clean Fix Option 1 — always go to the main /courses list
-  // ✅ Always go to the course listing, not a specific course
+  // ✅ Force redirect to course list (not a specific course)
   const handleBrowseCoursesClick = () => {
     if (user?.role === "admin") {
-      navigate("/admin/courses", {
-        state: { fromPayment: true },
-        replace: true,
-      });
+      navigate("/admin/courses", { replace: true });
     } else {
-      // 🚀 Force a clean redirect to /courses and reload to reset any cached state
+      // Full reload to ensure we land on /courses, not /courses/:slug
+      sessionStorage.removeItem("selectedCourse");
       navigate("/courses?fromPayment=true", { replace: true });
       setTimeout(() => {
-        window.location.href = "/courses?fromPayment=true";
+        window.location.assign("/courses?fromPayment=true");
       }, 50);
     }
   };
@@ -415,8 +390,8 @@ const PaymentSuccess = () => {
               <div className="step-content">
                 <strong>Admin Approval</strong>
                 <p>
-                  An admin will review and approve the enrollment. Once
-                  approved, you'll get access.
+                  An admin will review and approve the enrollment. Once approved,
+                  you'll get full access to the course.
                 </p>
               </div>
             </div>
@@ -459,7 +434,6 @@ const PaymentSuccess = () => {
               : "Go to My Courses"}
           </button>
 
-          {/* 🆕 Clean redirect to /courses */}
           <button className="btn-secondary" onClick={handleBrowseCoursesClick}>
             Browse More Courses
           </button>

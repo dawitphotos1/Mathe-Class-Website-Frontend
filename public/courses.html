@@ -1,6 +1,6 @@
 
 <!-- public/ courses.htm -->
-
+<!-- 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -403,6 +403,431 @@
         
         // Auto-expand the first unit
         document.querySelector('.unit').classList.add('active');
+    </script>
+</body>
+</html> -->
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Courses</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .nav-buttons {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        
+        .nav-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .courses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .course-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .course-image {
+            height: 180px;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6a11cb;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #6a11cb;
+        }
+        
+        .course-content {
+            padding: 20px;
+        }
+        
+        .course-content h3 {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .course-content p {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+        
+        .course-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #777;
+        }
+        
+        .price {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #6a11cb;
+            margin-bottom: 15px;
+        }
+        
+        .enroll-btn {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            width: 100%;
+        }
+        
+        .enroll-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(106, 17, 203, 0.3);
+        }
+        
+        .enrolled-badge {
+            background-color: #28a745;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        .search-filter {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        .search-box {
+            flex: 1;
+            max-width: 400px;
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px 12px 40px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+        }
+        
+        .filter-options {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .filter-btn {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .filter-btn:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .filter-btn.active {
+            background-color: #6a11cb;
+            color: white;
+            border-color: #6a11cb;
+        }
+        
+        @media (max-width: 768px) {
+            .courses-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-filter {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                max-width: 100%;
+            }
+            
+            .filter-options {
+                justify-content: center;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .nav-buttons {
+                position: static;
+                justify-content: center;
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-btn">Return to Home</a>
+            <a href="my-courses.html" class="nav-btn">View My Courses</a>
+        </div>
+        <div class="container">
+            <h1>Available Courses</h1>
+            <p>Browse our comprehensive course catalog and continue your learning journey</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="search-filter">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" placeholder="Search courses...">
+            </div>
+            <div class="filter-options">
+                <button class="filter-btn active">All Courses</button>
+                <button class="filter-btn">Math</button>
+                <button class="filter-btn">Science</button>
+                <button class="filter-btn">Languages</button>
+            </div>
+        </div>
+        
+        <div class="courses-grid">
+            <!-- Algebra 1 Course -->
+            <div class="course-card">
+                <div class="course-image">
+                    Algebra 1
+                </div>
+                <div class="course-content">
+                    <h3>Algebra 1</h3>
+                    <p>Master the fundamentals of algebra with our comprehensive course covering variables, equations, and functions.</p>
+                    <div class="course-meta">
+                        <span>12 Units</span>
+                        <span>45 Lessons</span>
+                    </div>
+                    <div class="price">$1200.00</div>
+                    <button class="enroll-btn">Enroll Now</button>
+                    <div class="enrolled-badge">Enrolled - Pending Approval</div>
+                </div>
+            </div>
+            
+            <!-- Geometry Course -->
+            <div class="course-card">
+                <div class="course-image">
+                    Geometry
+                </div>
+                <div class="course-content">
+                    <h3>Geometry</h3>
+                    <p>Explore the world of shapes, angles, and proofs in this comprehensive geometry course.</p>
+                    <div class="course-meta">
+                        <span>10 Units</span>
+                        <span>38 Lessons</span>
+                    </div>
+                    <div class="price">$1100.00</div>
+                    <button class="enroll-btn">Enroll Now</button>
+                </div>
+            </div>
+            
+            <!-- Calculus Course -->
+            <div class="course-card">
+                <div class="course-image">
+                    Calculus
+                </div>
+                <div class="course-content">
+                    <h3>Calculus</h3>
+                    <p>Dive into the world of limits, derivatives, and integrals with our expert-led calculus course.</p>
+                    <div class="course-meta">
+                        <span>15 Units</span>
+                        <span>52 Lessons</span>
+                    </div>
+                    <div class="price">$1400.00</div>
+                    <button class="enroll-btn">Enroll Now</button>
+                </div>
+            </div>
+            
+            <!-- Physics Course -->
+            <div class="course-card">
+                <div class="course-image">
+                    Physics
+                </div>
+                <div class="course-content">
+                    <h3>Physics</h3>
+                    <p>Understand the fundamental laws of the universe through hands-on experiments and problem-solving.</p>
+                    <div class="course-meta">
+                        <span>14 Units</span>
+                        <span>48 Lessons</span>
+                    </div>
+                    <div class="price">$1300.00</div>
+                    <button class="enroll-btn">Enroll Now</button>
+                </div>
+            </div>
+            
+            <!-- Chemistry Course -->
+            <div class="course-card">
+                <div class="course-image">
+                    Chemistry
+                </div>
+                <div class="course-content">
+                    <h3>Chemistry</h3>
+                    <p>Explore the building blocks of matter through chemical reactions, equations, and lab work.</p>
+                    <div class="course-meta">
+                        <span>12 Units</span>
+                        <span>42 Lessons</span>
+                    </div>
+                    <div class="price">$1250.00</div>
+                    <button class="enroll-btn">Enroll Now</button>
+                </div>
+            </div>
+            
+            <!-- English Literature Course -->
+            <div class="course-card">
+                <div class="course-image">
+                    English Literature
+                </div>
+                <div class="course-content">
+                    <h3>English Literature</h3>
+                    <p>Analyze classic and contemporary literary works to develop critical thinking and writing skills.</p>
+                    <div class="course-meta">
+                        <span>11 Units</span>
+                        <span>40 Lessons</span>
+                    </div>
+                    <div class="price">$1150.00</div>
+                    <button class="enroll-btn">Enroll Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Filter functionality
+        document.querySelectorAll('.filter-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Add active class to clicked button
+                button.classList.add('active');
+                
+                // In a real implementation, this would filter the courses
+                // For this demo, we'll just log the filter
+                console.log(`Filtering by: ${button.textContent}`);
+            });
+        });
+        
+        // Search functionality
+        const searchInput = document.querySelector('.search-box input');
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            // In a real implementation, this would filter courses based on search term
+            // For this demo, we'll just log the search term
+            console.log(`Searching for: ${searchTerm}`);
+        });
+        
+        // Enroll button functionality
+        document.querySelectorAll('.enroll-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const courseTitle = button.closest('.course-card').querySelector('h3').textContent;
+                
+                // In a real implementation, this would redirect to payment page
+                // For this demo, we'll just show an alert
+                alert(`Redirecting to payment for ${courseTitle}`);
+                
+                // After payment, user would see the success message with:
+                // "🎉 Payment Successful! Your enrollment has been received and is pending admin approval."
+                // Then they could click "Browse More Courses" or "View My Courses"
+            });
+        });
     </script>
 </body>
 </html>
