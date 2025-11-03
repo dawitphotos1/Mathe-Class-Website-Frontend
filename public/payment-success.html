@@ -300,17 +300,17 @@
     const token = localStorage.getItem("token");
     const card = document.getElementById("status-card");
 
-    console.log("🔍 HTML Payment Success Debug:");
-    console.log("📍 Current URL:", window.location.href);
-    console.log("💰 Session ID:", sessionId);
-    console.log("📚 Course ID:", courseId);
-
-    // Navigation function for Browse More Courses
+    // Navigation functions
     function navigateToMainCourses() {
       console.log("🔗 Navigating to MAIN courses listing page...");
-      console.log("📍 Going to: /courses?fromPayment=true");
       // Navigate to the main courses page with payment parameter
       window.location.href = '/courses?fromPayment=true';
+    }
+
+    function navigateToMyCourses() {
+      console.log("🎯 Navigating to My Courses page...");
+      // Navigate to the student's enrolled courses
+      window.location.href = '/my-courses';
     }
 
     async function confirmPayment() {
@@ -368,7 +368,7 @@
         <p>${message}</p>
         <div class="button-group">
           <button class="btn" onclick="navigateToMainCourses()">Browse More Courses</button>
-          <button class="btn btn-secondary" onclick="window.location.href='/my-courses'">View My Courses</button>
+          <button class="btn btn-secondary" onclick="navigateToMyCourses()">View My Courses</button>
           <a href="mailto:support@matheclass.com" class="btn btn-support">Contact Support</a>
         </div>
       `;

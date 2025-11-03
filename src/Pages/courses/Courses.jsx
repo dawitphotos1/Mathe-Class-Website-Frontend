@@ -174,6 +174,10 @@ const Courses = () => {
     navigate(`/payment/${id}`);
   };
 
+  const handleCourseClick = (slug) => {
+    navigate(`/courses/${slug}`);
+  };
+
   if (loading) {
     return (
       <div className="courses">
@@ -203,7 +207,7 @@ const Courses = () => {
 
         <h1>Available Courses</h1>
         <div className="course-list">
-          {[1, 2, 3].map((i) => (
+          {[1, 2, 3, 4, 5, 6].map((i) => (
             <CourseSkeleton key={i} />
           ))}
         </div>
@@ -267,14 +271,26 @@ const Courses = () => {
       )}
 
       <h1>Available Courses</h1>
+      <p className="courses-subtitle">Browse all available math courses and find the perfect one for you</p>
+      
       <div className="course-list">
         {courses.map((course) => (
           <div key={course.id || course._id} className="course-item">
-            <h2>{course.title}</h2>
-            <p>{course.description}</p>
-            <p className="course-price">
-              Price: ${parseFloat(course.price || 0).toFixed(2)}
-            </p>
+            <div className="course-header" onClick={() => handleCourseClick(course.slug)}>
+              <h2>{course.title}</h2>
+              <p className="course-description">{course.description}</p>
+            </div>
+            
+            <div className="course-details">
+              <p className="course-price">
+                Price: ${parseFloat(course.price || 0).toFixed(2)}
+              </p>
+              {course.teacher && (
+                <p className="course-teacher">
+                  Instructor: {course.teacher.name}
+                </p>
+              )}
+            </div>
 
             <div className="course-actions">
               <button

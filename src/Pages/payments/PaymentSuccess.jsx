@@ -211,6 +211,7 @@
 
 
 
+
 // src/pages/payment/PaymentSuccess.jsx
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -230,15 +231,6 @@ const PaymentSuccess = () => {
   const [status, setStatus] = useState("processing");
   const [countdown, setCountdown] = useState(10);
   const [enrollmentData, setEnrollmentData] = useState(null);
-
-  // Debug: Check what's happening
-  useEffect(() => {
-    console.log("🔍 PaymentSuccess Debug:");
-    console.log("📍 Current URL:", window.location.href);
-    console.log("🎯 User role:", user?.role);
-    console.log("💰 Session ID:", sessionId);
-    console.log("📚 Course ID:", courseId);
-  }, [user, sessionId, courseId]);
 
   useEffect(() => {
     let mounted = true;
@@ -312,20 +304,15 @@ const PaymentSuccess = () => {
     };
   }, [sessionId, courseId, user]);
 
-  // Handle button clicks based on user role
+  // Handle button clicks
   const handleMyCoursesClick = () => {
-    console.log("🎯 Navigating to My Courses");
-    if (user?.role === 'admin') {
-      navigate('/admin');
-    } else {
-      navigate('/my-courses');
-    }
+    console.log("🎯 Navigating to My Courses page");
+    // Navigate to the student's enrolled courses page
+    navigate('/my-courses');
   };
 
   const handleBrowseCoursesClick = () => {
     console.log("🔄 Navigating to MAIN COURSES LISTING page");
-    console.log("📍 Should go to: /courses");
-    
     // Force navigation to main courses listing page
     navigate('/courses', { 
       state: { fromPayment: true }
@@ -415,7 +402,7 @@ const PaymentSuccess = () => {
 
         <div className="action-buttons">
           <button className="btn-primary" onClick={handleMyCoursesClick}>
-            {countdown > 0 ? `Go to My Courses (${countdown})` : "Go to My Courses"}
+            {countdown > 0 ? `View My Courses (${countdown})` : "View My Courses"}
           </button>
           <button 
             className="btn-secondary" 
