@@ -409,13 +409,12 @@
 
 
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Available Courses</title>
+    <title>Mathematics Courses</title>
     <style>
         * {
             margin: 0;
@@ -502,12 +501,13 @@
         
         .course-image {
             height: 180px;
-            background-color: #e9ecef;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #6a11cb;
-            font-size: 1.2rem;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
             border-bottom: 2px solid #6a11cb;
         }
         
@@ -661,8 +661,8 @@
             <a href="my-courses.html" class="nav-btn">View My Courses</a>
         </div>
         <div class="container">
-            <h1>Available Courses</h1>
-            <p>Browse our comprehensive course catalog and continue your learning journey</p>
+            <h1>Mathematics Courses</h1>
+            <p>Advance your mathematical skills with our comprehensive curriculum</p>
         </div>
     </header>
     
@@ -670,13 +670,13 @@
         <div class="search-filter">
             <div class="search-box">
                 <span class="search-icon">🔍</span>
-                <input type="text" placeholder="Search courses...">
+                <input type="text" placeholder="Search mathematics courses...">
             </div>
             <div class="filter-options">
                 <button class="filter-btn active">All Courses</button>
-                <button class="filter-btn">Math</button>
-                <button class="filter-btn">Science</button>
-                <button class="filter-btn">Languages</button>
+                <button class="filter-btn">Algebra</button>
+                <button class="filter-btn">Calculus</button>
+                <button class="filter-btn">Geometry</button>
             </div>
         </div>
         
@@ -688,7 +688,7 @@
                 </div>
                 <div class="course-content">
                     <h3>Algebra 1</h3>
-                    <p>Master the fundamentals of algebra with our comprehensive course covering variables, equations, and functions.</p>
+                    <p>Master the fundamentals of algebra including variables, equations, functions, and graphing. Build a strong foundation for advanced mathematics.</p>
                     <div class="course-meta">
                         <span>12 Units</span>
                         <span>45 Lessons</span>
@@ -699,19 +699,36 @@
                 </div>
             </div>
             
-            <!-- Geometry Course -->
+            <!-- Algebra 2 Course -->
             <div class="course-card">
                 <div class="course-image">
-                    Geometry
+                    Algebra 2
                 </div>
                 <div class="course-content">
-                    <h3>Geometry</h3>
-                    <p>Explore the world of shapes, angles, and proofs in this comprehensive geometry course.</p>
+                    <h3>Algebra 2</h3>
+                    <p>Expand your algebraic knowledge with polynomials, complex numbers, logarithmic functions, and conic sections.</p>
                     <div class="course-meta">
-                        <span>10 Units</span>
-                        <span>38 Lessons</span>
+                        <span>14 Units</span>
+                        <span>52 Lessons</span>
                     </div>
-                    <div class="price">$1100.00</div>
+                    <div class="price">$1200.00</div>
+                    <button class="enroll-btn">Enroll Now</button>
+                </div>
+            </div>
+            
+            <!-- Pre-Calculus Course -->
+            <div class="course-card">
+                <div class="course-image">
+                    Pre-Calculus
+                </div>
+                <div class="course-content">
+                    <h3>Pre-Calculus</h3>
+                    <p>Bridge the gap between Algebra and Calculus with trigonometry, vectors, matrices, and mathematical analysis.</p>
+                    <div class="course-meta">
+                        <span>15 Units</span>
+                        <span>58 Lessons</span>
+                    </div>
+                    <div class="price">$1200.00</div>
                     <button class="enroll-btn">Enroll Now</button>
                 </div>
             </div>
@@ -723,63 +740,46 @@
                 </div>
                 <div class="course-content">
                     <h3>Calculus</h3>
-                    <p>Dive into the world of limits, derivatives, and integrals with our expert-led calculus course.</p>
+                    <p>Dive into the world of limits, derivatives, integrals, and their applications in science and engineering.</p>
                     <div class="course-meta">
-                        <span>15 Units</span>
-                        <span>52 Lessons</span>
-                    </div>
-                    <div class="price">$1400.00</div>
-                    <button class="enroll-btn">Enroll Now</button>
-                </div>
-            </div>
-            
-            <!-- Physics Course -->
-            <div class="course-card">
-                <div class="course-image">
-                    Physics
-                </div>
-                <div class="course-content">
-                    <h3>Physics</h3>
-                    <p>Understand the fundamental laws of the universe through hands-on experiments and problem-solving.</p>
-                    <div class="course-meta">
-                        <span>14 Units</span>
-                        <span>48 Lessons</span>
-                    </div>
-                    <div class="price">$1300.00</div>
-                    <button class="enroll-btn">Enroll Now</button>
-                </div>
-            </div>
-            
-            <!-- Chemistry Course -->
-            <div class="course-card">
-                <div class="course-image">
-                    Chemistry
-                </div>
-                <div class="course-content">
-                    <h3>Chemistry</h3>
-                    <p>Explore the building blocks of matter through chemical reactions, equations, and lab work.</p>
-                    <div class="course-meta">
-                        <span>12 Units</span>
-                        <span>42 Lessons</span>
+                        <span>16 Units</span>
+                        <span>60 Lessons</span>
                     </div>
                     <div class="price">$1250.00</div>
                     <button class="enroll-btn">Enroll Now</button>
                 </div>
             </div>
             
-            <!-- English Literature Course -->
+            <!-- Geometry & Trigonometry Course -->
             <div class="course-card">
                 <div class="course-image">
-                    English Literature
+                    Geometry & Trigonometry
                 </div>
                 <div class="course-content">
-                    <h3>English Literature</h3>
-                    <p>Analyze classic and contemporary literary works to develop critical thinking and writing skills.</p>
+                    <h3>Geometry & Trigonometry</h3>
+                    <p>Explore geometric shapes, proofs, trigonometric functions, identities, and their real-world applications.</p>
+                    <div class="course-meta">
+                        <span>13 Units</span>
+                        <span>48 Lessons</span>
+                    </div>
+                    <div class="price">$1250.00</div>
+                    <button class="enroll-btn">Enroll Now</button>
+                </div>
+            </div>
+            
+            <!-- Statistics & Probability Course -->
+            <div class="course-card">
+                <div class="course-image">
+                    Statistics & Probability
+                </div>
+                <div class="course-content">
+                    <h3>Statistics & Probability</h3>
+                    <p>Learn data analysis, statistical inference, probability theory, and their applications in decision making.</p>
                     <div class="course-meta">
                         <span>11 Units</span>
-                        <span>40 Lessons</span>
+                        <span>42 Lessons</span>
                     </div>
-                    <div class="price">$1150.00</div>
+                    <div class="price">$1250.00</div>
                     <button class="enroll-btn">Enroll Now</button>
                 </div>
             </div>
@@ -798,9 +798,26 @@
                 // Add active class to clicked button
                 button.classList.add('active');
                 
-                // In a real implementation, this would filter the courses
-                // For this demo, we'll just log the filter
-                console.log(`Filtering by: ${button.textContent}`);
+                // Get filter text
+                const filter = button.textContent;
+                const courses = document.querySelectorAll('.course-card');
+                
+                // Show/hide courses based on filter
+                courses.forEach(course => {
+                    const courseTitle = course.querySelector('h3').textContent;
+                    
+                    if (filter === 'All Courses') {
+                        course.style.display = 'block';
+                    } else if (filter === 'Algebra' && (courseTitle.includes('Algebra') || courseTitle.includes('Pre-Calculus'))) {
+                        course.style.display = 'block';
+                    } else if (filter === 'Calculus' && (courseTitle.includes('Calculus') || courseTitle.includes('Pre-Calculus'))) {
+                        course.style.display = 'block';
+                    } else if (filter === 'Geometry' && courseTitle.includes('Geometry')) {
+                        course.style.display = 'block';
+                    } else if (filter !== 'All Courses') {
+                        course.style.display = 'none';
+                    }
+                });
             });
         });
         
@@ -808,24 +825,42 @@
         const searchInput = document.querySelector('.search-box input');
         searchInput.addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase();
+            const courses = document.querySelectorAll('.course-card');
             
-            // In a real implementation, this would filter courses based on search term
-            // For this demo, we'll just log the search term
-            console.log(`Searching for: ${searchTerm}`);
+            courses.forEach(course => {
+                const courseTitle = course.querySelector('h3').textContent.toLowerCase();
+                const courseDescription = course.querySelector('p').textContent.toLowerCase();
+                
+                if (courseTitle.includes(searchTerm) || courseDescription.includes(searchTerm)) {
+                    course.style.display = 'block';
+                } else {
+                    course.style.display = 'none';
+                }
+            });
         });
         
         // Enroll button functionality
         document.querySelectorAll('.enroll-btn').forEach(button => {
             button.addEventListener('click', () => {
                 const courseTitle = button.closest('.course-card').querySelector('h3').textContent;
+                const coursePrice = button.closest('.course-card').querySelector('.price').textContent;
                 
-                // In a real implementation, this would redirect to payment page
-                // For this demo, we'll just show an alert
-                alert(`Redirecting to payment for ${courseTitle}`);
-                
-                // After payment, user would see the success message with:
-                // "🎉 Payment Successful! Your enrollment has been received and is pending admin approval."
-                // Then they could click "Browse More Courses" or "View My Courses"
+                // Show payment confirmation
+                if (confirm(`You are about to enroll in ${courseTitle} for ${coursePrice}. Continue to payment?`)) {
+                    // In a real implementation, this would redirect to payment page
+                    // After payment, user would see the success message with:
+                    // "🎉 Payment Successful! Your enrollment has been received and is pending admin approval."
+                    // Then they could click "Browse More Courses" or "View My Courses"
+                    
+                    // For this demo, we'll simulate successful enrollment
+                    button.style.display = 'none';
+                    const badge = document.createElement('div');
+                    badge.className = 'enrolled-badge';
+                    badge.textContent = 'Enrolled - Pending Approval';
+                    button.parentNode.appendChild(badge);
+                    
+                    alert(`🎉 Payment Successful!\nYour enrollment in ${courseTitle} has been received and is pending admin approval.`);
+                }
             });
         });
     </script>
