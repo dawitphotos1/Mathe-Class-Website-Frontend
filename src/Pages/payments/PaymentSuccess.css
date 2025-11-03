@@ -200,3 +200,79 @@
     align-self: center;
   }
 }
+
+/* --- Payment Success Navigation Banner (after Browse More Courses click) --- */
+.payment-success-navigation {
+  background: #eafaf1;
+  border: 1px solid #d4edda;
+  border-left: 6px solid #2ecc71;
+  border-radius: 10px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+.success-banner h3 {
+  color: #27ae60;
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.success-banner p {
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+}
+
+.navigation-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.nav-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  min-width: 150px;
+}
+
+/* Match styles with PaymentSuccess buttons */
+.home-btn {
+  background-color: #3498db;
+  color: white;
+}
+.home-btn:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+}
+
+.courses-btn {
+  background-color: #2ecc71;
+  color: white;
+}
+.courses-btn:hover {
+  background-color: #27ae60;
+  transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .navigation-buttons {
+    flex-direction: column;
+  }
+  .nav-btn {
+    width: 100%;
+  }
+}
