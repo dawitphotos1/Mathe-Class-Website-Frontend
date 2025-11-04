@@ -1,0 +1,198 @@
+.file-manager-container {
+  min-height: 100vh;
+  background: var(--bg-color, #f5f5f5);
+}
+
+.file-manager-container.dark-mode {
+  background: var(--dark-bg, #1a1a1a);
+  color: var(--dark-text, #ffffff);
+}
+
+/* Stats Cards */
+.stats-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: var(--card-bg, #ffffff);
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dark-mode .stats-card {
+  background: var(--dark-card-bg, #2d2d2d);
+  color: var(--dark-text, #ffffff);
+}
+
+/* Buttons */
+.upload-button,
+.refresh-button {
+  border-radius: 8px;
+  text-transform: none;
+  font-weight: 500;
+}
+
+.upload-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.upload-button:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+/* Table Styles */
+.files-table-container {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dark-mode .files-table-container {
+  background: var(--dark-card-bg, #2d2d2d);
+}
+
+.file-row:hover {
+  background: var(--hover-bg, #f8f9fa);
+}
+
+.dark-mode .file-row:hover {
+  background: var(--dark-hover, #3d3d3d);
+}
+
+/* File Name */
+.file-name {
+  font-weight: 500;
+  color: var(--text-primary, #333);
+}
+
+.dark-mode .file-name {
+  color: var(--dark-text, #ffffff);
+}
+
+/* File Type Chip */
+.file-type-chip {
+  font-size: 0.75rem;
+}
+
+/* Action Buttons */
+.action-btn {
+  transition: all 0.2s ease;
+  margin: 0 2px;
+}
+
+.action-btn:hover {
+  transform: scale(1.1);
+}
+
+.preview-btn:hover {
+  color: #1976d2;
+}
+
+.download-btn:hover {
+  color: #2e7d32;
+}
+
+.delete-btn:hover {
+  color: #d32f2f;
+}
+
+/* No Files Message */
+.no-files-message {
+  color: var(--text-secondary, #666);
+}
+
+.dark-mode .no-files-message {
+  color: var(--dark-text-secondary, #aaa);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .file-manager-container {
+    padding: 1rem;
+  }
+  
+  .files-table-container {
+    font-size: 0.875rem;
+  }
+  
+  .action-cells {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .file-name {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .file-manager-container {
+    padding: 0.5rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .file-name {
+    max-width: 120px;
+  }
+}
+
+/* Loading States */
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+/* Error States */
+.error-state {
+  text-align: center;
+  padding: 2rem;
+  color: #d32f2f;
+}
+
+.dark-mode .error-state {
+  color: #f44336;
+}
+
+/* Success States */
+.success-state {
+  text-align: center;
+  padding: 2rem;
+  color: #2e7d32;
+}
+
+.dark-mode .success-state {
+  color: #4caf50;
+}
+
+/* Dialog Styles */
+.delete-dialog .MuiDialog-paper {
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.dark-mode .delete-dialog .MuiDialog-paper {
+  background: var(--dark-card-bg, #2d2d2d);
+  color: var(--dark-text, #ffffff);
+}
+
+/* File Size and Date */
+.file-size,
+.file-date {
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 0.875rem;
+  color: var(--text-secondary, #666);
+}
+
+.dark-mode .file-size,
+.dark-mode .file-date {
+  color: var(--dark-text-secondary, #aaa);
+}

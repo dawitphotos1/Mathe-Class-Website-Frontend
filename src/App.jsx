@@ -1,4 +1,3 @@
-
 // // src/App.jsx
 // import React, { Suspense } from "react";
 // import { Routes, Route, Navigate } from "react-router-dom";
@@ -12,10 +11,12 @@
 // import Contact from "./components/Contact";
 // import AdminLayout from "./components/AdminLayout";
 // import PendingStudents from "./components/PendingStudents";
+// import PendingEnrollments from "./components/PendingEnrollments"; // ✅ FIXED IMPORT
 // import CSSDebug from "./components/CSSDebug";
 // import ConfirmAccount from "./pages/ConfirmAccount";
 // import "./pages/AdminDashboard.css";
-// import 'react-toastify/dist/ReactToastify.css';
+// import "react-toastify/dist/ReactToastify.css";
+// import FileManager from "./components/FileManager";
 
 // // ✅ Lazy-loaded pages
 // const Home = React.lazy(() => import("./pages/Home"));
@@ -46,10 +47,16 @@
 // const AdminLessonLogs = React.lazy(() => import("./pages/AdminLessonLogs"));
 // const NotFound = React.lazy(() => import("./pages/NotFound"));
 // const EditCourse = React.lazy(() => import("./pages/teachers/EditCourse"));
-// const MyTeachingCourses = React.lazy(() => import("./pages/teachers/MyTeachingCourses"));
-// const TeacherCourseProgress = React.lazy(() => import("./pages/courses/TeacherCourseProgress"));
+// const MyTeachingCourses = React.lazy(() =>
+//   import("./pages/teachers/MyTeachingCourses")
+// );
+// const TeacherCourseProgress = React.lazy(() =>
+//   import("./pages/courses/TeacherCourseProgress")
+// );
 // const EditLesson = React.lazy(() => import("./pages/teachers/EditLesson"));
-// const LessonCreationForm = React.lazy(() => import("./components/LessonCreationForm"));
+// const LessonCreationForm = React.lazy(() =>
+//   import("./components/LessonCreationForm")
+// );
 
 // /* -------------------- PublicRoute -------------------- */
 // const PublicRoute = ({ children }) => {
@@ -121,32 +128,27 @@
 //                 </PublicRoute>
 //               }
 //             />
-//             {/* ✅ Added Forgot + Reset Password Routes */}
 //             <Route path="/forgot-password" element={<ForgotPassword />} />
 //             <Route path="/reset-password" element={<ResetPassword />} />
-
 //             <Route path="/contact" element={<Contact />} />
 //             <Route path="/courses" element={<Courses />} />
 //             <Route path="/courses/:slug" element={<CourseDetail />} />
 //             <Route path="/unauthorized" element={<Unauthorized />} />
-
-//             {/* Course Preview Route */}
 //             <Route
 //               path="/courses/:courseId/preview"
 //               element={<CoursePreviewPage />}
 //             />
-
-//             {/* ✅ Fixed Payment Route */}
 //             <Route path="/payment/:courseId" element={<PaymentPage />} />
 //             <Route path="/payment-success" element={<PaymentSuccess />} />
 //             <Route path="/payment-cancel" element={<PaymentCancel />} />
 //             <Route path="/cancel" element={<Cancel />} />
 //             <Route path="/confirm-account" element={<ConfirmAccount />} />
+//             <Route path= "/admin/file-manager"  element: {<FileManager />} />
 
 //             {/* Dashboards */}
 //             <Route path="/dashboard" element={<RoleBasedRedirect />} />
 
-//             {/* Admin Routes */}
+//             {/* ---------------- Admin Routes ---------------- */}
 //             <Route
 //               path="/admin/*"
 //               element={
@@ -157,24 +159,14 @@
 //             >
 //               <Route index element={<AdminDashboard />} />
 //               <Route path="pending-students" element={<PendingStudents />} />
+//               <Route path="pending-enrollments" element={<PendingEnrollments />} /> {/* ✅ FIXED */}
 //               <Route path="manage-courses" element={<ManageCourses />} />
 //               <Route path="manage-users" element={<ManageUsers />} />
 //               <Route path="lesson-logs" element={<AdminLessonLogs />} />
 //               <Route path="files" element={<FileManager />} />
-//               <Route
-//                 path="/admin/enrollments"
-//                 element={<PendingEnrollments />}
-//               />
 //             </Route>
-//             <Route
-//               path="/admin/pending-enrollments"
-//               element={<PendingEnrollments />}
-//             />
-//             <Route
-//               path="/admin/manage-enrollments"
-//               element={<ManageEnrollments />}
-//             />
-//             {/* Teacher Routes */}
+
+//             {/* ---------------- Teacher Routes ---------------- */}
 //             <Route
 //               path="/teacher-dashboard"
 //               element={
@@ -232,7 +224,7 @@
 //               }
 //             />
 
-//             {/* Student Routes */}
+//             {/* ---------------- Student Routes ---------------- */}
 //             <Route
 //               path="/my-courses"
 //               element={
@@ -273,7 +265,6 @@
 //           </Routes>
 //         </Suspense>
 
-//         {/* ✅ Fixed ToastContainer with proper configuration */}
 //         <ToastContainer
 //           position="top-right"
 //           autoClose={5000}
@@ -308,7 +299,6 @@
 
 
 
-// src/App.jsx
 import React, { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
@@ -321,7 +311,7 @@ import Loading from "./components/Loading";
 import Contact from "./components/Contact";
 import AdminLayout from "./components/AdminLayout";
 import PendingStudents from "./components/PendingStudents";
-import PendingEnrollments from "./components/PendingEnrollments"; // ✅ FIXED IMPORT
+import PendingEnrollments from "./components/PendingEnrollments";
 import CSSDebug from "./components/CSSDebug";
 import ConfirmAccount from "./pages/ConfirmAccount";
 import "./pages/AdminDashboard.css";
@@ -340,7 +330,9 @@ const PaymentPage = React.lazy(() => import("./pages/PaymentPage"));
 const PaymentSuccess = React.lazy(() =>
   import("./pages/payments/PaymentSuccess")
 );
-const PaymentCancel = React.lazy(() => import("./pages/payments/PaymentCancel"));
+const PaymentCancel = React.lazy(() =>
+  import("./pages/payments/PaymentCancel")
+);
 const Cancel = React.lazy(() => import("./pages/payments/Cancel"));
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
 const ManageCourses = React.lazy(() => import("./pages/AdminManageCourses"));
@@ -348,7 +340,7 @@ const ManageUsers = React.lazy(() => import("./pages/AdminManageUsers"));
 const CourseViewer = React.lazy(() => import("./pages/courses/CourseViewer"));
 const Profile = React.lazy(() => import("./pages/users/Profile"));
 const Unauthorized = React.lazy(() => import("./pages/Unauthorized"));
-const FileManager = React.lazy(() => import("./pages/FileManager"));
+const FileManager = React.lazy(() => import("./components/FileManager")); // ✅ FIXED IMPORT PATH
 const ManageLessons = React.lazy(() => import("./pages/ManageLessons"));
 const CreateCourse = React.lazy(() => import("./pages/CreateCourse"));
 const CourseLessons = React.lazy(() => import("./pages/CourseLessons"));
@@ -467,11 +459,15 @@ function AppContent() {
             >
               <Route index element={<AdminDashboard />} />
               <Route path="pending-students" element={<PendingStudents />} />
-              <Route path="pending-enrollments" element={<PendingEnrollments />} /> {/* ✅ FIXED */}
+              <Route
+                path="pending-enrollments"
+                element={<PendingEnrollments />}
+              />
               <Route path="manage-courses" element={<ManageCourses />} />
               <Route path="manage-users" element={<ManageUsers />} />
               <Route path="lesson-logs" element={<AdminLessonLogs />} />
-              <Route path="files" element={<FileManager />} />
+              <Route path="file-manager" element={<FileManager />} />{" "}
+              {/* ✅ CORRECTED */}
             </Route>
 
             {/* ---------------- Teacher Routes ---------------- */}

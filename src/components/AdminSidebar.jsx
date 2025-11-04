@@ -1,4 +1,5 @@
 // // src/components/AdminSidebar.jsx
+
 // import React, { useState, useEffect } from "react";
 // import { Link, useLocation } from "react-router-dom";
 // import { useAuth } from "../context/AuthContext";
@@ -8,6 +9,7 @@
 //   FaBookOpen,
 //   FaFileAlt,
 //   FaCheckCircle,
+//   FaGraduationCap,
 //   FaChevronLeft,
 //   FaChevronRight,
 // } from "react-icons/fa";
@@ -35,12 +37,18 @@
 
 //   if (!user || user.role !== "admin") return null;
 
+//   // ✅ Updated nav items with new "Pending Enrollments"
 //   const navItems = [
 //     { path: "/admin", label: "Dashboard", icon: <FaTachometerAlt /> },
 //     {
 //       path: "/admin/pending-students",
 //       label: "Pending Approvals",
 //       icon: <FaCheckCircle />,
+//     },
+//     {
+//       path: "/admin/pending-enrollments",
+//       label: "Pending Enrollments",
+//       icon: <FaGraduationCap />,
 //     },
 //     {
 //       path: "/admin/manage-courses",
@@ -109,10 +117,7 @@
 // export default AdminSidebar;
 
 
-
-
-
-
+// src/components/AdminSidebar.jsx
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -150,7 +155,7 @@ const AdminSidebar = () => {
 
   if (!user || user.role !== "admin") return null;
 
-  // ✅ Updated nav items with new "Pending Enrollments"
+  // ✅ Updated nav items with File Manager
   const navItems = [
     { path: "/admin", label: "Dashboard", icon: <FaTachometerAlt /> },
     {
@@ -169,7 +174,7 @@ const AdminSidebar = () => {
       icon: <FaBookOpen />,
     },
     { path: "/admin/manage-users", label: "Manage Users", icon: <FaUsers /> },
-    { path: "/admin/files", label: "File Manager", icon: <FaFileAlt /> },
+    { path: "/admin/file-manager", label: "File Manager", icon: <FaFileAlt /> }, // ✅ ADDED
   ];
 
   return (
