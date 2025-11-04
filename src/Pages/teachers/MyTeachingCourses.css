@@ -1,4 +1,4 @@
-.my-teaching-courses {
+/* .my-teaching-courses {
   padding: 2rem;
   max-width: 1200px;
   margin: auto;
@@ -7,14 +7,14 @@
   color: #333;
 }
 
-/* Grid layout */
+
 .course-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.5rem;
 }
 
-/* Course Card */
+
 .course-card {
   background: #fff;
   padding: 1.5rem;
@@ -27,7 +27,7 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
 }
 
-/* Course Actions */
+
 .course-actions {
   margin-top: 1rem;
   display: flex;
@@ -71,7 +71,7 @@
   background-color: #d68910;
 }
 
-/* Attachments */
+
 .attachment-list {
   margin-top: 1rem;
   padding-left: 0.5rem;
@@ -131,7 +131,7 @@
   background-color: #6c3483;
 }
 
-/* PDF Preview Modal */
+
 .pdf-modal {
   position: fixed;
   top: 0;
@@ -168,7 +168,7 @@
   font-size: 1rem;
 }
 
-/* Theme Toggle */
+
 .theme-toggle {
   text-align: right;
   margin-bottom: 1.5rem;
@@ -186,7 +186,7 @@
   background: #eee;
 }
 
-/* Dark Mode Support */
+
 .my-teaching-courses.dark {
   background-color: #1e1e1e;
   color: #f1f1f1;
@@ -261,7 +261,7 @@
   text-decoration: underline;
 }
 
-/* Lessons Display Styling */
+
 .unit-section {
   margin-top: 1rem;
 }
@@ -342,7 +342,7 @@
   background-color: #6c3483;
 }
 
-/* Dark Mode lesson items */
+
 .my-teaching-courses.dark .lesson-item {
   background: #3a4a3a;
   border-color: #555;
@@ -356,4 +356,118 @@
 .my-teaching-courses.dark .lesson-item a:hover {
   background-color: #777;
 }
+ */
 
+
+
+
+ .teacher-dashboard {
+  min-height: 100vh;
+  background: var(--bg-color, #f5f5f5);
+}
+
+.teacher-dashboard.dark-mode {
+  background: var(--dark-bg, #1a1a1a);
+  color: var(--dark-text, #ffffff);
+}
+
+.course-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 16px;
+}
+
+.course-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dark-mode .course-card {
+  background: var(--dark-card-bg, #2d2d2d);
+  color: var(--dark-text, #ffffff);
+}
+
+.lessons-accordion {
+  margin-top: 16px;
+}
+
+.dark-mode .lessons-accordion {
+  background: var(--dark-card-bg, #2d2d2d);
+}
+
+.lesson-item {
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+  padding: 8px 0;
+}
+
+.dark-mode .lesson-item {
+  border-bottom-color: var(--dark-border, #444);
+}
+
+.lesson-item:last-child {
+  border-bottom: none;
+}
+
+/* Action buttons */
+.MuiCardActions-root {
+  padding: 16px;
+  border-top: 1px solid var(--border-color, #e0e0e0);
+}
+
+.dark-mode .MuiCardActions-root {
+  border-top-color: var(--dark-border, #444);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .teacher-dashboard {
+    padding: 16px;
+  }
+  
+  .course-card {
+    margin-bottom: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .teacher-dashboard {
+    padding: 12px;
+  }
+  
+  .MuiCardActions-root {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .MuiCardActions-root > div {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Loading states */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.dark-mode .empty-state {
+  color: var(--dark-text-secondary, #aaa);
+}
+
+/* Chip styles */
+.MuiChip-root {
+  margin: 2px;
+}
+
+.dark-mode .MuiChip-outlined {
+  border-color: var(--dark-border, #444);
+  color: var(--dark-text, #ffffff);
+}
