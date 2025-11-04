@@ -148,9 +148,11 @@
 
 
 
+
+
 // src/pages/CreateCourse.jsx
 import React, { useState } from "react";
-import axiosInstance from "../utils/axiosInstance"; // adjust path as needed
+import axiosInstance from "../utils/axiosInstance";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -162,8 +164,8 @@ const CreateCourse = () => {
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState("");
   const [slug, setSlug] = useState("");
-  const [customSlug, setCustomSlug] = useState(""); // For manual slug input
-  const [useCustomSlug, setUseCustomSlug] = useState(false); // Toggle between dropdown and custom
+  const [customSlug, setCustomSlug] = useState("");
+  const [useCustomSlug, setUseCustomSlug] = useState(false);
   const [thumbnail, setThumbnail] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [introVideo, setIntroVideo] = useState(null);
@@ -171,28 +173,30 @@ const CreateCourse = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Predefined slugs for common math courses
-  const predefinedSlugs = [
-    { value: "algebra-1", label: "algebra-1" },
-    { value: "algebra-2", label: "algebra-2" },
-    { value: "pre-calculus", label: "pre-calculus" },
-    { value: "calculus", label: "calculus" },
-    { value: "geometry-trigonometry", label: "geometry-trigonometry" },
-    { value: "statistics-probability", label: "statistics-probability" },
-    { value: "linear-algebra", label: "linear-algebra" },
-    { value: "differential-equations", label: "differential-equations" },
-    { value: "discrete-mathematics", label: "discrete-mathematics" },
-    { value: "number-theory", label: "number-theory" },
+  // Available slugs that are NOT taken yet
+  const availableSlugs = [
+    { value: "algebra-1-beginners", label: "algebra-1-beginners" },
+    { value: "algebra-2-advanced", label: "algebra-2-advanced" },
+    { value: "pre-calculus-foundations", label: "pre-calculus-foundations" },
+    { value: "calculus-essentials", label: "calculus-essentials" },
+    { value: "geometry-trigonometry-basics", label: "geometry-trigonometry-basics" },
+    { value: "statistics-probability-intro", label: "statistics-probability-intro" },
+    { value: "linear-algebra-fundamentals", label: "linear-algebra-fundamentals" },
+    { value: "differential-equations-intro", label: "differential-equations-intro" },
+    { value: "discrete-mathematics-basics", label: "discrete-mathematics-basics" },
+    { value: "number-theory-concepts", label: "number-theory-concepts" },
+    { value: "math-test-prep", label: "math-test-prep" },
+    { value: "advanced-math-concepts", label: "advanced-math-concepts" },
   ];
 
-  // Auto-generate slug from title
+  // Auto-generate unique slug from title
   const handleTitleChange = (e) => {
     const newTitle = e.target.value;
     setTitle(newTitle);
     
-    if (!useCustomSlug) {
-      // Auto-generate slug only if not using custom slug
-      const generatedSlug = newTitle
+    if (!useCustomSlug && newTitle) {
+      // Generate a unique slug by adding random numbers
+      const baseSlug = newTitle
         .toLowerCase()
         .replace(/\s+/g, '-')
         .replace(/[^\w\-]+/g, '')
@@ -200,7 +204,11 @@ const CreateCourse = () => {
         .replace(/^-+/, '')
         .replace(/-+$/, '');
       
-      setSlug(generatedSlug);
+      // Add random numbers to make it unique
+      const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+      const uniqueSlug = `${baseSlug}-${randomSuffix}`;
+      
+      setSlug(uniqueSlug);
     }
   };
 
@@ -229,18 +237,47 @@ const CreateCourse = () => {
   const toggleSlugInput = () => {
     setUseCustomSlug(!useCustomSlug);
     if (!useCustomSlug) {
-      // Switching to custom input - clear the dropdown selection
+      // Switching to custom input
+      setCustomSlug("");
       setSlug("");
     } else {
-      // Switching back to dropdown - use auto-generated or empty
-      const generatedSlug = title
+      // Switching back to dropdown - generate unique slug
+      if (title) {
+        const baseSlug = title
+          .toLowerCase()
+          .replace(/\s+/g, '-')
+          .replace(/[^\w\-]+/g, '')
+          .replace(/\-\-+/g, '-')
+          .replace(/^-+/, '')
+          .replace(/-+$/, '');
+        
+        const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+        const uniqueSlug = `${baseSlug}-${randomSuffix}`;
+        setSlug(uniqueSlug);
+      }
+    }
+  };
+
+  // Generate a completely unique slug
+  const generateUniqueSlug = () => {
+    if (title) {
+      const baseSlug = title
         .toLowerCase()
         .replace(/\s+/g, '-')
         .replace(/[^\w\-]+/g, '')
         .replace(/\-\-+/g, '-')
         .replace(/^-+/, '')
         .replace(/-+$/, '');
-      setSlug(generatedSlug);
+      
+      const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+      const uniqueSlug = `${baseSlug}-${randomSuffix}`;
+      
+      if (useCustomSlug) {
+        setCustomSlug(uniqueSlug);
+      }
+      setSlug(uniqueSlug);
+      
+      toast.info("🔄 Generated unique slug for you!");
     }
   };
 
@@ -267,7 +304,6 @@ const CreateCourse = () => {
     if (introVideo) formData.append("introVideo", introVideo);
     attachments.forEach((file) => formData.append("attachments", file));
 
-    // DEBUG: Log what we're sending
     console.log("📤 Sending FormData:");
     console.log("  Title:", title);
     console.log("  Slug:", slug);
@@ -288,15 +324,21 @@ const CreateCourse = () => {
       navigate("/teacher/dashboard");
     } catch (err) {
       console.error("Course creation error:", err);
-      let message = "❌ Failed to create course.";
       
-      if (err.response?.data?.error) {
-        message = err.response.data.error;
-      } else if (err.response?.data?.details) {
-        message = err.response.data.details;
+      if (err.response?.data?.error?.includes("slug already exists")) {
+        // Slug conflict - suggest new unique slug
+        toast.error("❌ This URL slug is already taken. Try a different one!");
+        
+        // Auto-generate a new unique slug
+        setTimeout(() => {
+          generateUniqueSlug();
+        }, 1000);
+        
+      } else if (err.response?.data?.error) {
+        toast.error(`❌ ${err.response.data.error}`);
+      } else {
+        toast.error("❌ Failed to create course. Please try again.");
       }
-      
-      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -311,6 +353,12 @@ const CreateCourse = () => {
         transition={{ duration: 0.6 }}
       >
         <h2>Create New Course</h2>
+        
+        <div className="info-box">
+          <strong>💡 Tip:</strong> The common slugs (algebra-1, algebra-2, etc.) are already taken. 
+          Use the suggested available slugs or create a custom one with unique numbers.
+        </div>
+
         <form onSubmit={handleSubmit}>
           {/* Title Field */}
           <label>Title *</label>
@@ -334,8 +382,8 @@ const CreateCourse = () => {
                   required
                   disabled={loading}
                 >
-                  <option value="">-- Select a URL Slug --</option>
-                  {predefinedSlugs.map((slugOption) => (
+                  <option value="">-- Select an Available URL Slug --</option>
+                  {availableSlugs.map((slugOption) => (
                     <option key={slugOption.value} value={slugOption.value}>
                       {slugOption.label}
                     </option>
@@ -348,28 +396,40 @@ const CreateCourse = () => {
                 </div>
               </>
             ) : (
-              <input
-                type="text"
-                value={customSlug}
-                onChange={handleCustomSlugChange}
-                required
-                disabled={loading}
-                placeholder="custom-url-slug"
-              />
+              <div className="custom-slug-input">
+                <input
+                  type="text"
+                  value={customSlug}
+                  onChange={handleCustomSlugChange}
+                  required
+                  disabled={loading}
+                  placeholder="your-unique-course-slug"
+                />
+                <button 
+                  type="button" 
+                  className="generate-slug-btn"
+                  onClick={generateUniqueSlug}
+                  disabled={loading || !title}
+                >
+                  🔄 Generate Unique
+                </button>
+              </div>
             )}
             
-            <button 
-              type="button" 
-              className="toggle-slug-btn"
-              onClick={toggleSlugInput}
-              disabled={loading}
-            >
-              {useCustomSlug ? "← Use Predefined Slug" : "Use Custom Slug →"}
-            </button>
+            <div className="slug-actions">
+              <button 
+                type="button" 
+                className="toggle-slug-btn"
+                onClick={toggleSlugInput}
+                disabled={loading}
+              >
+                {useCustomSlug ? "← Use Available Slugs" : "Use Custom Slug →"}
+              </button>
+            </div>
           </div>
 
           <small style={{color: '#666', fontSize: '0.8rem', marginTop: '-0.5rem'}}>
-            The slug is used in the course URL. Choose from common options or create a custom one.
+            Choose from available slugs or create a custom one. Common slugs are already taken.
           </small>
 
           {/* Description Field */}
@@ -476,17 +536,6 @@ const CreateCourse = () => {
             className="btn-cancel"
             onClick={() => navigate(-1)}
             disabled={loading}
-            style={{
-              backgroundColor: '#6c757d',
-              color: 'white',
-              padding: '0.75rem',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '1rem',
-              cursor: 'pointer',
-              marginTop: '0.5rem',
-              width: '100%'
-            }}
           >
             Cancel
           </button>

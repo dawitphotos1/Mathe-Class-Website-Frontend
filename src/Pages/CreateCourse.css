@@ -91,6 +91,17 @@
   margin: 4px 0;
 }
 
+/* Info Box */
+.info-box {
+  background-color: #e7f3ff;
+  border: 1px solid #b3d9ff;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #0066cc;
+}
+
 /* Slug Section Styles */
 .slug-section {
   display: flex;
@@ -103,16 +114,52 @@
   width: 100%;
 }
 
+.custom-slug-input {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.custom-slug-input input {
+  flex: 1;
+}
+
+.generate-slug-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.generate-slug-btn:hover:not(:disabled) {
+  background: #218838;
+}
+
+.generate-slug-btn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.slug-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .toggle-slug-btn {
   background: none;
   border: 1px solid #007bff;
   color: #007bff;
-  padding: 0.5rem;
+  padding: 0.5rem 1rem;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.9rem;
   transition: all 0.3s;
-  align-self: flex-start;
 }
 
 .toggle-slug-btn:hover:not(:disabled) {
@@ -133,6 +180,28 @@
   font-size: 0.9rem;
   color: #495057;
   border-left: 3px solid #007bff;
+}
+
+/* Cancel Button */
+.btn-cancel {
+  background-color: #6c757d !important;
+  color: white;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background-color: #5a6268 !important;
+}
+
+.btn-cancel:disabled {
+  background-color: #a0a4a8 !important;
+  cursor: not-allowed;
 }
 
 /* Required field indicator */
@@ -159,5 +228,13 @@
   .create-course-card textarea,
   .create-course-card button {
     font-size: 0.9rem;
+  }
+
+  .custom-slug-input {
+    flex-direction: column;
+  }
+
+  .slug-actions {
+    flex-direction: column;
   }
 }
