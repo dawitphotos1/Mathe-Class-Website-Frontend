@@ -161,8 +161,19 @@ function AppContent() {
               <Route path="manage-users" element={<ManageUsers />} />
               <Route path="lesson-logs" element={<AdminLessonLogs />} />
               <Route path="files" element={<FileManager />} />
+              <Route
+                path="/admin/enrollments"
+                element={<PendingEnrollments />}
+              />
             </Route>
-
+            <Route
+              path="/admin/pending-enrollments"
+              element={<PendingEnrollments />}
+            />
+            <Route
+              path="/admin/manage-enrollments"
+              element={<ManageEnrollments />}
+            />
             {/* Teacher Routes */}
             <Route
               path="/teacher-dashboard"
@@ -261,7 +272,7 @@ function AppContent() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
-        
+
         {/* ✅ Fixed ToastContainer with proper configuration */}
         <ToastContainer
           position="top-right"
