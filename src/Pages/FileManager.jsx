@@ -101,50 +101,8 @@ import {
   Description as TextIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../context/ThemeContext";
+import axiosInstance from "../utils/axiosInstance"; // ✅ Use your actual axios instance
 import "./FileManager.css";
-
-// Create a simple axios instance directly
-const createAxiosInstance = () => {
-  const baseURL =
-    process.env.REACT_APP_API_BASE_URL ||
-    "https://mathe-class-website-backend-1.onrender.com/api/v1";
-
-  const instance = {
-    get: (url) => {
-      const token = localStorage.getItem("token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      return fetch(`${baseURL}${url}`, { headers }).then((res) => res.json());
-    },
-    post: (url, data, options = {}) => {
-      const token = localStorage.getItem("token");
-      const headers = {
-        ...options.headers,
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      };
-
-      return fetch(`${baseURL}${url}`, {
-        method: "POST",
-        headers,
-        body: data,
-      }).then((res) => res.json());
-    },
-    delete: (url) => {
-      const token = localStorage.getItem("token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      return fetch(`${baseURL}${url}`, {
-        method: "DELETE",
-        headers,
-      }).then((res) => res.json());
-    },
-    defaults: {
-      baseURL,
-    },
-  };
-
-  return instance;
-};
-
-const axiosInstance = createAxiosInstance();
 
 const FileManager = () => {
   const [files, setFiles] = useState([]);
@@ -169,12 +127,16 @@ const FileManager = () => {
     try {
       setLoading(true);
       const response = await axiosInstance.get("/files");
-      if (response.success) {
-        setFiles(response.files);
+      console.log("Files response:", response); // Debug log
+      if (response.data?.success) {
+        setFiles(response.data.files);
+      } else {
+        console.error("Failed to load files:", response.data);
+        showSnackbar("Failed to load files", "error");
       }
     } catch (error) {
       console.error("Error loading files:", error);
-      showSnackbar("Error loading files", "error");
+      showSnackbar("Error loading files: " + error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -183,8 +145,9 @@ const FileManager = () => {
   const loadStats = async () => {
     try {
       const response = await axiosInstance.get("/files/stats");
-      if (response.success) {
-        setStats(response.stats);
+      console.log("Stats response:", response); // Debug log
+      if (response.data?.success) {
+        setStats(response.data.stats);
       }
     } catch (error) {
       console.error("Error loading stats:", error);
@@ -220,16 +183,20 @@ const FileManager = () => {
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = async (filename) => {
     try {
-      await axiosInstance.delete(`/files/delete/${deleteDialog.file.name}`);
-      setFiles(files.filter((f) => f.name !== deleteDialog.file.name));
-      setDeleteDialog({ open: false, file: null });
-      loadStats();
-      showSnackbar("File deleted successfully", "success");
+      const response = await axiosInstance.delete(`/files/delete/${filename}`);
+      console.log("Delete response:", response); // Debug log
+      if (response.data?.success) {
+        setFiles(files.filter((f) => f.name !== filename));
+        showSnackbar("File deleted successfully", "success");
+        loadStats(); // Refresh stats
+      } else {
+        showSnackbar("Failed to delete file", "error");
+      }
     } catch (error) {
       console.error("Delete error:", error);
-      showSnackbar("Error deleting file", "error");
+      showSnackbar("Error deleting file: " + error.message, "error");
     }
   };
 
@@ -237,25 +204,61 @@ const FileManager = () => {
     const file = event.target.files[0];
     if (!file) return;
 
+    // Check file size (50MB limit)
+    if (file.size > 50 * 1024 * 1024) {
+      showSnackbar("File size must be less than 50MB", "error");
+      return;
+    }
+
+    // Check file type
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "application/pdf",
+      "text/plain",
+      "video/mp4",
+      "audio/mpeg",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      showSnackbar("File type not allowed", "error");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("file", file);
 
     try {
       setUploading(true);
+      console.log("Uploading file:", file.name, file.size, file.type); // Debug log
+
       const response = await axiosInstance.post("/files/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
+        timeout: 60000, // 60 second timeout for large files
       });
 
-      if (response.success) {
+      console.log("Upload response:", response); // Debug log
+
+      if (response.data?.success) {
         showSnackbar("File uploaded successfully", "success");
-        loadFiles();
-        loadStats();
+        // Refresh the file list and stats
+        await Promise.all([loadFiles(), loadStats()]);
+      } else {
+        showSnackbar(
+          "Upload failed: " + (response.data?.error || "Unknown error"),
+          "error"
+        );
       }
     } catch (error) {
       console.error("Upload error:", error);
-      showSnackbar("Error uploading file", "error");
+      const errorMessage =
+        error.response?.data?.error || error.message || "Upload failed";
+      showSnackbar("Error uploading file: " + errorMessage, "error");
     } finally {
       setUploading(false);
       event.target.value = ""; // Reset file input
@@ -490,7 +493,14 @@ const FileManager = () => {
           <Button onClick={() => setDeleteDialog({ open: false, file: null })}>
             Cancel
           </Button>
-          <Button onClick={handleDelete} color="error" variant="contained">
+          <Button
+            onClick={() => {
+              handleDelete(deleteDialog.file.name);
+              setDeleteDialog({ open: false, file: null });
+            }}
+            color="error"
+            variant="contained"
+          >
             Delete
           </Button>
         </DialogActions>
