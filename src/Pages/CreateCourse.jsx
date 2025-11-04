@@ -148,7 +148,6 @@
 
 
 
-
 // src/pages/CreateCourse.jsx
 import React, { useState } from "react";
 import axiosInstance from "../utils/axiosInstance"; // adjust path as needed
@@ -161,22 +160,59 @@ const CreateCourse = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
-  const [price, setPrice] = useState(""); // ADDED: Price field
-  const [slug, setSlug] = useState(""); // ADDED: Slug field
+  const [price, setPrice] = useState("");
+  const [slug, setSlug] = useState("");
+  const [customSlug, setCustomSlug] = useState(""); // For manual slug input
+  const [useCustomSlug, setUseCustomSlug] = useState(false); // Toggle between dropdown and custom
   const [thumbnail, setThumbnail] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [introVideo, setIntroVideo] = useState(null);
   const [attachments, setAttachments] = useState([]);
-  const [loading, setLoading] = useState(false); // ADDED: Loading state
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // ADDED: Auto-generate slug from title
+  // Predefined slugs for common math courses
+  const predefinedSlugs = [
+    { value: "algebra-1", label: "algebra-1" },
+    { value: "algebra-2", label: "algebra-2" },
+    { value: "pre-calculus", label: "pre-calculus" },
+    { value: "calculus", label: "calculus" },
+    { value: "geometry-trigonometry", label: "geometry-trigonometry" },
+    { value: "statistics-probability", label: "statistics-probability" },
+    { value: "linear-algebra", label: "linear-algebra" },
+    { value: "differential-equations", label: "differential-equations" },
+    { value: "discrete-mathematics", label: "discrete-mathematics" },
+    { value: "number-theory", label: "number-theory" },
+  ];
+
+  // Auto-generate slug from title
   const handleTitleChange = (e) => {
     const newTitle = e.target.value;
     setTitle(newTitle);
     
-    // Auto-generate slug
-    const generatedSlug = newTitle
+    if (!useCustomSlug) {
+      // Auto-generate slug only if not using custom slug
+      const generatedSlug = newTitle
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+      
+      setSlug(generatedSlug);
+    }
+  };
+
+  // Handle predefined slug selection
+  const handleSlugChange = (e) => {
+    setSlug(e.target.value);
+    setUseCustomSlug(false);
+  };
+
+  // Handle custom slug input
+  const handleCustomSlugChange = (e) => {
+    const customSlugValue = e.target.value
       .toLowerCase()
       .replace(/\s+/g, '-')
       .replace(/[^\w\-]+/g, '')
@@ -184,12 +220,28 @@ const CreateCourse = () => {
       .replace(/^-+/, '')
       .replace(/-+$/, '');
     
-    setSlug(generatedSlug);
+    setCustomSlug(customSlugValue);
+    setSlug(customSlugValue);
+    setUseCustomSlug(true);
   };
 
-  // ADDED: Manual slug editing
-  const handleSlugChange = (e) => {
-    setSlug(e.target.value);
+  // Toggle between dropdown and custom input
+  const toggleSlugInput = () => {
+    setUseCustomSlug(!useCustomSlug);
+    if (!useCustomSlug) {
+      // Switching to custom input - clear the dropdown selection
+      setSlug("");
+    } else {
+      // Switching back to dropdown - use auto-generated or empty
+      const generatedSlug = title
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+      setSlug(generatedSlug);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -205,12 +257,11 @@ const CreateCourse = () => {
 
     const formData = new FormData();
 
-    // ADDED: All required fields for your backend
     formData.append("title", title);
     formData.append("slug", slug);
     formData.append("description", description);
     formData.append("category", category);
-    formData.append("price", price || "0"); // ADDED: Price field
+    formData.append("price", price || "0");
     
     if (thumbnail) formData.append("thumbnail", thumbnail);
     if (introVideo) formData.append("introVideo", introVideo);
@@ -218,9 +269,11 @@ const CreateCourse = () => {
 
     // DEBUG: Log what we're sending
     console.log("📤 Sending FormData:");
-    for (let [key, value] of formData.entries()) {
-      console.log(`  ${key}:`, value instanceof File ? value.name : value);
-    }
+    console.log("  Title:", title);
+    console.log("  Slug:", slug);
+    console.log("  Description:", description);
+    console.log("  Category:", category);
+    console.log("  Price:", price || "0");
 
     try {
       const response = await axiosInstance.post("/courses/create", formData, {
@@ -232,7 +285,7 @@ const CreateCourse = () => {
 
       console.log("✅ Course created successfully:", response.data);
       toast.success("✅ Course created successfully!");
-      navigate("/teacher/dashboard"); // CHANGED: Redirect to teacher dashboard
+      navigate("/teacher/dashboard");
     } catch (err) {
       console.error("Course creation error:", err);
       let message = "❌ Failed to create course.";
@@ -270,18 +323,53 @@ const CreateCourse = () => {
             placeholder="Enter course title"
           />
 
-          {/* ADDED: Slug Field */}
+          {/* Slug Field with Dropdown */}
           <label>Slug *</label>
-          <input
-            type="text"
-            value={slug}
-            onChange={handleSlugChange}
-            required
-            disabled={loading}
-            placeholder="course-url-slug"
-          />
-          <small style={{color: '#666', fontSize: '0.8rem'}}>
-            This will be used in the course URL
+          <div className="slug-section">
+            {!useCustomSlug ? (
+              <>
+                <select
+                  value={slug}
+                  onChange={handleSlugChange}
+                  required
+                  disabled={loading}
+                >
+                  <option value="">-- Select a URL Slug --</option>
+                  {predefinedSlugs.map((slugOption) => (
+                    <option key={slugOption.value} value={slugOption.value}>
+                      {slugOption.label}
+                    </option>
+                  ))}
+                </select>
+                <div className="slug-preview">
+                  {slug && (
+                    <span>URL will be: /courses/{slug}</span>
+                  )}
+                </div>
+              </>
+            ) : (
+              <input
+                type="text"
+                value={customSlug}
+                onChange={handleCustomSlugChange}
+                required
+                disabled={loading}
+                placeholder="custom-url-slug"
+              />
+            )}
+            
+            <button 
+              type="button" 
+              className="toggle-slug-btn"
+              onClick={toggleSlugInput}
+              disabled={loading}
+            >
+              {useCustomSlug ? "← Use Predefined Slug" : "Use Custom Slug →"}
+            </button>
+          </div>
+
+          <small style={{color: '#666', fontSize: '0.8rem', marginTop: '-0.5rem'}}>
+            The slug is used in the course URL. Choose from common options or create a custom one.
           </small>
 
           {/* Description Field */}
@@ -291,9 +379,10 @@ const CreateCourse = () => {
             onChange={(e) => setDescription(e.target.value)}
             disabled={loading}
             placeholder="Describe your course..."
+            rows="4"
           />
 
-          {/* ADDED: Price Field */}
+          {/* Price Field */}
           <label>Price ($)</label>
           <input
             type="number"
@@ -381,7 +470,7 @@ const CreateCourse = () => {
             {loading ? "Creating Course..." : "Create Course"}
           </button>
 
-          {/* ADDED: Cancel Button */}
+          {/* Cancel Button */}
           <button 
             type="button" 
             className="btn-cancel"

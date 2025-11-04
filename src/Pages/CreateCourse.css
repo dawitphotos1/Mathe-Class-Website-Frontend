@@ -6,7 +6,7 @@
   flex-direction: column;
   min-height: 100vh;
   padding: 2rem;
-  background-color: #f5f7fa; /* Optional soft background */
+  background-color: #f5f7fa;
 }
 
 .create-course-card {
@@ -91,13 +91,57 @@
   margin: 4px 0;
 }
 
-/* ADDED: Required field indicator */
+/* Slug Section Styles */
+.slug-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.slug-section select,
+.slug-section input {
+  width: 100%;
+}
+
+.toggle-slug-btn {
+  background: none;
+  border: 1px solid #007bff;
+  color: #007bff;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+  align-self: flex-start;
+}
+
+.toggle-slug-btn:hover:not(:disabled) {
+  background-color: #007bff;
+  color: white;
+}
+
+.toggle-slug-btn:disabled {
+  border-color: #6c757d;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+.slug-preview {
+  background-color: #e9ecef;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #495057;
+  border-left: 3px solid #007bff;
+}
+
+/* Required field indicator */
 .create-course-card label[for]:after {
   content: " *";
   color: red;
 }
 
-/* ADDED: Small text styling */
+/* Small text styling */
 .create-course-card small {
   color: #666;
   font-size: 0.8rem;
