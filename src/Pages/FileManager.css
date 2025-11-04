@@ -134,10 +134,6 @@
     padding: 0.5rem;
   }
   
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  
   .file-name {
     max-width: 120px;
   }

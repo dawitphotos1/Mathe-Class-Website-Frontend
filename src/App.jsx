@@ -340,7 +340,7 @@ const ManageUsers = React.lazy(() => import("./pages/AdminManageUsers"));
 const CourseViewer = React.lazy(() => import("./pages/courses/CourseViewer"));
 const Profile = React.lazy(() => import("./pages/users/Profile"));
 const Unauthorized = React.lazy(() => import("./pages/Unauthorized"));
-const FileManager = React.lazy(() => import("./components/FileManager")); // ✅ FIXED IMPORT PATH
+const FileManager = React.lazy(() => import("./pages/FileManager")); // ✅ FIXED IMPORT PATH
 const ManageLessons = React.lazy(() => import("./pages/ManageLessons"));
 const CreateCourse = React.lazy(() => import("./pages/CreateCourse"));
 const CourseLessons = React.lazy(() => import("./pages/CourseLessons"));
@@ -466,8 +466,8 @@ function AppContent() {
               <Route path="manage-courses" element={<ManageCourses />} />
               <Route path="manage-users" element={<ManageUsers />} />
               <Route path="lesson-logs" element={<AdminLessonLogs />} />
-              <Route path="file-manager" element={<FileManager />} />{" "}
-              {/* ✅ CORRECTED */}
+              <Route path="file-manager" element={<FileManager />} />
+             
             </Route>
 
             {/* ---------------- Teacher Routes ---------------- */}
