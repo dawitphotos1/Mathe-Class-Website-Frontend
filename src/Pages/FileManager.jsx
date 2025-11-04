@@ -100,9 +100,51 @@ import {
   AudioFile as AudioIcon,
   Description as TextIcon,
 } from "@mui/icons-material";
-import { axiosInstance } from "../utils/axiosInstance";
 import { useTheme } from "../context/ThemeContext";
 import "./FileManager.css";
+
+// Create a simple axios instance directly
+const createAxiosInstance = () => {
+  const baseURL =
+    process.env.REACT_APP_API_BASE_URL ||
+    "https://mathe-class-website-backend-1.onrender.com/api/v1";
+
+  const instance = {
+    get: (url) => {
+      const token = localStorage.getItem("token");
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      return fetch(`${baseURL}${url}`, { headers }).then((res) => res.json());
+    },
+    post: (url, data, options = {}) => {
+      const token = localStorage.getItem("token");
+      const headers = {
+        ...options.headers,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
+
+      return fetch(`${baseURL}${url}`, {
+        method: "POST",
+        headers,
+        body: data,
+      }).then((res) => res.json());
+    },
+    delete: (url) => {
+      const token = localStorage.getItem("token");
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      return fetch(`${baseURL}${url}`, {
+        method: "DELETE",
+        headers,
+      }).then((res) => res.json());
+    },
+    defaults: {
+      baseURL,
+    },
+  };
+
+  return instance;
+};
+
+const axiosInstance = createAxiosInstance();
 
 const FileManager = () => {
   const [files, setFiles] = useState([]);
@@ -127,8 +169,8 @@ const FileManager = () => {
     try {
       setLoading(true);
       const response = await axiosInstance.get("/files");
-      if (response.data.success) {
-        setFiles(response.data.files);
+      if (response.success) {
+        setFiles(response.files);
       }
     } catch (error) {
       console.error("Error loading files:", error);
@@ -141,8 +183,8 @@ const FileManager = () => {
   const loadStats = async () => {
     try {
       const response = await axiosInstance.get("/files/stats");
-      if (response.data.success) {
-        setStats(response.data.stats);
+      if (response.success) {
+        setStats(response.stats);
       }
     } catch (error) {
       console.error("Error loading stats:", error);
@@ -206,7 +248,7 @@ const FileManager = () => {
         },
       });
 
-      if (response.data.success) {
+      if (response.success) {
         showSnackbar("File uploaded successfully", "success");
         loadFiles();
         loadStats();
