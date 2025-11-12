@@ -1,6 +1,6 @@
 
 /* src/pages/teachers/MyTeachingCourses.css */
-
+/* 
 .teacher-dashboard {
   min-height: 100vh;
   background: var(--bg-color, #f5f5f5);
@@ -11,7 +11,7 @@
   color: var(--dark-text, #ffffff);
 }
 
-/* Course Creation Options */
+
 .creation-options-card {
   background: white;
   border-radius: 12px;
@@ -57,7 +57,7 @@
   margin-bottom: 0.5rem;
 }
 
-/* Course Cards */
+
 .course-card {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   margin-bottom: 16px;
@@ -98,7 +98,7 @@
   border-bottom: none;
 }
 
-/* Action buttons */
+
 .course-actions {
   padding: 16px;
   border-top: 1px solid var(--border-color, #e0e0e0);
@@ -108,7 +108,7 @@
   border-top-color: var(--dark-border, #444);
 }
 
-/* Loading states */
+
 .loading-container {
   display: flex;
   justify-content: center;
@@ -116,7 +116,7 @@
   min-height: 50vh;
 }
 
-/* Empty state */
+
 .empty-state {
   text-align: center;
   padding: 40px 20px;
@@ -128,7 +128,7 @@
   background: var(--dark-card-bg, #2d2d2d);
 }
 
-/* Chip styles */
+
 .MuiChip-root {
   margin: 2px;
 }
@@ -138,7 +138,7 @@
   color: var(--dark-text, #ffffff);
 }
 
-/* Responsive design */
+
 @media (max-width: 768px) {
   .teacher-dashboard {
     padding: 16px;
@@ -177,7 +177,7 @@
   }
 }
 
-/* Animation for creation options */
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -195,4 +195,157 @@
 
 .creation-option.advanced {
   animation-delay: 0.1s;
+} */
+
+
+
+
+
+
+/* src/pages/teachers/MyTeachingCourses.css */
+
+.teacher-dashboard {
+  min-height: 100vh;
+  background: var(--background-color, #f5f5f5);
+}
+
+.teacher-dashboard.dark-mode {
+  background: var(--dark-background, #1a1a1a);
+  color: var(--dark-text, #ffffff);
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.creation-options-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.creation-options-card .MuiTypography-root {
+  color: white;
+}
+
+.creation-option {
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.creation-option.simple:hover {
+  border-color: #1976d2;
+  transform: translateY(-2px);
+}
+
+.creation-option.advanced:hover {
+  border-color: #9c27b0;
+  transform: translateY(-2px);
+}
+
+.feature-list {
+  text-align: left;
+  padding-left: 0;
+  list-style: none;
+}
+
+.feature-list li {
+  margin-bottom: 8px;
+  padding-left: 24px;
+  position: relative;
+}
+
+.feature-list li:before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #4caf50;
+  font-weight: bold;
+}
+
+.course-card {
+  transition: all 0.3s ease;
+  border: 1px solid #e0e0e0;
+}
+
+.dark-mode .course-card {
+  background: var(--dark-paper, #2d2d2d);
+  border-color: #444;
+}
+
+.course-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.dark-mode .course-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.lessons-accordion {
+  margin: 16px 0 !important;
+}
+
+.dark-mode .lessons-accordion {
+  background: var(--dark-paper, #2d2d2d);
+}
+
+.lesson-item {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 12px 0;
+}
+
+.dark-mode .lesson-item {
+  border-bottom-color: #444;
+}
+
+.lesson-item:last-child {
+  border-bottom: none;
+}
+
+.course-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px !important;
+  border-top: 1px solid #f0f0f0;
+}
+
+.dark-mode .course-actions {
+  border-top-color: #444;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.dark-mode .empty-state {
+  background: var(--dark-paper, #2d2d2d);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .course-actions {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .course-actions > div {
+    justify-content: center;
+  }
+}
+
+/* Animation for loading states */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.loading-pulse {
+  animation: pulse 1.5s ease-in-out infinite;
 }
