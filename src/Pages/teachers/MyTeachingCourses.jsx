@@ -600,6 +600,7 @@ import {
   Article as ArticleIcon,
   Rocket as RocketIcon,
   Build as BuildIcon,
+  Visibility as PreviewIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../context/ThemeContext";
 import axiosInstance from "../../utils/axiosInstance";
@@ -677,6 +678,28 @@ const MyTeachingCourses = () => {
   useEffect(() => {
     fetchTeacherCourses();
   }, []);
+
+  // ✅ FIXED: Add preview lesson handler
+  const handlePreviewLesson = (lesson, course) => {
+    console.log("🔍 Preview lesson:", lesson);
+    
+    // If it's a PDF lesson, open the PDF file
+    if (lesson.content_type === 'pdf' && lesson.file_url) {
+      window.open(lesson.file_url, '_blank');
+    } 
+    // If it's a video lesson, open the video
+    else if (lesson.content_type === 'video' && lesson.video_url) {
+      window.open(lesson.video_url, '_blank');
+    }
+    // If it's text content, show a preview dialog or navigate to lesson page
+    else {
+      // You can create a preview dialog or navigate to the lesson page
+      navigate(`/courses/${course.slug}/lessons/${lesson.id}/preview`);
+      
+      // Or show a simple alert for now
+      // alert(`Preview: ${lesson.title}\n\n${lesson.content?.substring(0, 200)}...`);
+    }
+  };
 
   const handleCourseClick = (courseId) => {
     setExpandedCourse(expandedCourse === courseId ? null : courseId);
@@ -993,14 +1016,35 @@ const MyTeachingCourses = () => {
                                   display: "flex",
                                   alignItems: "center",
                                   gap: 1,
+                                  width: '100%'
                                 }}
                               >
                                 {getLessonIcon(lesson.content_type)}
                                 <ListItemText
-                                  primary={lesson.title}
+                                  primary={
+                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                      <Typography variant="body1">{lesson.title}</Typography>
+                                      {/* ✅ FIXED: Working Preview Button */}
+                                      {lesson.is_preview && (
+                                        <Button 
+                                          size="small" 
+                                          variant="outlined" 
+                                          color="info"
+                                          startIcon={<PreviewIcon />}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handlePreviewLesson(lesson, course);
+                                          }}
+                                          sx={{ ml: 1 }}
+                                        >
+                                          Preview
+                                        </Button>
+                                      )}
+                                    </Box>
+                                  }
                                   secondary={
                                     <Box
-                                      sx={{ display: "flex", gap: 1, mt: 0.5 }}
+                                      sx={{ display: "flex", gap: 1, mt: 0.5, flexWrap: 'wrap' }}
                                     >
                                       <Chip
                                         label={lesson.content_type || "text"}
@@ -1012,13 +1056,6 @@ const MyTeachingCourses = () => {
                                         size="small"
                                         variant="outlined"
                                       />
-                                      {lesson.is_preview && (
-                                        <Chip
-                                          label="Preview"
-                                          size="small"
-                                          color="info"
-                                        />
-                                      )}
                                     </Box>
                                   }
                                 />

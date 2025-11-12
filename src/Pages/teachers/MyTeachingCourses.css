@@ -349,3 +349,35 @@
 .loading-pulse {
   animation: pulse 1.5s ease-in-out infinite;
 }
+
+/* Add to src/pages/teachers/MyTeachingCourses.css */
+.lesson-item {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  padding: 8px;
+}
+
+.dark-mode .lesson-item {
+  border-color: #444;
+}
+
+.creation-options-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.creation-options-card .MuiTypography-root {
+  color: white;
+}
+
+.feature-list {
+  text-align: left;
+  padding-left: 20px;
+  margin: 0;
+}
+
+.feature-list li {
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.9);
+}
