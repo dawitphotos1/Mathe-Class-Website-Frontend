@@ -658,8 +658,6 @@
 
 
 
-
-
 // src/pages/teachers/MyTeachingCourses.jsx
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -688,6 +686,7 @@ import {
   DialogActions,
   Alert,
   Snackbar,
+  Collapse,
 } from "@mui/material";
 import {
   ExpandMore as ExpandMoreIcon,
@@ -700,6 +699,11 @@ import {
   Rocket as RocketIcon,
   Build as BuildIcon,
   Visibility as PreviewIcon,
+  TextSnippet as TextIcon,
+  PictureAsPdf as PdfIcon,
+  Theaters as VideoFileIcon,
+  ExpandLess as ExpandLessIcon,
+  ExpandMore as ExpandMoreIcon2,
 } from "@mui/icons-material";
 import { useTheme } from "../../context/ThemeContext";
 import axiosInstance from "../../utils/axiosInstance";
@@ -712,8 +716,10 @@ const MyTeachingCourses = () => {
 
   const [courses, setCourses] = useState([]);
   const [lessons, setLessons] = useState({});
+  const [subLessons, setSubLessons] = useState({});
   const [loading, setLoading] = useState(true);
   const [expandedCourse, setExpandedCourse] = useState(null);
+  const [expandedLessons, setExpandedLessons] = useState({});
   const [deleteDialog, setDeleteDialog] = useState({
     open: false,
     course: null,
@@ -742,25 +748,52 @@ const MyTeachingCourses = () => {
             const lessonsResponse = await axiosInstance.get(
               `/courses/${course.id}/lessons`
             );
+            const lessonsData = lessonsResponse.data?.lessons || [];
+            
+            // Fetch sub-lessons for each lesson
+            const subLessonPromises = lessonsData.map(async (lesson) => {
+              try {
+                const subLessonsResponse = await axiosInstance.get(
+                  `/lessons/${lesson.id}/sublessons`
+                );
+                return {
+                  lessonId: lesson.id,
+                  subLessons: subLessonsResponse.data?.sublessons || [],
+                };
+              } catch (error) {
+                console.error(`Error fetching sub-lessons for lesson ${lesson.id}:`, error);
+                return { lessonId: lesson.id, subLessons: [] };
+              }
+            });
+
+            const subLessonsResults = await Promise.all(subLessonPromises);
+            const subLessonsMap = {};
+            subLessonsResults.forEach((result) => {
+              subLessonsMap[result.lessonId] = result.subLessons;
+            });
+
             return {
               courseId: course.id,
-              lessons: lessonsResponse.data?.lessons || [],
+              lessons: lessonsData,
+              subLessons: subLessonsMap,
             };
           } catch (error) {
-            console.error(
-              `Error fetching lessons for course ${course.id}:`,
-              error
-            );
-            return { courseId: course.id, lessons: [] };
+            console.error(`Error fetching lessons for course ${course.id}:`, error);
+            return { courseId: course.id, lessons: [], subLessons: {} };
           }
         });
 
         const lessonsResults = await Promise.all(lessonsPromises);
         const lessonsMap = {};
+        const subLessonsMap = {};
+
         lessonsResults.forEach((result) => {
           lessonsMap[result.courseId] = result.lessons;
+          subLessonsMap[result.courseId] = result.subLessons;
         });
+
         setLessons(lessonsMap);
+        setSubLessons(subLessonsMap);
       } else {
         setCourses([]);
         showSnackbar("No courses found", "info");
@@ -778,85 +811,241 @@ const MyTeachingCourses = () => {
     fetchTeacherCourses();
   }, []);
 
-  // ✅ ENHANCED PREVIEW LESSON HANDLER
-  const handlePreviewLesson = async (lesson, course) => {
-    console.log("🔍 Preview lesson:", {
+  // ✅ FIXED: ENHANCED PREVIEW LESSON HANDLER WITH PROPER ERROR HANDLING
+  const handlePreviewLesson = async (lesson, course, isSubLesson = false) => {
+    console.log("🔍 Preview lesson clicked:", {
       id: lesson.id,
       title: lesson.title,
       content_type: lesson.content_type,
       file_url: lesson.file_url,
-      video_url: lesson.video_url
+      video_url: lesson.video_url,
+      isSubLesson: isSubLesson,
+      course: course.title
     });
     
     try {
-      // Use the dedicated preview endpoint for all content types
-      const previewUrl = `/api/v1/files/preview-lesson/${lesson.id}`;
-      console.log("🚀 Opening preview URL:", previewUrl);
+      // First, test access using the debug endpoint with proper authentication
+      console.log("🧪 Testing lesson access...");
+      const debugResponse = await axiosInstance.get(`/files/debug-lesson/${lesson.id}`);
       
-      // Test if the preview endpoint is accessible
-      const response = await fetch(previewUrl);
-      if (response.ok) {
-        // Open the dedicated preview endpoint
-        window.open(previewUrl, '_blank');
+      if (debugResponse.data?.success) {
+        console.log("✅ Debug info:", debugResponse.data);
+        
+        // Check if user has access
+        if (!debugResponse.data.access.has_access) {
+          showSnackbar("You don't have permission to preview this lesson", "error");
+          return;
+        }
+        
+        // Check if file exists for PDF lessons
+        if (lesson.content_type === 'pdf' && !debugResponse.data.file_info.exists) {
+          showSnackbar("PDF file not found on server", "error");
+          return;
+        }
+        
+        // Create a new window/tab for the preview
+        const previewWindow = window.open('', '_blank');
+        
+        if (!previewWindow) {
+          showSnackbar("Please allow popups for preview functionality", "warning");
+          return;
+        }
+        
+        // Show loading message
+        previewWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Loading Preview...</title>
+            <style>
+              body { 
+                font-family: Arial, sans-serif; 
+                display: flex; 
+                justify-content: center; 
+                align-items: center; 
+                height: 100vh; 
+                margin: 0;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              }
+              .loading {
+                text-align: center;
+                color: white;
+              }
+              .spinner {
+                border: 4px solid rgba(255,255,255,0.3);
+                border-radius: 50%;
+                border-top: 4px solid white;
+                width: 40px;
+                height: 40px;
+                animation: spin 1s linear infinite;
+                margin: 0 auto 20px;
+              }
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="loading">
+              <div class="spinner"></div>
+              <h2>Loading Preview...</h2>
+              <p>Opening: ${lesson.title}</p>
+            </div>
+          </body>
+          </html>
+        `);
+        
+        // Use the dedicated preview endpoint with proper authentication
+        const previewUrl = `/api/v1/files/preview-lesson/${lesson.id}`;
+        const fullPreviewUrl = `${window.location.origin}${previewUrl}`;
+        
+        console.log("🚀 Opening preview URL:", fullPreviewUrl);
+        
+        // Wait a moment then redirect to the actual preview
+        setTimeout(() => {
+          try {
+            previewWindow.location.href = fullPreviewUrl;
+          } catch (error) {
+            console.error("❌ Error redirecting preview window:", error);
+            previewWindow.close();
+            showSnackbar("Failed to open preview", "error");
+          }
+        }, 1000);
+        
       } else {
-        throw new Error(`Preview endpoint returned ${response.status}`);
+        throw new Error("Debug endpoint returned unsuccessful response");
       }
-    } catch (error) {
-      console.error("❌ Preview endpoint error:", error);
       
-      // Fallback to direct file access
+    } catch (error) {
+      console.error("❌ Preview error:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      
+      // Handle specific error cases without logging out
+      if (error.response?.status === 401) {
+        showSnackbar("Please login again to preview content", "error");
+        return;
+      } else if (error.response?.status === 403) {
+        showSnackbar("You don't have permission to preview this lesson", "error");
+        return;
+      } else if (error.response?.status === 404) {
+        showSnackbar("Lesson content not found on server", "error");
+        return;
+      }
+      
+      // Fallback to direct file access for PDFs
       if (lesson.content_type === 'pdf' && lesson.file_url) {
-        console.log("📄 Fallback: Opening PDF directly:", lesson.file_url);
-        window.open(lesson.file_url, '_blank');
+        console.log("📄 Fallback: Attempting direct PDF access:", lesson.file_url);
+        
+        // Ensure the file_url is absolute
+        let fileUrl = lesson.file_url;
+        if (fileUrl.startsWith('/')) {
+          fileUrl = `${window.location.origin}${fileUrl}`;
+        }
+        
+        const previewWindow = window.open('', '_blank');
+        previewWindow.location.href = fileUrl;
+        
       } else if (lesson.content_type === 'video' && lesson.video_url) {
         console.log("🎥 Fallback: Opening video directly:", lesson.video_url);
-        window.open(lesson.video_url, '_blank');
+        
+        let videoUrl = lesson.video_url;
+        if (videoUrl.startsWith('/')) {
+          videoUrl = `${window.location.origin}${videoUrl}`;
+        }
+        
+        window.open(videoUrl, '_blank');
+        
       } else {
-        // For text content, show a preview dialog
+        // For text content or when all else fails, show inline preview
+        console.log("📝 Fallback: Showing inline text preview");
+        
         const previewWindow = window.open('', '_blank');
         previewWindow.document.write(`
           <!DOCTYPE html>
           <html>
           <head>
             <title>Preview: ${lesson.title}</title>
+            <meta charset="utf-8">
             <style>
               body { 
-                font-family: Arial, sans-serif; 
-                padding: 20px; 
-                max-width: 800px; 
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                padding: 30px; 
+                max-width: 1000px; 
                 margin: 0 auto; 
                 line-height: 1.6;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+              }
+              .preview-container {
+                background: white;
+                border-radius: 15px;
+                padding: 40px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                border: 1px solid rgba(255,255,255,0.2);
               }
               .header { 
-                border-bottom: 2px solid #333; 
-                padding-bottom: 10px; 
-                margin-bottom: 20px; 
+                border-bottom: 3px solid #667eea; 
+                padding-bottom: 20px; 
+                margin-bottom: 30px; 
+                text-align: center;
+              }
+              .header h1 {
+                color: #2d3748;
+                margin: 0;
+                font-size: 2.5em;
               }
               .content { 
                 white-space: pre-wrap;
-                background: #f9f9f9;
-                padding: 20px;
-                border-radius: 5px;
+                background: #f8f9fa;
+                padding: 30px;
+                border-radius: 10px;
+                border-left: 5px solid #667eea;
+                font-size: 1.1em;
+                color: #2d3748;
               }
               .info {
                 background: #e3f2fd;
-                padding: 10px;
-                border-radius: 5px;
+                padding: 20px;
+                border-radius: 10px;
+                margin-bottom: 30px;
+                border-left: 5px solid #2196f3;
+              }
+              .info p {
+                margin: 8px 0;
+                color: #1565c0;
+                font-weight: 500;
+              }
+              .fallback-warning {
+                background: #fff3cd;
+                border: 1px solid #ffeaa7;
+                color: #856404;
+                padding: 15px;
+                border-radius: 8px;
                 margin-bottom: 20px;
               }
             </style>
           </head>
           <body>
-            <div class="header">
-              <h1>${lesson.title}</h1>
+            <div class="preview-container">
+              <div class="header">
+                <h1>${lesson.title}</h1>
+              </div>
+              <div class="fallback-warning">
+                <strong>Note:</strong> This is a fallback preview. Some features may not be available.
+              </div>
               <div class="info">
                 <p><strong>Course:</strong> ${course.title}</p>
                 <p><strong>Content Type:</strong> ${lesson.content_type}</p>
-                <p><strong>Preview Fallback:</strong> ${new Date().toLocaleString()}</p>
+                <p><strong>Type:</strong> ${isSubLesson ? 'Sub-Lesson' : 'Lesson'}</p>
+                <p><strong>Preview Generated:</strong> ${new Date().toLocaleString()}</p>
               </div>
-            </div>
-            <div class="content">
-              ${lesson.content || 'No content available for preview.'}
+              <div class="content">
+                ${lesson.content || 'No content available for preview.'}
+              </div>
             </div>
           </body>
           </html>
@@ -868,6 +1057,13 @@ const MyTeachingCourses = () => {
 
   const handleCourseClick = (courseId) => {
     setExpandedCourse(expandedCourse === courseId ? null : courseId);
+  };
+
+  const handleLessonClick = (lessonId) => {
+    setExpandedLessons(prev => ({
+      ...prev,
+      [lessonId]: !prev[lessonId]
+    }));
   };
 
   const handleEditCourse = (courseId) => {
@@ -882,8 +1078,12 @@ const MyTeachingCourses = () => {
     navigate(`/courses/${courseId}/lessons/new`);
   };
 
-  const handleEditLesson = (courseId, lessonId) => {
-    navigate(`/lessons/${lessonId}/edit`);
+  const handleEditLesson = (courseId, lessonId, isSubLesson = false) => {
+    if (isSubLesson) {
+      navigate(`/sublessons/${lessonId}/edit`);
+    } else {
+      navigate(`/lessons/${lessonId}/edit`);
+    }
   };
 
   const handleDeleteCourse = (course) => {
@@ -895,12 +1095,12 @@ const MyTeachingCourses = () => {
     });
   };
 
-  const handleDeleteLesson = (lesson, courseId) => {
+  const handleDeleteLesson = (lesson, courseId, isSubLesson = false) => {
     setDeleteDialog({
       open: true,
       course: { id: courseId },
-      lesson,
-      type: "lesson",
+      lesson: { ...lesson, isSubLesson },
+      type: isSubLesson ? "sublesson" : "lesson",
     });
   };
 
@@ -920,18 +1120,34 @@ const MyTeachingCourses = () => {
         } else {
           throw new Error(response.data?.error || "Failed to delete course");
         }
-      } else if (type === "lesson") {
-        console.log("🗑️ Deleting lesson:", lesson.id);
-        const response = await axiosInstance.delete(`/lessons/${lesson.id}`);
+      } else if (type === "lesson" || type === "sublesson") {
+        const endpoint = type === "sublesson" ? `/sublessons/${lesson.id}` : `/lessons/${lesson.id}`;
+        console.log(`🗑️ Deleting ${type}:`, lesson.id);
+        
+        const response = await axiosInstance.delete(endpoint);
         
         if (response.data?.success) {
-          setLessons((prev) => ({
-            ...prev,
-            [course.id]: prev[course.id].filter((l) => l.id !== lesson.id),
-          }));
-          showSnackbar("Lesson deleted successfully", "success");
+          if (type === "lesson") {
+            // Remove lesson from state
+            setLessons((prev) => ({
+              ...prev,
+              [course.id]: prev[course.id].filter((l) => l.id !== lesson.id),
+            }));
+          } else {
+            // Remove sub-lesson from state
+            setSubLessons((prev) => ({
+              ...prev,
+              [course.id]: {
+                ...prev[course.id],
+                [lesson.parent_lesson_id]: prev[course.id]?.[lesson.parent_lesson_id]?.filter(
+                  (sl) => sl.id !== lesson.id
+                ) || [],
+              },
+            }));
+          }
+          showSnackbar(`${type === 'sublesson' ? 'Sub-lesson' : 'Lesson'} deleted successfully`, "success");
         } else {
-          throw new Error(response.data?.error || "Failed to delete lesson");
+          throw new Error(response.data?.error || `Failed to delete ${type}`);
         }
       }
     } catch (error) {
@@ -953,9 +1169,24 @@ const MyTeachingCourses = () => {
       case "video":
         return <VideoIcon color="primary" fontSize="small" />;
       case "pdf":
-        return <ArticleIcon color="secondary" fontSize="small" />;
+        return <PdfIcon color="secondary" fontSize="small" />;
+      case "text":
+        return <TextIcon color="action" fontSize="small" />;
       default:
         return <ArticleIcon color="action" fontSize="small" />;
+    }
+  };
+
+  const getContentTypeLabel = (contentType) => {
+    switch (contentType) {
+      case "video":
+        return "Video";
+      case "pdf":
+        return "PDF";
+      case "text":
+        return "Text";
+      default:
+        return contentType || "Content";
     }
   };
 
@@ -984,7 +1215,7 @@ const MyTeachingCourses = () => {
       </Typography>
 
       {/* Course Creation Options */}
-      <Card sx={{ mb: 4, p: 3 }} className="creation-options-card">
+      <Card className="creation-options-card">
         <Typography variant="h5" gutterBottom>
           Create New Course
         </Typography>
@@ -1001,16 +1232,11 @@ const MyTeachingCourses = () => {
                 p: 2, 
                 height: '100%',
                 cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  boxShadow: 3,
-                  borderColor: 'primary.main'
-                }
               }}
               onClick={() => navigate('/create-course')}
             >
-              <Box sx={{ textAlign: 'center' }}>
-                <RocketIcon color="primary" sx={{ fontSize: 48, mb: 2 }} />
+              <Box className="creation-option-header">
+                <RocketIcon className="floating" />
                 <Typography variant="h6" gutterBottom>
                   Simple Course Creation
                 </Typography>
@@ -1042,16 +1268,11 @@ const MyTeachingCourses = () => {
                 p: 2, 
                 height: '100%',
                 cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  boxShadow: 3,
-                  borderColor: 'secondary.main'
-                }
               }}
               onClick={() => navigate('/create-course-advanced')}
             >
-              <Box sx={{ textAlign: 'center' }}>
-                <BuildIcon color="secondary" sx={{ fontSize: 48, mb: 2 }} />
+              <Box className="creation-option-header">
+                <BuildIcon className="floating" />
                 <Typography variant="h6" gutterBottom>
                   Advanced Course Creation
                 </Typography>
@@ -1129,7 +1350,7 @@ const MyTeachingCourses = () => {
                           variant="outlined"
                         />
                         <Chip
-                          label={`${course.lesson_count || 0} Lessons`}
+                          label={`${lessons[course.id]?.length || 0} Lessons`}
                           size="small"
                           variant="outlined"
                         />
@@ -1165,97 +1386,194 @@ const MyTeachingCourses = () => {
                   >
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                       <Typography variant="h6">
-                        📦 Lessons ({lessons[course.id]?.length || 0})
+                        📦 Course Content ({lessons[course.id]?.length || 0} Lessons)
                       </Typography>
                     </AccordionSummary>
                     <AccordionDetails>
                       {lessons[course.id]?.length > 0 ? (
-                        <List dense>
-                          {lessons[course.id].map((lesson) => (
-                            <ListItem key={lesson.id} className="lesson-item">
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 1,
-                                  width: '100%'
-                                }}
-                              >
-                                {getLessonIcon(lesson.content_type)}
-                                <ListItemText
-                                  primary={
-                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                      <Typography variant="body1">{lesson.title}</Typography>
-                                      {/* ✅ ENHANCED PREVIEW BUTTON */}
-                                      {lesson.is_preview && (
-                                        <Button 
-                                          size="small" 
-                                          variant="outlined" 
-                                          color="info"
-                                          startIcon={<PreviewIcon />}
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handlePreviewLesson(lesson, course);
-                                          }}
-                                          sx={{ ml: 1 }}
-                                        >
-                                          Preview
-                                        </Button>
-                                      )}
-                                    </Box>
-                                  }
-                                  secondary={
-                                    <Box
-                                      sx={{ display: "flex", gap: 1, mt: 0.5, flexWrap: 'wrap' }}
+                        <List dense className="lessons-list">
+                          {lessons[course.id].map((lesson) => {
+                            const lessonSubLessons = subLessons[course.id]?.[lesson.id] || [];
+                            const hasSubLessons = lessonSubLessons.length > 0;
+                            const isExpanded = expandedLessons[lesson.id];
+
+                            return (
+                              <Box key={lesson.id}>
+                                {/* Main Lesson Item */}
+                                <ListItem className="lesson-item main-lesson">
+                                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: '100%' }}>
+                                    {getLessonIcon(lesson.content_type)}
+                                    <ListItemText
+                                      primary={
+                                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: 'wrap' }}>
+                                          <Typography variant="body1" fontWeight="medium">
+                                            {lesson.title}
+                                          </Typography>
+                                          {/* ✅ PREVIEW BUTTON FOR EVERY LESSON */}
+                                          <Button 
+                                            size="small" 
+                                            className="preview-button"
+                                            startIcon={<PreviewIcon />}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handlePreviewLesson(lesson, course, false);
+                                            }}
+                                            sx={{ ml: 1 }}
+                                          >
+                                            Preview Lesson
+                                          </Button>
+                                          {lesson.is_preview && (
+                                            <Chip
+                                              label="Free Preview"
+                                              size="small"
+                                              color="success"
+                                              variant="filled"
+                                            />
+                                          )}
+                                        </Box>
+                                      }
+                                      secondary={
+                                        <Box sx={{ display: "flex", gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+                                          <Chip
+                                            label={getContentTypeLabel(lesson.content_type)}
+                                            size="small"
+                                            variant="outlined"
+                                          />
+                                          <Chip
+                                            label={`Order: ${lesson.order_index}`}
+                                            size="small"
+                                            variant="outlined"
+                                          />
+                                          {hasSubLessons && (
+                                            <Chip
+                                              label={`${lessonSubLessons.length} Sub-lessons`}
+                                              size="small"
+                                              color="info"
+                                              variant="outlined"
+                                            />
+                                          )}
+                                        </Box>
+                                      }
+                                    />
+                                  </Box>
+                                  <ListItemSecondaryAction>
+                                    {hasSubLessons && (
+                                      <IconButton
+                                        onClick={() => handleLessonClick(lesson.id)}
+                                        size="small"
+                                        sx={{ mr: 1 }}
+                                      >
+                                        {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon2 />}
+                                      </IconButton>
+                                    )}
+                                    <IconButton
+                                      edge="end"
+                                      aria-label="edit"
+                                      onClick={() => handleEditLesson(course.id, lesson.id, false)}
+                                      size="small"
+                                      sx={{ mr: 1 }}
                                     >
-                                      <Chip
-                                        label={lesson.content_type || "text"}
-                                        size="small"
-                                        variant="outlined"
-                                      />
-                                      <Chip
-                                        label={`Order: ${lesson.order_index}`}
-                                        size="small"
-                                        variant="outlined"
-                                      />
-                                      {lesson.is_preview && (
-                                        <Chip
-                                          label="Free Preview"
-                                          size="small"
-                                          color="success"
-                                          variant="filled"
-                                        />
-                                      )}
-                                    </Box>
-                                  }
-                                />
+                                      <EditIcon />
+                                    </IconButton>
+                                    <IconButton
+                                      edge="end"
+                                      aria-label="delete"
+                                      onClick={() => handleDeleteLesson(lesson, course.id, false)}
+                                      size="small"
+                                      color="error"
+                                    >
+                                      <DeleteIcon />
+                                    </IconButton>
+                                  </ListItemSecondaryAction>
+                                </ListItem>
+
+                                {/* Sub-lessons Section */}
+                                {hasSubLessons && (
+                                  <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                                    <List component="div" disablePadding className="sublessons-list">
+                                      {lessonSubLessons.map((subLesson) => (
+                                        <ListItem key={subLesson.id} className="lesson-item sublesson-item" sx={{ pl: 4 }}>
+                                          <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: '100%' }}>
+                                            {getLessonIcon(subLesson.content_type)}
+                                            <ListItemText
+                                              primary={
+                                                <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: 'wrap' }}>
+                                                  <Typography variant="body2">
+                                                    {subLesson.title}
+                                                  </Typography>
+                                                  {/* ✅ PREVIEW BUTTON FOR EVERY SUB-LESSON */}
+                                                  <Button 
+                                                    size="small" 
+                                                    className="preview-button"
+                                                    startIcon={<PreviewIcon />}
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      handlePreviewLesson(subLesson, course, true);
+                                                    }}
+                                                    sx={{ ml: 1 }}
+                                                  >
+                                                    Preview Sub-lesson
+                                                  </Button>
+                                                  {subLesson.is_preview && (
+                                                    <Chip
+                                                      label="Free Preview"
+                                                      size="small"
+                                                      color="success"
+                                                      variant="filled"
+                                                    />
+                                                  )}
+                                                </Box>
+                                              }
+                                              secondary={
+                                                <Box sx={{ display: "flex", gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+                                                  <Chip
+                                                    label={getContentTypeLabel(subLesson.content_type)}
+                                                    size="small"
+                                                    variant="outlined"
+                                                  />
+                                                  <Chip
+                                                    label={`Sub-order: ${subLesson.order_index}`}
+                                                    size="small"
+                                                    variant="outlined"
+                                                  />
+                                                  <Chip
+                                                    label="Sub-lesson"
+                                                    size="small"
+                                                    color="secondary"
+                                                    variant="outlined"
+                                                  />
+                                                </Box>
+                                              }
+                                            />
+                                          </Box>
+                                          <ListItemSecondaryAction>
+                                            <IconButton
+                                              edge="end"
+                                              aria-label="edit"
+                                              onClick={() => handleEditLesson(course.id, subLesson.id, true)}
+                                              size="small"
+                                              sx={{ mr: 1 }}
+                                            >
+                                              <EditIcon />
+                                            </IconButton>
+                                            <IconButton
+                                              edge="end"
+                                              aria-label="delete"
+                                              onClick={() => handleDeleteLesson(subLesson, course.id, true)}
+                                              size="small"
+                                              color="error"
+                                            >
+                                              <DeleteIcon />
+                                            </IconButton>
+                                          </ListItemSecondaryAction>
+                                        </ListItem>
+                                      ))}
+                                    </List>
+                                  </Collapse>
+                                )}
                               </Box>
-                              <ListItemSecondaryAction>
-                                <IconButton
-                                  edge="end"
-                                  aria-label="edit"
-                                  onClick={() =>
-                                    handleEditLesson(course.id, lesson.id)
-                                  }
-                                  size="small"
-                                  sx={{ mr: 1 }}
-                                >
-                                  <EditIcon />
-                                </IconButton>
-                                <IconButton
-                                  edge="end"
-                                  aria-label="delete"
-                                  onClick={() =>
-                                    handleDeleteLesson(lesson, course.id)
-                                  }
-                                  size="small"
-                                  color="error"
-                                >
-                                  <DeleteIcon />
-                                </IconButton>
-                              </ListItemSecondaryAction>
-                            </ListItem>
-                          ))}
+                            );
+                          })}
                         </List>
                       ) : (
                         <Typography
@@ -1324,7 +1642,8 @@ const MyTeachingCourses = () => {
         }
       >
         <DialogTitle>
-          Delete {deleteDialog.type === "course" ? "Course" : "Lesson"}
+          Delete {deleteDialog.type === "course" ? "Course" : 
+                 deleteDialog.type === "sublesson" ? "Sub-lesson" : "Lesson"}
         </DialogTitle>
         <DialogContent>
           <Typography>
@@ -1338,12 +1657,19 @@ const MyTeachingCourses = () => {
           </Typography>
           <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
             {deleteDialog.type === "course"
-              ? "This will also delete all lessons in this course. This action cannot be undone."
+              ? "This will also delete all lessons and sub-lessons in this course. This action cannot be undone."
+              : deleteDialog.type === "lesson"
+              ? "This will also delete all sub-lessons in this lesson. This action cannot be undone."
               : "This action cannot be undone."}
           </Typography>
           {deleteDialog.type === "course" && (
             <Alert severity="warning" sx={{ mt: 2 }}>
               ⚠️ Warning: This will permanently delete the course and all its content!
+            </Alert>
+          )}
+          {deleteDialog.type === "lesson" && (
+            <Alert severity="warning" sx={{ mt: 2 }}>
+              ⚠️ Warning: This will also delete all sub-lessons in this lesson!
             </Alert>
           )}
         </DialogContent>
