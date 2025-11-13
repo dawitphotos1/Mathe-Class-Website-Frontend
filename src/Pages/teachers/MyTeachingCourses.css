@@ -1,217 +1,14 @@
-
 /* src/pages/teachers/MyTeachingCourses.css */
-/* 
+
 .teacher-dashboard {
   min-height: 100vh;
-  background: var(--bg-color, #f5f5f5);
-}
-
-.teacher-dashboard.dark-mode {
-  background: var(--dark-bg, #1a1a1a);
-  color: var(--dark-text, #ffffff);
-}
-
-
-.creation-options-card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.dark-mode .creation-options-card {
-  background: var(--dark-card-bg, #2d2d2d);
-}
-
-.creation-option {
-  transition: all 0.3s ease;
-  border-radius: 8px;
-  height: 100%;
-}
-
-.creation-option:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-.creation-option.simple {
-  border: 2px solid #1976d2;
-}
-
-.creation-option.advanced {
-  border: 2px solid #ed6c02;
-}
-
-.feature-list {
-  text-align: left;
-  padding-left: 1rem;
-  font-size: 0.9rem;
-  color: #666;
-  margin: 1rem 0;
-}
-
-.dark-mode .feature-list {
-  color: #ccc;
-}
-
-.feature-list li {
-  margin-bottom: 0.5rem;
-}
-
-
-.course-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  margin-bottom: 16px;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.course-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.dark-mode .course-card {
-  background: var(--dark-card-bg, #2d2d2d);
-  color: var(--dark-text, #ffffff);
-}
-
-.lessons-accordion {
-  margin-top: 16px;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.dark-mode .lessons-accordion {
-  background: var(--dark-card-bg, #2d2d2d);
-}
-
-.lesson-item {
-  border-bottom: 1px solid var(--border-color, #e0e0e0);
-  padding: 8px 0;
-}
-
-.dark-mode .lesson-item {
-  border-bottom-color: var(--dark-border, #444);
-}
-
-.lesson-item:last-child {
-  border-bottom: none;
-}
-
-
-.course-actions {
-  padding: 16px;
-  border-top: 1px solid var(--border-color, #e0e0e0);
-}
-
-.dark-mode .course-actions {
-  border-top-color: var(--dark-border, #444);
-}
-
-
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 50vh;
-}
-
-
-.empty-state {
-  text-align: center;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   padding: 40px 20px;
-  border-radius: 12px;
-}
-
-.dark-mode .empty-state {
-  color: var(--dark-text-secondary, #aaa);
-  background: var(--dark-card-bg, #2d2d2d);
-}
-
-
-.MuiChip-root {
-  margin: 2px;
-}
-
-.dark-mode .MuiChip-outlined {
-  border-color: var(--dark-border, #444);
-  color: var(--dark-text, #ffffff);
-}
-
-
-@media (max-width: 768px) {
-  .teacher-dashboard {
-    padding: 16px;
-  }
-  
-  .course-card {
-    margin-bottom: 12px;
-  }
-  
-  .creation-options-card {
-    padding: 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .teacher-dashboard {
-    padding: 12px;
-  }
-  
-  .course-actions {
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .course-actions > div {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .creation-option {
-    padding: 16px;
-  }
-  
-  .feature-list {
-    font-size: 0.8rem;
-  }
-}
-
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.creation-option {
-  animation: fadeInUp 0.5s ease-out;
-}
-
-.creation-option.advanced {
-  animation-delay: 0.1s;
-} */
-
-
-
-
-
-
-/* src/pages/teachers/MyTeachingCourses.css */
-
-.teacher-dashboard {
-  min-height: 100vh;
-  background: var(--background-color, #f5f5f5);
 }
 
 .teacher-dashboard.dark-mode {
-  background: var(--dark-background, #1a1a1a);
-  color: var(--dark-text, #ffffff);
+  background: linear-gradient(135deg, #0f0f0f 0%, #2d2d2d 100%);
+  color: #ffffff;
 }
 
 .loading-container {
@@ -221,84 +18,236 @@
   min-height: 400px;
 }
 
+/* ✅ PROFESSIONAL: Enhanced creation options card */
 .creation-options-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 40px;
+  margin-bottom: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.8);
+  position: relative;
+  overflow: hidden;
 }
 
-.creation-options-card .MuiTypography-root {
-  color: white;
+.creation-options-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.dark-mode .creation-options-card {
+  background: rgba(45, 45, 45, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 .creation-option {
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.creation-option::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.6s;
+}
+
+.creation-option:hover::before {
+  left: 100%;
+}
+
+.dark-mode .creation-option {
+  background: rgba(60, 60, 60, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.creation-option.simple {
+  border-left: 4px solid #1976d2;
+}
+
+.creation-option.advanced {
+  border-left: 4px solid #9c27b0;
 }
 
 .creation-option.simple:hover {
   border-color: #1976d2;
-  transform: translateY(-2px);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 
+    0 20px 40px rgba(25, 118, 210, 0.2),
+    0 0 30px rgba(25, 118, 210, 0.1);
 }
 
 .creation-option.advanced:hover {
   border-color: #9c27b0;
-  transform: translateY(-2px);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 
+    0 20px 40px rgba(156, 39, 176, 0.2),
+    0 0 30px rgba(156, 39, 176, 0.1);
 }
 
+/* ✅ PROFESSIONAL: Premium feature list */
 .feature-list {
   text-align: left;
   padding-left: 0;
   list-style: none;
+  margin: 30px 0;
 }
 
 .feature-list li {
-  margin-bottom: 8px;
-  padding-left: 24px;
+  margin-bottom: 16px;
+  padding: 16px 20px 16px 60px;
   position: relative;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4));
+  border-radius: 12px;
+  color: #2d3748;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.dark-mode .feature-list li {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  color: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.feature-list li:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.6));
+  transform: translateX(8px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.dark-mode .feature-list li:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.1));
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
 }
 
 .feature-list li:before {
   content: "✓";
   position: absolute;
-  left: 0;
-  color: #4caf50;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #10b981;
   font-weight: bold;
+  font-size: 1.2em;
+  background: linear-gradient(135deg, #10b981, #059669);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+  transition: all 0.3s ease;
 }
 
+.feature-list li:hover:before {
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+}
+
+/* ✅ PROFESSIONAL: Enhanced course cards */
 .course-card {
-  transition: all 0.3s ease;
-  border: 1px solid #e0e0e0;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  position: relative;
+}
+
+.course-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
 }
 
 .dark-mode .course-card {
-  background: var(--dark-paper, #2d2d2d);
-  border-color: #444;
+  background: rgba(45, 45, 45, 0.9);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .course-card:hover {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+  transform: translateY(-8px);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.8);
 }
 
 .dark-mode .course-card:hover {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .lessons-accordion {
-  margin: 16px 0 !important;
+  margin: 20px 0 !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .dark-mode .lessons-accordion {
-  background: var(--dark-paper, #2d2d2d);
+  background: rgba(60, 60, 60, 0.8);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .lesson-item {
-  border-bottom: 1px solid #f0f0f0;
-  padding: 12px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 16px 0;
+  border-radius: 12px;
+  margin: 8px 0;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .dark-mode .lesson-item {
-  border-bottom-color: #444;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.lesson-item:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateX(4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.dark-mode .lesson-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .lesson-item:last-child {
@@ -309,75 +258,266 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px !important;
-  border-top: 1px solid #f0f0f0;
+  padding: 24px !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
 }
 
 .dark-mode .course-actions {
-  border-top-color: #444;
+  border-top-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .empty-state {
   text-align: center;
-  padding: 40px 20px;
+  padding: 80px 40px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .dark-mode .empty-state {
-  background: var(--dark-paper, #2d2d2d);
+  background: rgba(45, 45, 45, 0.9);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ✅ PROFESSIONAL: Premium button styles */
+.creation-option .MuiButton-contained {
+  background: linear-gradient(135deg, #1976d2, #1565c0);
+  color: white;
+  font-weight: 700;
+  padding: 14px 32px;
+  border-radius: 50px;
+  text-transform: none;
+  box-shadow: 
+    0 8px 25px rgba(25, 118, 210, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s ease;
+  border: none;
+}
+
+.creation-option .MuiButton-contained::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.6s;
+}
+
+.creation-option .MuiButton-contained:hover::before {
+  left: 100%;
+}
+
+.creation-option .MuiButton-contained:hover {
+  background: linear-gradient(135deg, #1565c0, #0d47a1);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 12px 35px rgba(25, 118, 210, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.creation-option .MuiButton-outlined {
+  border: 2px solid;
+  border-image: linear-gradient(135deg, #9c27b0, #e91e63) 1;
+  color: #9c27b0;
+  font-weight: 700;
+  padding: 14px 32px;
+  border-radius: 50px;
+  text-transform: none;
+  background: rgba(156, 39, 176, 0.05);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s ease;
+}
+
+.dark-mode .creation-option .MuiButton-outlined {
+  color: #ce93d8;
+  background: rgba(206, 147, 216, 0.1);
+}
+
+.creation-option .MuiButton-outlined:hover {
+  background: linear-gradient(135deg, rgba(156, 39, 176, 0.1), rgba(233, 30, 99, 0.1));
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(156, 39, 176, 0.3);
+}
+
+/* ✅ PROFESSIONAL: Enhanced typography */
+.creation-option .MuiTypography-h6 {
+  font-weight: 800;
+  margin-bottom: 16px;
+  color: #1a202c;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #2d3748, #4a5568);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark-mode .creation-option .MuiTypography-h6 {
+  background: linear-gradient(135deg, #ffffff, #a0aec0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.creation-option .MuiTypography-body2 {
+  color: #718096;
+  line-height: 1.7;
+  font-size: 1.1rem;
+}
+
+.dark-mode .creation-option .MuiTypography-body2 {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ✅ PROFESSIONAL: Icon enhancements */
+.creation-option-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.creation-option-header .MuiSvgIcon-root {
+  font-size: 64px;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #1976d2, #42a5f5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 8px 20px rgba(25, 118, 210, 0.3));
+}
+
+.creation-option.advanced .creation-option-header .MuiSvgIcon-root {
+  background: linear-gradient(135deg, #9c27b0, #e91e63);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 8px 20px rgba(156, 39, 176, 0.3));
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.floating {
+  animation: float 3s ease-in-out infinite;
 }
 
 /* Responsive design */
 @media (max-width: 768px) {
+  .teacher-dashboard {
+    padding: 20px 10px;
+  }
+  
+  .creation-options-card {
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  
   .course-actions {
     flex-direction: column;
     gap: 16px;
     align-items: stretch;
   }
   
-  .course-actions > div {
-    justify-content: center;
+  .feature-list li {
+    padding: 12px 16px 12px 50px;
+    font-size: 0.9em;
+  }
+  
+  .creation-option {
+    margin-bottom: 20px;
   }
 }
 
-/* Animation for loading states */
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
+@media (max-width: 480px) {
+  .feature-list li {
+    padding: 10px 14px 10px 45px;
+    font-size: 0.85em;
+  }
+  
+  .feature-list li:before {
+    left: 14px;
+    width: 28px;
+    height: 28px;
+    font-size: 1em;
+  }
+  
+  .creation-option .MuiButton-contained,
+  .creation-option .MuiButton-outlined {
+    padding: 12px 24px;
+    font-size: 0.9em;
+  }
 }
 
-.loading-pulse {
-  animation: pulse 1.5s ease-in-out infinite;
+/* Enhanced preview button */
+.preview-button {
+  background: linear-gradient(135deg, #00bcd4, #0097a7);
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 0.8em;
+  text-transform: none;
+  box-shadow: 0 4px 15px rgba(0, 188, 212, 0.4);
+  transition: all 0.3s ease;
 }
 
-/* Add to src/pages/teachers/MyTeachingCourses.css */
-.lesson-item {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  margin-bottom: 8px;
-  padding: 8px;
+.preview-button:hover {
+  background: linear-gradient(135deg, #0097a7, #00838f);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 188, 212, 0.6);
 }
 
-.dark-mode .lesson-item {
-  border-color: #444;
+/* Section titles */
+.creation-options-card .MuiTypography-h5 {
+  color: #2d3748;
+  font-weight: 800;
+  margin-bottom: 12px;
+  font-size: 2rem;
+  text-align: center;
 }
 
-.creation-options-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.dark-mode .creation-options-card .MuiTypography-h5 {
   color: white;
 }
 
-.creation-options-card .MuiTypography-root {
-  color: white;
+.creation-options-card .MuiTypography-body2 {
+  color: #718096;
+  text-align: center;
+  font-size: 1.2rem;
+  margin-bottom: 40px;
 }
 
-.feature-list {
-  text-align: left;
-  padding-left: 20px;
-  margin: 0;
+.dark-mode .creation-options-card .MuiTypography-body2 {
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.feature-list li {
-  margin-bottom: 8px;
-  color: rgba(255, 255, 255, 0.9);
+/* Glass morphism effect */
+.glass {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.dark-mode .glass {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
