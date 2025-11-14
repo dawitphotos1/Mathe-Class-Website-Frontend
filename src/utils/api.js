@@ -124,12 +124,26 @@ import axios from 'axios';
 const pendingRequests = new Set();
 const MAX_CONCURRENT_REQUESTS = 5;
 
-// Create axios instance
+// Create axios instance with base configuration
 const api = axios.create({
   baseURL: process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000/api/v1',
   timeout: 30000,
   withCredentials: true,
 });
+
+// Add token to requests
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // Request throttling interceptor
 api.interceptors.request.use(async (config) => {
@@ -144,7 +158,7 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
-// Response interceptor to remove from pending requests
+// Response interceptor
 api.interceptors.response.use(
   (response) => {
     const requestId = `${response.config.method}-${response.config.url}`;
@@ -161,25 +175,30 @@ api.interceptors.response.use(
       return new Promise(resolve => {
         setTimeout(() => {
           resolve(api(error.config));
-        }, 2000); // Wait 2 seconds before retry
+        }, 2000);
       });
+    }
+    
+    // Handle authentication errors
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
     }
     
     return Promise.reject(error);
   }
 );
 
-// Cache for lessons to avoid repeated requests
+// Cache for lessons
 const lessonCache = new Map();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = 5 * 60 * 1000;
 
 export const fetchCourseLessons = async (courseId) => {
   try {
-    console.log(`📚 Fetching all lessons for course ${courseId} in single request`);
     const response = await api.get(`/courses/${courseId}/lessons`);
     return response.data.lessons || [];
   } catch (error) {
-    console.error('❌ Error fetching course lessons:', error);
+    console.error('Error fetching course lessons:', error);
     return [];
   }
 };
@@ -189,7 +208,6 @@ export const getCachedLessons = async (courseId) => {
   const cached = lessonCache.get(cacheKey);
   
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    console.log(`📚 Using cached lessons for course ${courseId}`);
     return cached.data;
   }
   
@@ -208,24 +226,6 @@ export const clearLessonCache = (courseId = null) => {
   } else {
     lessonCache.clear();
   }
-};
-
-// Batch request helper
-export const batchRequests = async (requests) => {
-  const results = [];
-  
-  for (let i = 0; i < requests.length; i += MAX_CONCURRENT_REQUESTS) {
-    const batch = requests.slice(i, i + MAX_CONCURRENT_REQUESTS);
-    const batchResults = await Promise.allSettled(batch);
-    results.push(...batchResults);
-    
-    // Small delay between batches
-    if (i + MAX_CONCURRENT_REQUESTS < requests.length) {
-      await new Promise(resolve => setTimeout(resolve, 50));
-    }
-  }
-  
-  return results;
 };
 
 export default api;
