@@ -228,10 +228,9 @@
 
 
 
-
 // src/context/AuthContext.js
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { api } from '../utils/api';
+import axiosInstance from '../utils/axiosInstance';
 
 const AuthContext = createContext();
 
@@ -249,7 +248,6 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [checked, setChecked] = useState(false);
 
-  // Check if user is logged in on app start
   useEffect(() => {
     checkAuthStatus();
   }, []);
@@ -264,14 +262,12 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      // Verify token with backend
-      const response = await api.get('/auth/me');
+      const response = await axiosInstance.get('/auth/me');
       
       if (response.data.success) {
         setUser(response.data.user);
         setIsAuthenticated(true);
       } else {
-        // Token is invalid
         localStorage.removeItem('token');
         setUser(null);
         setIsAuthenticated(false);
@@ -289,7 +285,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await api.post('/auth/login', {
+      const response = await axiosInstance.post('/auth/login', {
         email,
         password
       });
@@ -297,7 +293,6 @@ export const AuthProvider = ({ children }) => {
       if (response.data.success) {
         const { user, token } = response.data;
         
-        // Store token
         if (token) {
           localStorage.setItem('token', token);
         }
@@ -320,12 +315,11 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await api.post('/auth/register', userData);
+      const response = await axiosInstance.post('/auth/register', userData);
 
       if (response.data.success) {
         const { user, token, message } = response.data;
         
-        // Store token if provided (for auto-login if approved)
         if (token) {
           localStorage.setItem('token', token);
           setUser(user);
@@ -351,7 +345,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await api.post('/auth/logout');
+      await axiosInstance.post('/auth/logout');
     } catch (error) {
       console.error('Logout error:', error);
     } finally {

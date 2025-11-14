@@ -117,37 +117,30 @@
 
 
 
-
 // src/utils/api.js
 import axios from 'axios';
 
 const pendingRequests = new Set();
 const MAX_CONCURRENT_REQUESTS = 5;
 
-// Create axios instance with base configuration
+// Create axios instance
 const api = axios.create({
   baseURL: process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000/api/v1',
   timeout: 30000,
   withCredentials: true,
 });
 
-// Add token to requests
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+// Add auth token to requests
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-);
+  return config;
+});
 
-// Request throttling interceptor
+// Request throttling
 api.interceptors.request.use(async (config) => {
-  // Wait if too many requests are pending
   while (pendingRequests.size >= MAX_CONCURRENT_REQUESTS) {
     await new Promise(resolve => setTimeout(resolve, 100));
   }
@@ -158,7 +151,7 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
-// Response interceptor
+// Response handling
 api.interceptors.response.use(
   (response) => {
     const requestId = `${response.config.method}-${response.config.url}`;
@@ -169,17 +162,12 @@ api.interceptors.response.use(
     const requestId = `${error.config?.method}-${error.config?.url}`;
     pendingRequests.delete(requestId);
     
-    // Handle 429 errors with retry logic
     if (error.response?.status === 429) {
-      console.warn('Rate limit exceeded, implementing backoff...');
       return new Promise(resolve => {
-        setTimeout(() => {
-          resolve(api(error.config));
-        }, 2000);
+        setTimeout(() => resolve(api(error.config)), 2000);
       });
     }
     
-    // Handle authentication errors
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
@@ -188,44 +176,5 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-// Cache for lessons
-const lessonCache = new Map();
-const CACHE_DURATION = 5 * 60 * 1000;
-
-export const fetchCourseLessons = async (courseId) => {
-  try {
-    const response = await api.get(`/courses/${courseId}/lessons`);
-    return response.data.lessons || [];
-  } catch (error) {
-    console.error('Error fetching course lessons:', error);
-    return [];
-  }
-};
-
-export const getCachedLessons = async (courseId) => {
-  const cacheKey = `lessons-${courseId}`;
-  const cached = lessonCache.get(cacheKey);
-  
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return cached.data;
-  }
-  
-  const lessons = await fetchCourseLessons(courseId);
-  lessonCache.set(cacheKey, {
-    data: lessons,
-    timestamp: Date.now()
-  });
-  
-  return lessons;
-};
-
-export const clearLessonCache = (courseId = null) => {
-  if (courseId) {
-    lessonCache.delete(`lessons-${courseId}`);
-  } else {
-    lessonCache.clear();
-  }
-};
 
 export default api;
