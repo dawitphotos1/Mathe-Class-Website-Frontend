@@ -89,7 +89,7 @@ const MyTeachingCourses = () => {
               `/courses/${course.id}/lessons`
             );
             const lessonsData = lessonsResponse.data?.lessons || [];
-            
+
             // Fetch sub-lessons for each lesson
             const subLessonPromises = lessonsData.map(async (lesson) => {
               try {
@@ -101,7 +101,10 @@ const MyTeachingCourses = () => {
                   subLessons: subLessonsResponse.data?.sublessons || [],
                 };
               } catch (error) {
-                console.error(`Error fetching sub-lessons for lesson ${lesson.id}:`, error);
+                console.error(
+                  `Error fetching sub-lessons for lesson ${lesson.id}:`,
+                  error
+                );
                 return { lessonId: lesson.id, subLessons: [] };
               }
             });
@@ -118,7 +121,10 @@ const MyTeachingCourses = () => {
               subLessons: subLessonsMap,
             };
           } catch (error) {
-            console.error(`Error fetching lessons for course ${course.id}:`, error);
+            console.error(
+              `Error fetching lessons for course ${course.id}:`,
+              error
+            );
             return { courseId: course.id, lessons: [], subLessons: {} };
           }
         });
@@ -160,37 +166,48 @@ const MyTeachingCourses = () => {
       file_url: lesson.file_url,
       video_url: lesson.video_url,
       isSubLesson: isSubLesson,
-      course: course.title
+      course: course.title,
     });
-    
+
     try {
       // First, test access using the debug endpoint with proper authentication
       console.log("🧪 Testing lesson access...");
-      const debugResponse = await axiosInstance.get(`/files/debug-lesson/${lesson.id}`);
-      
+      const debugResponse = await axiosInstance.get(
+        `/files/debug-lesson/${lesson.id}`
+      );
+
       if (debugResponse.data?.success) {
         console.log("✅ Debug info:", debugResponse.data);
-        
+
         // Check if user has access
         if (!debugResponse.data.access.has_access) {
-          showSnackbar("You don't have permission to preview this lesson", "error");
+          showSnackbar(
+            "You don't have permission to preview this lesson",
+            "error"
+          );
           return;
         }
-        
+
         // Check if file exists for PDF lessons
-        if (lesson.content_type === 'pdf' && !debugResponse.data.file_info.exists) {
+        if (
+          lesson.content_type === "pdf" &&
+          !debugResponse.data.file_info.exists
+        ) {
           showSnackbar("PDF file not found on server", "error");
           return;
         }
-        
+
         // Create a new window/tab for the preview
-        const previewWindow = window.open('', '_blank');
-        
+        const previewWindow = window.open("", "_blank");
+
         if (!previewWindow) {
-          showSnackbar("Please allow popups for preview functionality", "warning");
+          showSnackbar(
+            "Please allow popups for preview functionality",
+            "warning"
+          );
           return;
         }
-        
+
         // Show loading message
         previewWindow.document.write(`
           <!DOCTYPE html>
@@ -235,13 +252,13 @@ const MyTeachingCourses = () => {
           </body>
           </html>
         `);
-        
+
         // Use the dedicated preview endpoint with proper authentication
         const previewUrl = `/api/v1/files/preview-lesson/${lesson.id}`;
         const fullPreviewUrl = `${window.location.origin}${previewUrl}`;
-        
+
         console.log("🚀 Opening preview URL:", fullPreviewUrl);
-        
+
         // Wait a moment then redirect to the actual preview
         setTimeout(() => {
           try {
@@ -252,58 +269,60 @@ const MyTeachingCourses = () => {
             showSnackbar("Failed to open preview", "error");
           }
         }, 1000);
-        
       } else {
         throw new Error("Debug endpoint returned unsuccessful response");
       }
-      
     } catch (error) {
       console.error("❌ Preview error:", {
         message: error.message,
         response: error.response?.data,
-        status: error.response?.status
+        status: error.response?.status,
       });
-      
+
       // Handle specific error cases without logging out
       if (error.response?.status === 401) {
         showSnackbar("Please login again to preview content", "error");
         return;
       } else if (error.response?.status === 403) {
-        showSnackbar("You don't have permission to preview this lesson", "error");
+        showSnackbar(
+          "You don't have permission to preview this lesson",
+          "error"
+        );
         return;
       } else if (error.response?.status === 404) {
         showSnackbar("Lesson content not found on server", "error");
         return;
       }
-      
+
       // Fallback to direct file access for PDFs
-      if (lesson.content_type === 'pdf' && lesson.file_url) {
-        console.log("📄 Fallback: Attempting direct PDF access:", lesson.file_url);
-        
+      if (lesson.content_type === "pdf" && lesson.file_url) {
+        console.log(
+          "📄 Fallback: Attempting direct PDF access:",
+          lesson.file_url
+        );
+
         // Ensure the file_url is absolute
         let fileUrl = lesson.file_url;
-        if (fileUrl.startsWith('/')) {
+        if (fileUrl.startsWith("/")) {
           fileUrl = `${window.location.origin}${fileUrl}`;
         }
-        
-        const previewWindow = window.open('', '_blank');
+
+        const previewWindow = window.open("", "_blank");
         previewWindow.location.href = fileUrl;
-        
-      } else if (lesson.content_type === 'video' && lesson.video_url) {
+      } else if (lesson.content_type === "video" && lesson.video_url) {
         console.log("🎥 Fallback: Opening video directly:", lesson.video_url);
-        
+
         let videoUrl = lesson.video_url;
-        if (videoUrl.startsWith('/')) {
+        if (videoUrl.startsWith("/")) {
           videoUrl = `${window.location.origin}${videoUrl}`;
         }
-        
-        window.open(videoUrl, '_blank');
-        
+
+        window.open(videoUrl, "_blank");
       } else {
         // For text content or when all else fails, show inline preview
         console.log("📝 Fallback: Showing inline text preview");
-        
-        const previewWindow = window.open('', '_blank');
+
+        const previewWindow = window.open("", "_blank");
         previewWindow.document.write(`
           <!DOCTYPE html>
           <html>
@@ -380,11 +399,13 @@ const MyTeachingCourses = () => {
               <div class="info">
                 <p><strong>Course:</strong> ${course.title}</p>
                 <p><strong>Content Type:</strong> ${lesson.content_type}</p>
-                <p><strong>Type:</strong> ${isSubLesson ? 'Sub-Lesson' : 'Lesson'}</p>
+                <p><strong>Type:</strong> ${
+                  isSubLesson ? "Sub-Lesson" : "Lesson"
+                }</p>
                 <p><strong>Preview Generated:</strong> ${new Date().toLocaleString()}</p>
               </div>
               <div class="content">
-                ${lesson.content || 'No content available for preview.'}
+                ${lesson.content || "No content available for preview."}
               </div>
             </div>
           </body>
@@ -400,9 +421,9 @@ const MyTeachingCourses = () => {
   };
 
   const handleLessonClick = (lessonId) => {
-    setExpandedLessons(prev => ({
+    setExpandedLessons((prev) => ({
       ...prev,
-      [lessonId]: !prev[lessonId]
+      [lessonId]: !prev[lessonId],
     }));
   };
 
@@ -449,11 +470,11 @@ const MyTeachingCourses = () => {
 
     try {
       setDeleting(true);
-      
+
       if (type === "course") {
         console.log("🗑️ Deleting course:", course.id);
         const response = await axiosInstance.delete(`/courses/${course.id}`);
-        
+
         if (response.data?.success) {
           setCourses((prev) => prev.filter((c) => c.id !== course.id));
           showSnackbar("Course deleted successfully", "success");
@@ -461,11 +482,14 @@ const MyTeachingCourses = () => {
           throw new Error(response.data?.error || "Failed to delete course");
         }
       } else if (type === "lesson" || type === "sublesson") {
-        const endpoint = type === "sublesson" ? `/sublessons/${lesson.id}` : `/lessons/${lesson.id}`;
+        const endpoint =
+          type === "sublesson"
+            ? `/sublessons/${lesson.id}`
+            : `/lessons/${lesson.id}`;
         console.log(`🗑️ Deleting ${type}:`, lesson.id);
-        
+
         const response = await axiosInstance.delete(endpoint);
-        
+
         if (response.data?.success) {
           if (type === "lesson") {
             // Remove lesson from state
@@ -479,20 +503,30 @@ const MyTeachingCourses = () => {
               ...prev,
               [course.id]: {
                 ...prev[course.id],
-                [lesson.parent_lesson_id]: prev[course.id]?.[lesson.parent_lesson_id]?.filter(
-                  (sl) => sl.id !== lesson.id
-                ) || [],
+                [lesson.parent_lesson_id]:
+                  prev[course.id]?.[lesson.parent_lesson_id]?.filter(
+                    (sl) => sl.id !== lesson.id
+                  ) || [],
               },
             }));
           }
-          showSnackbar(`${type === 'sublesson' ? 'Sub-lesson' : 'Lesson'} deleted successfully`, "success");
+          showSnackbar(
+            `${
+              type === "sublesson" ? "Sub-lesson" : "Lesson"
+            } deleted successfully`,
+            "success"
+          );
         } else {
           throw new Error(response.data?.error || `Failed to delete ${type}`);
         }
       }
     } catch (error) {
       console.error(`Error deleting ${type}:`, error);
-      const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || `Failed to delete ${type}`;
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        `Failed to delete ${type}`;
       showSnackbar(errorMessage, "error");
     } finally {
       setDeleting(false);
@@ -562,25 +596,29 @@ const MyTeachingCourses = () => {
         <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
           Choose your preferred method for creating a new course
         </Typography>
-        
+
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Card 
-              variant="outlined" 
+            <Card
+              variant="outlined"
               className="creation-option simple"
-              sx={{ 
-                p: 2, 
-                height: '100%',
-                cursor: 'pointer',
+              sx={{
+                p: 2,
+                height: "100%",
+                cursor: "pointer",
               }}
-              onClick={() => navigate('/create-course')}
+              onClick={() => navigate("/create-course")}
             >
               <Box className="creation-option-header">
                 <RocketIcon className="floating" />
                 <Typography variant="h6" gutterBottom>
                   Simple Course Creation
                 </Typography>
-                <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{ mb: 2 }}
+                >
                   Quick setup with basic course information
                 </Typography>
                 <ul className="feature-list">
@@ -589,8 +627,8 @@ const MyTeachingCourses = () => {
                   <li>Fast setup</li>
                   <li>Add structure later</li>
                 </ul>
-                <Button 
-                  variant="contained" 
+                <Button
+                  variant="contained"
                   startIcon={<RocketIcon />}
                   sx={{ mt: 2 }}
                 >
@@ -599,24 +637,28 @@ const MyTeachingCourses = () => {
               </Box>
             </Card>
           </Grid>
-          
+
           <Grid item xs={12} md={6}>
-            <Card 
-              variant="outlined" 
+            <Card
+              variant="outlined"
               className="creation-option advanced"
-              sx={{ 
-                p: 2, 
-                height: '100%',
-                cursor: 'pointer',
+              sx={{
+                p: 2,
+                height: "100%",
+                cursor: "pointer",
               }}
-              onClick={() => navigate('/create-course-advanced')}
+              onClick={() => navigate("/create-course-advanced")}
             >
               <Box className="creation-option-header">
                 <BuildIcon className="floating" />
                 <Typography variant="h6" gutterBottom>
                   Advanced Course Creation
                 </Typography>
-                <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{ mb: 2 }}
+                >
                   Complete course structure with custom URLs
                 </Typography>
                 <ul className="feature-list">
@@ -625,8 +667,8 @@ const MyTeachingCourses = () => {
                   <li>Units and lessons setup</li>
                   <li>Complete URL control</li>
                 </ul>
-                <Button 
-                  variant="outlined" 
+                <Button
+                  variant="outlined"
                   color="secondary"
                   startIcon={<BuildIcon />}
                   sx={{ mt: 2 }}
@@ -647,7 +689,8 @@ const MyTeachingCourses = () => {
               No courses found
             </Typography>
             <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-              You haven't created any courses yet. Choose a creation method above to get started.
+              You haven't created any courses yet. Choose a creation method
+              above to get started.
             </Typography>
           </CardContent>
         </Card>
@@ -677,7 +720,14 @@ const MyTeachingCourses = () => {
                         {course.description || "No description available."}
                       </Typography>
                     </Box>
-                    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-end",
+                        gap: 1,
+                      }}
+                    >
                       <Chip
                         label={formatPrice(course.price)}
                         color="primary"
@@ -712,7 +762,9 @@ const MyTeachingCourses = () => {
                       variant="outlined"
                     />
                     <Chip
-                      label={`Created: ${new Date(course.created_at).toLocaleDateString()}`}
+                      label={`Created: ${new Date(
+                        course.created_at
+                      ).toLocaleDateString()}`}
                       size="small"
                       variant="outlined"
                     />
@@ -726,14 +778,16 @@ const MyTeachingCourses = () => {
                   >
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                       <Typography variant="h6">
-                        📦 Course Content ({lessons[course.id]?.length || 0} Lessons)
+                        📦 Course Content ({lessons[course.id]?.length || 0}{" "}
+                        Lessons)
                       </Typography>
                     </AccordionSummary>
                     <AccordionDetails>
                       {lessons[course.id]?.length > 0 ? (
                         <List dense className="lessons-list">
                           {lessons[course.id].map((lesson) => {
-                            const lessonSubLessons = subLessons[course.id]?.[lesson.id] || [];
+                            const lessonSubLessons =
+                              subLessons[course.id]?.[lesson.id] || [];
                             const hasSubLessons = lessonSubLessons.length > 0;
                             const isExpanded = expandedLessons[lesson.id];
 
@@ -741,22 +795,43 @@ const MyTeachingCourses = () => {
                               <Box key={lesson.id}>
                                 {/* Main Lesson Item */}
                                 <ListItem className="lesson-item main-lesson">
-                                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: '100%' }}>
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 1,
+                                      width: "100%",
+                                    }}
+                                  >
                                     {getLessonIcon(lesson.content_type)}
                                     <ListItemText
                                       primary={
-                                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: 'wrap' }}>
-                                          <Typography variant="body1" fontWeight="medium">
+                                        <Box
+                                          sx={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 1,
+                                            flexWrap: "wrap",
+                                          }}
+                                        >
+                                          <Typography
+                                            variant="body1"
+                                            fontWeight="medium"
+                                          >
                                             {lesson.title}
                                           </Typography>
                                           {/* ✅ PREVIEW BUTTON FOR EVERY LESSON */}
-                                          <Button 
-                                            size="small" 
+                                          <Button
+                                            size="small"
                                             className="preview-button"
                                             startIcon={<PreviewIcon />}
                                             onClick={(e) => {
                                               e.stopPropagation();
-                                              handlePreviewLesson(lesson, course, false);
+                                              handlePreviewLesson(
+                                                lesson,
+                                                course,
+                                                false
+                                              );
                                             }}
                                             sx={{ ml: 1 }}
                                           >
@@ -773,9 +848,18 @@ const MyTeachingCourses = () => {
                                         </Box>
                                       }
                                       secondary={
-                                        <Box sx={{ display: "flex", gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+                                        <Box
+                                          sx={{
+                                            display: "flex",
+                                            gap: 1,
+                                            mt: 0.5,
+                                            flexWrap: "wrap",
+                                          }}
+                                        >
                                           <Chip
-                                            label={getContentTypeLabel(lesson.content_type)}
+                                            label={getContentTypeLabel(
+                                              lesson.content_type
+                                            )}
                                             size="small"
                                             variant="outlined"
                                           />
@@ -799,17 +883,29 @@ const MyTeachingCourses = () => {
                                   <ListItemSecondaryAction>
                                     {hasSubLessons && (
                                       <IconButton
-                                        onClick={() => handleLessonClick(lesson.id)}
+                                        onClick={() =>
+                                          handleLessonClick(lesson.id)
+                                        }
                                         size="small"
                                         sx={{ mr: 1 }}
                                       >
-                                        {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon2 />}
+                                        {isExpanded ? (
+                                          <ExpandLessIcon />
+                                        ) : (
+                                          <ExpandMoreIcon2 />
+                                        )}
                                       </IconButton>
                                     )}
                                     <IconButton
                                       edge="end"
                                       aria-label="edit"
-                                      onClick={() => handleEditLesson(course.id, lesson.id, false)}
+                                      onClick={() =>
+                                        handleEditLesson(
+                                          course.id,
+                                          lesson.id,
+                                          false
+                                        )
+                                      }
                                       size="small"
                                       sx={{ mr: 1 }}
                                     >
@@ -818,7 +914,13 @@ const MyTeachingCourses = () => {
                                     <IconButton
                                       edge="end"
                                       aria-label="delete"
-                                      onClick={() => handleDeleteLesson(lesson, course.id, false)}
+                                      onClick={() =>
+                                        handleDeleteLesson(
+                                          lesson,
+                                          course.id,
+                                          false
+                                        )
+                                      }
                                       size="small"
                                       color="error"
                                     >
@@ -829,26 +931,58 @@ const MyTeachingCourses = () => {
 
                                 {/* Sub-lessons Section */}
                                 {hasSubLessons && (
-                                  <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                                    <List component="div" disablePadding className="sublessons-list">
+                                  <Collapse
+                                    in={isExpanded}
+                                    timeout="auto"
+                                    unmountOnExit
+                                  >
+                                    <List
+                                      component="div"
+                                      disablePadding
+                                      className="sublessons-list"
+                                    >
                                       {lessonSubLessons.map((subLesson) => (
-                                        <ListItem key={subLesson.id} className="lesson-item sublesson-item" sx={{ pl: 4 }}>
-                                          <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: '100%' }}>
-                                            {getLessonIcon(subLesson.content_type)}
+                                        <ListItem
+                                          key={subLesson.id}
+                                          className="lesson-item sublesson-item"
+                                          sx={{ pl: 4 }}
+                                        >
+                                          <Box
+                                            sx={{
+                                              display: "flex",
+                                              alignItems: "center",
+                                              gap: 1,
+                                              width: "100%",
+                                            }}
+                                          >
+                                            {getLessonIcon(
+                                              subLesson.content_type
+                                            )}
                                             <ListItemText
                                               primary={
-                                                <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: 'wrap' }}>
+                                                <Box
+                                                  sx={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: 1,
+                                                    flexWrap: "wrap",
+                                                  }}
+                                                >
                                                   <Typography variant="body2">
                                                     {subLesson.title}
                                                   </Typography>
                                                   {/* ✅ PREVIEW BUTTON FOR EVERY SUB-LESSON */}
-                                                  <Button 
-                                                    size="small" 
+                                                  <Button
+                                                    size="small"
                                                     className="preview-button"
                                                     startIcon={<PreviewIcon />}
                                                     onClick={(e) => {
                                                       e.stopPropagation();
-                                                      handlePreviewLesson(subLesson, course, true);
+                                                      handlePreviewLesson(
+                                                        subLesson,
+                                                        course,
+                                                        true
+                                                      );
                                                     }}
                                                     sx={{ ml: 1 }}
                                                   >
@@ -865,9 +999,18 @@ const MyTeachingCourses = () => {
                                                 </Box>
                                               }
                                               secondary={
-                                                <Box sx={{ display: "flex", gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+                                                <Box
+                                                  sx={{
+                                                    display: "flex",
+                                                    gap: 1,
+                                                    mt: 0.5,
+                                                    flexWrap: "wrap",
+                                                  }}
+                                                >
                                                   <Chip
-                                                    label={getContentTypeLabel(subLesson.content_type)}
+                                                    label={getContentTypeLabel(
+                                                      subLesson.content_type
+                                                    )}
                                                     size="small"
                                                     variant="outlined"
                                                   />
@@ -890,7 +1033,13 @@ const MyTeachingCourses = () => {
                                             <IconButton
                                               edge="end"
                                               aria-label="edit"
-                                              onClick={() => handleEditLesson(course.id, subLesson.id, true)}
+                                              onClick={() =>
+                                                handleEditLesson(
+                                                  course.id,
+                                                  subLesson.id,
+                                                  true
+                                                )
+                                              }
                                               size="small"
                                               sx={{ mr: 1 }}
                                             >
@@ -899,7 +1048,13 @@ const MyTeachingCourses = () => {
                                             <IconButton
                                               edge="end"
                                               aria-label="delete"
-                                              onClick={() => handleDeleteLesson(subLesson, course.id, true)}
+                                              onClick={() =>
+                                                handleDeleteLesson(
+                                                  subLesson,
+                                                  course.id,
+                                                  true
+                                                )
+                                              }
                                               size="small"
                                               color="error"
                                             >
@@ -978,12 +1133,21 @@ const MyTeachingCourses = () => {
       <Dialog
         open={deleteDialog.open}
         onClose={() =>
-          setDeleteDialog({ open: false, course: null, lesson: null, type: null })
+          setDeleteDialog({
+            open: false,
+            course: null,
+            lesson: null,
+            type: null,
+          })
         }
       >
         <DialogTitle>
-          Delete {deleteDialog.type === "course" ? "Course" : 
-                 deleteDialog.type === "sublesson" ? "Sub-lesson" : "Lesson"}
+          Delete{" "}
+          {deleteDialog.type === "course"
+            ? "Course"
+            : deleteDialog.type === "sublesson"
+            ? "Sub-lesson"
+            : "Lesson"}
         </DialogTitle>
         <DialogContent>
           <Typography>
@@ -1004,7 +1168,8 @@ const MyTeachingCourses = () => {
           </Typography>
           {deleteDialog.type === "course" && (
             <Alert severity="warning" sx={{ mt: 2 }}>
-              ⚠️ Warning: This will permanently delete the course and all its content!
+              ⚠️ Warning: This will permanently delete the course and all its
+              content!
             </Alert>
           )}
           {deleteDialog.type === "lesson" && (
@@ -1016,18 +1181,25 @@ const MyTeachingCourses = () => {
         <DialogActions>
           <Button
             onClick={() =>
-              setDeleteDialog({ open: false, course: null, lesson: null, type: null })
+              setDeleteDialog({
+                open: false,
+                course: null,
+                lesson: null,
+                type: null,
+              })
             }
             disabled={deleting}
           >
             Cancel
           </Button>
-          <Button 
-            onClick={confirmDelete} 
-            color="error" 
+          <Button
+            onClick={confirmDelete}
+            color="error"
             variant="contained"
             disabled={deleting}
-            startIcon={deleting ? <CircularProgress size={16} /> : <DeleteIcon />}
+            startIcon={
+              deleting ? <CircularProgress size={16} /> : <DeleteIcon />
+            }
           >
             {deleting ? "Deleting..." : "Delete"}
           </Button>
