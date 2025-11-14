@@ -1,69 +1,140 @@
-// utils/axiosInstance.js
-import axios from 'axios';
+// // utils/axiosInstance.js
+// import axios from 'axios';
 
-// Determine the base URL based on environment
+// // Determine the base URL based on environment
+// const getBaseURL = () => {
+//   if (process.env.NODE_ENV === 'production') {
+//     return 'https://mathe-class-website-backend-1.onrender.com/api/v1';
+//   } else {
+//     return 'http://localhost:5000/api/v1';
+//   }
+// };
+
+// // Create axios instance with default config
+// const axiosInstance = axios.create({
+//   baseURL: getBaseURL(),
+//   timeout: 10000,
+//   headers: {
+//     'Content-Type': 'application/json',
+//   },
+//   withCredentials: true,
+// });
+
+// // Request interceptor to add auth token
+// axiosInstance.interceptors.request.use(
+//   (config) => {
+//     const token = localStorage.getItem('token');
+//     if (token) {
+//       config.headers.Authorization = `Bearer ${token}`;
+//     }
+    
+//     // Log API calls in development
+//     if (process.env.NODE_ENV === 'development') {
+//       console.log(`🚀 ${config.method?.toUpperCase()} → ${config.url}`);
+//     }
+    
+//     return config;
+//   },
+//   (error) => {
+//     return Promise.reject(error);
+//   }
+// );
+
+// // Response interceptor for handling errors
+// axiosInstance.interceptors.response.use(
+//   (response) => {
+//     // Log successful responses in development
+//     if (process.env.NODE_ENV === 'development') {
+//       console.log(`✅ ${response.status} → ${response.config.url}`);
+//     }
+//     return response;
+//   },
+//   (error) => {
+//     // Log errors in development
+//     if (process.env.NODE_ENV === 'development') {
+//       console.log(`💥 API Error:`, error.response?.data || error.message);
+//     }
+
+//     // Handle specific error cases
+//     if (error.response?.status === 401) {
+//       // Unauthorized - clear token and redirect to login
+//       localStorage.removeItem('token');
+//       window.location.href = '/login';
+//     }
+
+//     return Promise.reject(error);
+//   }
+// );
+
+// export default axiosInstance; // ✅ This exports as default
+
+
+
+
+
+
+// utils/axiosInstance.js
+import axios from "axios";
+
+// Determine the base URL dynamically
 const getBaseURL = () => {
-  if (process.env.NODE_ENV === 'production') {
-    return 'https://mathe-class-website-backend-1.onrender.com/api/v1';
-  } else {
-    return 'http://localhost:5000/api/v1';
-  }
+  return process.env.NODE_ENV === "production"
+    ? "https://mathe-class-website-backend-1.onrender.com/api/v1"
+    : "http://localhost:5000/api/v1";
 };
 
-// Create axios instance with default config
+// Create axios instance
 const axiosInstance = axios.create({
   baseURL: getBaseURL(),
   timeout: 10000,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
-  withCredentials: true,
+  withCredentials: true, // ✅ Send cookies for auth
 });
 
-// Request interceptor to add auth token
+// ------------------------------
+// Request Interceptor
+// ------------------------------
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
-    // Log API calls in development
-    if (process.env.NODE_ENV === 'development') {
+
+    if (process.env.NODE_ENV === "development") {
       console.log(`🚀 ${config.method?.toUpperCase()} → ${config.url}`);
     }
-    
+
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor for handling errors
+// ------------------------------
+// Response Interceptor
+// ------------------------------
 axiosInstance.interceptors.response.use(
   (response) => {
-    // Log successful responses in development
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console.log(`✅ ${response.status} → ${response.config.url}`);
     }
     return response;
   },
   (error) => {
-    // Log errors in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`💥 API Error:`, error.response?.data || error.message);
+    if (process.env.NODE_ENV === "development") {
+      console.error(`💥 API Error:`, error.response?.data || error.message);
     }
 
-    // Handle specific error cases
+    // Handle 401 Unauthorized
     if (error.response?.status === 401) {
-      // Unauthorized - clear token and redirect to login
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      localStorage.removeItem("token");
+      window.location.href = "/login";
     }
 
     return Promise.reject(error);
   }
 );
 
-export default axiosInstance; // ✅ This exports as default
+export default axiosInstance;

@@ -227,7 +227,6 @@
 
 
 
-
 // src/context/AuthContext.js
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axiosInstance from '../utils/axiosInstance';
@@ -248,6 +247,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [checked, setChecked] = useState(false);
 
+  // Check authentication status on app start
   useEffect(() => {
     checkAuthStatus();
   }, []);
@@ -262,12 +262,14 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
+      // Verify token with backend
       const response = await axiosInstance.get('/auth/me');
       
-      if (response.data.success) {
+      if (response.data.success && response.data.user) {
         setUser(response.data.user);
         setIsAuthenticated(true);
       } else {
+        // Token is invalid
         localStorage.removeItem('token');
         setUser(null);
         setIsAuthenticated(false);
@@ -283,43 +285,68 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Login function
   const login = async (email, password) => {
     try {
+      console.log('Attempting login with:', { email });
+      
       const response = await axiosInstance.post('/auth/login', {
         email,
         password
       });
 
+      console.log('Login response:', response.data);
+
       if (response.data.success) {
         const { user, token } = response.data;
         
+        // Store token
         if (token) {
           localStorage.setItem('token', token);
+          console.log('Token stored successfully');
         }
         
         setUser(user);
         setIsAuthenticated(true);
         
-        return { success: true, user };
+        return { 
+          success: true, 
+          user,
+          message: 'Login successful'
+        };
       } else {
-        return { success: false, error: response.data.error };
+        return { 
+          success: false, 
+          error: response.data.error || 'Login failed' 
+        };
       }
     } catch (error) {
       console.error('Login error:', error);
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.message || 
+                          error.message || 
+                          'Login failed';
+      
       return { 
         success: false, 
-        error: error.response?.data?.error || 'Login failed' 
+        error: errorMessage
       };
     }
   };
 
+  // Register function
   const register = async (userData) => {
     try {
+      console.log('Attempting registration with:', userData);
+      
       const response = await axiosInstance.post('/auth/register', userData);
+
+      console.log('Registration response:', response.data);
 
       if (response.data.success) {
         const { user, token, message } = response.data;
         
+        // Store token if provided (for auto-login if approved)
         if (token) {
           localStorage.setItem('token', token);
           setUser(user);
@@ -332,17 +359,26 @@ export const AuthProvider = ({ children }) => {
           message: message || 'Registration successful'
         };
       } else {
-        return { success: false, error: response.data.error };
+        return { 
+          success: false, 
+          error: response.data.error || 'Registration failed' 
+        };
       }
     } catch (error) {
       console.error('Registration error:', error);
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.message || 
+                          error.message || 
+                          'Registration failed';
+      
       return { 
         success: false, 
-        error: error.response?.data?.error || 'Registration failed' 
+        error: errorMessage
       };
     }
   };
 
+  // Logout function
   const logout = async () => {
     try {
       await axiosInstance.post('/auth/logout');
@@ -355,10 +391,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Update user data
   const updateUser = (updatedUser) => {
     setUser(updatedUser);
   };
 
+  // Context value
   const value = {
     user,
     isAuthenticated,
