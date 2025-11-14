@@ -177,4 +177,27 @@ api.interceptors.response.use(
   }
 );
 
+// --------------------
+// Placeholder getCachedLessons
+// --------------------
+export const getCachedLessons = async () => {
+  try {
+    const response = await api.get("/lessons"); // adjust endpoint if needed
+    return response.data;
+  } catch (err) {
+    console.error("Failed to fetch lessons:", err);
+    return [];
+  }
+};
+
+// --------------------
+// Placeholder clearLessonCache
+// --------------------
+export const clearLessonCache = () => {
+  console.log("clearLessonCache called - no cache logic yet");
+};
+
+// --------------------
+// Default export
+// --------------------
 export default api;
