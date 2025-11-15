@@ -1,4 +1,4 @@
-
+//pages/courses/CourseCreator.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../api/axiosInstance"; // Updated import

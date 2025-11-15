@@ -88,8 +88,8 @@
 
 
 // src/hooks/useLessons.js
-import { useState, useEffect, useCallback } from 'react';
-import { getCachedLessons, clearLessonCache } from '../utils/api';
+import { useState, useEffect, useCallback } from "react";
+import { getCachedLessons, clearLessonCache } from "../utils/api";
 
 export const useLessons = (courseId) => {
   const [lessons, setLessons] = useState([]);
@@ -98,16 +98,16 @@ export const useLessons = (courseId) => {
 
   const fetchLessons = useCallback(async () => {
     if (!courseId) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       const lessonsData = await getCachedLessons(courseId);
       setLessons(lessonsData);
     } catch (err) {
       setError(err.message);
-      console.error('Error in useLessons hook:', err);
+      console.error("Error in useLessons hook:", err);
     } finally {
       setLoading(false);
     }
@@ -126,6 +126,6 @@ export const useLessons = (courseId) => {
     lessons,
     loading,
     error,
-    refreshLessons
+    refreshLessons,
   };
 };
