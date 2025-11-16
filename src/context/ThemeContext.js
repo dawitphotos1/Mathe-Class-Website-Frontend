@@ -1,39 +1,3 @@
-
-// // src/context/ThemeContext.jsx
-// import React, { createContext, useContext, useEffect, useState } from "react";
-
-// const ThemeContext = createContext();
-
-// export const ThemeProvider = ({ children }) => {
-//   const [theme, setTheme] = useState(() => {
-//     // Load stored preference or fallback to "light"
-//     return localStorage.getItem("theme") || "light";
-//   });
-
-//   // Sync Tailwind + localStorage when theme changes
-//   useEffect(() => {
-//     const root = window.document.documentElement;
-//     root.classList.remove("light", "dark");
-//     root.classList.add(theme);
-//     localStorage.setItem("theme", theme);
-//   }, [theme]);
-
-//   const toggleTheme = () => {
-//     setTheme((prev) => (prev === "light" ? "dark" : "light"));
-//   };
-
-//   const value = { theme, setTheme, toggleTheme };
-
-//   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
-// };
-
-// // ✅ Export the hook your components are using
-// export const useTheme = () => useContext(ThemeContext);
-
-
-
-
-
 // src/context/ThemeContext.js
 import React, { createContext, useState, useContext, useEffect } from 'react';
 
