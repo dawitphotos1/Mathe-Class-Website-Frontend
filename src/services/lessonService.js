@@ -207,119 +207,63 @@
 
 
 
-// src/services/lessonService.js
+// src/pages/services/lessonService.js
 import axiosInstance from "../utils/axiosInstance";
 
 const lessonService = {
-  // -----------------------------------------
-  // CREATE LESSON
-  // -----------------------------------------
   createLesson: async (courseId, lessonData) => {
-    try {
-      const formData = new FormData();
+    const form = new FormData();
 
-      // Append fields
-      Object.keys(lessonData).forEach((key) => {
-        const value = lessonData[key];
+    Object.keys(lessonData).forEach((key) => {
+      const value = lessonData[key];
+      if (value === "" || value === null) return;
 
-        if (value === null || value === undefined || value === "") return;
+      switch (key) {
+        case "contentType":
+          form.append("content_type", value);
+          break;
+        case "orderIndex":
+          form.append("order_index", value);
+          break;
+        case "videoUrl":
+          form.append("video_url", value);
+          break;
+        case "isPreview":
+          form.append("is_preview", value);
+          break;
+        default:
+          form.append(key, value);
+      }
+    });
 
-        if (value instanceof File) {
-          formData.append(key, value); // file, pdf, video
-        } else {
-          formData.append(key, value);
-        }
-      });
+    form.append("course_id", courseId);
+    if (lessonData.unitId) form.append("unit_id", lessonData.unitId);
+    if (lessonData.file) form.append("file", lessonData.file);
 
-      // Ensure courseId + unitId exist
-      formData.append("courseId", courseId);
-      if (lessonData.unitId) formData.append("unitId", lessonData.unitId);
+    const res = await axiosInstance.post(
+      `/lessons/courses/${courseId}/lessons`,
+      form,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
 
-      console.log("📤 Creating lesson:", { courseId, ...lessonData });
-
-      const response = await axiosInstance.post(
-        `/lessons/courses/${courseId}/lessons`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-
-      return response.data;
-    } catch (error) {
-      console.error("❌ Error creating lesson:", error);
-      throw error;
-    }
+    return res.data;
   },
 
-  // -----------------------------------------
-  // GET LESSONS
-  // -----------------------------------------
   getLessonsByCourse: async (courseId) => {
-    const response = await axiosInstance.get(`/lessons/courses/${courseId}/lessons`);
-    return response.data;
+    const res = await axiosInstance.get(`/lessons/courses/${courseId}/lessons`);
+    return res.data;
   },
 
   getLessonsByUnit: async (unitId) => {
-    const response = await axiosInstance.get(`/lessons/units/${unitId}/lessons`);
-    return response.data;
+    const res = await axiosInstance.get(`/lessons/units/${unitId}/lessons`);
+    return res.data;
   },
 
-  getLessonById: async (lessonId) => {
-    const response = await axiosInstance.get(`/lessons/${lessonId}`);
-    return response.data;
-  },
-
-  // -----------------------------------------
-  // UPDATE LESSON
-  // -----------------------------------------
-  updateLesson: async (lessonId, lessonData) => {
-    try {
-      const formData = new FormData();
-
-      Object.keys(lessonData).forEach((key) => {
-        const value = lessonData[key];
-        if (value === null || value === undefined || value === "") return;
-
-        if (value instanceof File) {
-          formData.append(key, value);
-        } else {
-          formData.append(key, value);
-        }
-      });
-
-      console.log("🔄 Updating lesson:", { lessonId, ...lessonData });
-
-      const response = await axiosInstance.put(
-        `/lessons/${lessonId}`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-
-      return response.data;
-    } catch (error) {
-      console.error("❌ Error updating lesson:", error);
-      throw error;
-    }
-  },
-
-  // -----------------------------------------
-  // DELETE LESSON
-  // -----------------------------------------
   deleteLesson: async (lessonId) => {
-    const response = await axiosInstance.delete(`/lessons/${lessonId}`);
-    return response.data;
-  },
-
-  // -----------------------------------------
-  // TEACHER DASHBOARD HELPERS
-  // -----------------------------------------
-  getCourseStructure: async (courseId) => {
-    const response = await axiosInstance.get(`/courses/teacher/${courseId}/full`);
-    return response.data;
-  },
-
-  getAllTeacherCoursesStructure: async () => {
-    const response = await axiosInstance.get(`/courses/teacher/full-structure`);
-    return response.data;
+    const res = await axiosInstance.delete(`/lessons/${lessonId}`);
+    return res.data;
   },
 };
 
