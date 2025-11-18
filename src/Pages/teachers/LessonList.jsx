@@ -274,7 +274,7 @@
 
 
 
-
+//src / pages / teachers / LessonList.jsx
 
 import React, { useState } from "react";
 import {
@@ -300,7 +300,7 @@ import {
   PictureAsPdf,
   TextFields,
 } from "@mui/icons-material";
-import axiosInstance from "../../utils/axiosInstance";
+import lessonService from "../../services/lessonService";
 
 const LessonList = ({ lessons, unitId, onLessonUpdate }) => {
   const [menuAnchor, setMenuAnchor] = useState(null);
@@ -325,15 +325,13 @@ const LessonList = ({ lessons, unitId, onLessonUpdate }) => {
       setLoading(true);
       setError("");
 
-      const response = await axiosInstance.delete(
-        `/lessons/${selectedLesson.id}`
-      );
+      const response = await lessonService.deleteLesson(selectedLesson.id);
 
-      if (response.data.success) {
+      if (response.success) {
         console.log("✅ Lesson deleted successfully");
         onLessonUpdate(); // Refresh the list
       } else {
-        throw new Error(response.data.error || "Failed to delete lesson");
+        throw new Error(response.error || "Failed to delete lesson");
       }
     } catch (error) {
       console.error("❌ Error deleting lesson:", error);
@@ -391,13 +389,6 @@ const LessonList = ({ lessons, unitId, onLessonUpdate }) => {
     }
   };
 
-  const formatFileSize = (bytes) => {
-    if (!bytes) return "";
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + " " + sizes[i];
-  };
-
   if (!lessons || lessons.length === 0) {
     return (
       <Box sx={{ textAlign: "center", py: 3 }}>
@@ -417,7 +408,7 @@ const LessonList = ({ lessons, unitId, onLessonUpdate }) => {
       )}
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {lessons.map((lesson, index) => (
+        {lessons.map((lesson) => (
           <Card key={lesson.id} variant="outlined">
             <CardContent>
               <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>

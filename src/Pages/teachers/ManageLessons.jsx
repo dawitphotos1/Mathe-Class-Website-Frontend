@@ -231,140 +231,35 @@
 
 
 
-
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import {
-  Container,
-  Typography,
-  Box,
-  Button,
-  CircularProgress,
-  Alert,
-} from "@mui/material";
-import { Add, ArrowBack } from "@mui/icons-material";
+import React from "react";
+import { Container, Typography, Box, Button } from "@mui/material";
+import { ArrowBack } from "@mui/icons-material";
 import { Link } from "react-router-dom";
-import courseService from "../../services/courseService";
-import lessonService from "../../services/lessonService";
-import CourseContent from "../../components/Teacher/CourseContent";
+import CourseContent from "./CourseContent"; // ✅ Correct relative path
 
 const ManageLessons = () => {
-  const { courseId } = useParams();
-  const [course, setCourse] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  // ✅ USING THE COURSE SERVICE
-  const fetchCourseData = async () => {
-    try {
-      setLoading(true);
-      const response = await courseService.getTeacherCourseFull(courseId);
-
-      if (response.success) {
-        setCourse(response.course);
-        console.log("✅ Loaded course data:", response.course);
-      } else {
-        throw new Error(response.error || "Failed to load course");
-      }
-    } catch (error) {
-      console.error("❌ Error fetching course:", error);
-      setError(
-        error.response?.data?.error || error.message || "Failed to load course"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (courseId) {
-      fetchCourseData();
-    }
-  }, [courseId]);
-
-  if (loading) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 4, textAlign: "center" }}>
-        <CircularProgress />
-        <Typography variant="h6" sx={{ mt: 2 }}>
-          Loading course content...
-        </Typography>
-      </Container>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-        <Button
-          startIcon={<ArrowBack />}
-          component={Link}
-          to="/teacher-dashboard"
-        >
-          Back to Dashboard
-        </Button>
-      </Container>
-    );
-  }
-
-  if (!course) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Alert severity="warning">Course not found</Alert>
-        <Button
-          startIcon={<ArrowBack />}
-          component={Link}
-          to="/teacher-dashboard"
-          sx={{ mt: 2 }}
-        >
-          Back to Dashboard
-        </Button>
-      </Container>
-    );
-  }
-
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Header */}
-      <Box
-        sx={{
-          mb: 4,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-        }}
-      >
-        <Box>
-          <Button
-            startIcon={<ArrowBack />}
-            component={Link}
-            to="/teacher-dashboard"
-            sx={{ mb: 2 }}
-          >
-            Back to Courses
-          </Button>
-          <Typography variant="h3" component="h1" gutterBottom>
-            Manage Lessons: {course.title}
-          </Typography>
-          <Typography variant="h6" color="textSecondary">
-            Organize and manage your course content
-          </Typography>
-        </Box>
+      <Box sx={{ mb: 4 }}>
         <Button
-          variant="contained"
-          startIcon={<Add />}
+          startIcon={<ArrowBack />}
           component={Link}
-          to={`/courses/${courseId}/lessons/new`}
+          to="/teacher-dashboard"
+          sx={{ mb: 2 }}
         >
-          Add New Lesson
+          Back to Courses
         </Button>
+        <Typography variant="h3" component="h1" gutterBottom>
+          Manage Course Content
+        </Typography>
+        <Typography variant="h6" color="textSecondary">
+          Organize and manage your lessons and units
+        </Typography>
       </Box>
 
-      {/* Course Content */}
-      <CourseContent course={course} onContentUpdate={fetchCourseData} />
+      {/* Course Content Component */}
+      <CourseContent />
     </Container>
   );
 };

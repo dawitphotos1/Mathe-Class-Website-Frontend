@@ -122,6 +122,7 @@
 
 
 
+//src/pages/teachers/UnitAccordion.jsx
 
 import React, { useState } from "react";
 import {
@@ -132,15 +133,8 @@ import {
   Box,
   Button,
   Chip,
-  IconButton,
 } from "@mui/material";
-import {
-  ExpandMore,
-  Add,
-  VideoLibrary,
-  Description,
-  PictureAsPdf,
-} from "@mui/icons-material";
+import { ExpandMore, Add, Description } from "@mui/icons-material";
 import LessonList from "./LessonList";
 
 const UnitAccordion = ({ unit, onAddLesson, onLessonUpdate }) => {
@@ -148,30 +142,6 @@ const UnitAccordion = ({ unit, onAddLesson, onLessonUpdate }) => {
 
   const handleExpand = () => {
     setExpanded(!expanded);
-  };
-
-  const getLessonIcon = (contentType) => {
-    switch (contentType) {
-      case "video":
-        return <VideoLibrary fontSize="small" />;
-      case "pdf":
-        return <PictureAsPdf fontSize="small" />;
-      default:
-        return <Description fontSize="small" />;
-    }
-  };
-
-  const getContentTypeColor = (contentType) => {
-    switch (contentType) {
-      case "video":
-        return "primary";
-      case "pdf":
-        return "error";
-      case "text":
-        return "success";
-      default:
-        return "default";
-    }
   };
 
   return (

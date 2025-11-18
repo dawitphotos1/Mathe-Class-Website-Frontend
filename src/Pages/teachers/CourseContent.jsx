@@ -218,6 +218,8 @@
 
 
 
+//src/pages/teachers/CourseContent.jsx
+
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -227,44 +229,38 @@ import {
   Alert,
   Card,
   CardContent,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Chip,
 } from "@mui/material";
-import {
-  ExpandMore,
-  Add,
-  VideoLibrary,
-  Description,
-} from "@mui/icons-material";
-import axiosInstance from "../../utils/axiosInstance";
+import { Add, Description } from "@mui/icons-material";
+import { useParams } from "react-router-dom";
+import courseService from "../../services/courseService";
 import UnitAccordion from "./UnitAccordion";
-import LessonForm from "../../pages/teachers/LessonForm";
+import LessonForm from "./LessonForm";
 
-const CourseContent = ({ course }) => {
-  const [units, setUnits] = useState([]);
+const CourseContent = () => {
+  const { courseId } = useParams();
+  const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showLessonForm, setShowLessonForm] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState(null);
 
   useEffect(() => {
-    fetchCourseStructure();
-  }, [course?.id]);
+    if (courseId) {
+      fetchCourseStructure();
+    }
+  }, [courseId]);
 
   const fetchCourseStructure = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(
-        `/courses/teacher/${course.id}/full`
-      );
+      const response = await courseService.getTeacherCourseFull(courseId);
 
-      if (response.data.success) {
-        setUnits(response.data.course.units || []);
-        console.log("✅ Loaded course structure:", response.data.course);
+      if (response.success) {
+        setCourse(response.course);
+        console.log("✅ Loaded course structure:", response.course);
       } else {
-        throw new Error(response.data.error || "Failed to load course content");
+        throw new Error(response.error || "Failed to load course content");
       }
     } catch (error) {
       console.error("❌ Error fetching course structure:", error);
@@ -320,6 +316,12 @@ const CourseContent = ({ course }) => {
       </Alert>
     );
   }
+
+  if (!course) {
+    return <Alert severity="warning">Course not found</Alert>;
+  }
+
+  const units = course.units || [];
 
   return (
     <Box>
@@ -401,7 +403,7 @@ const CourseContent = ({ course }) => {
         </Card>
       ) : (
         <Box>
-          {units.map((unit, index) => (
+          {units.map((unit) => (
             <UnitAccordion
               key={unit.id}
               unit={unit}
