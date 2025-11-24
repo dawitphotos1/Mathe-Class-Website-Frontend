@@ -3,7 +3,8 @@ import React, { useEffect, useRef, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
-import heroImage from "../assets/images/math-hero.jpg";
+// import heroImage from "../assets/images/math-hero.jpg";
+import heroImage from "../assets/images/main3.png";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "./Home.css";
 
