@@ -268,7 +268,6 @@
 
 
 
-
 // src/pages/teachers/LessonList.jsx
 import React, { useState } from "react";
 import {
@@ -305,6 +304,9 @@ const LessonList = ({ lessons, unitId, onLessonUpdate }) => {
 
   const navigate = useNavigate();
 
+  /* -----------------------------
+      OPEN CONTEXT MENU
+  ------------------------------*/
   const handleMenuOpen = (event, lesson) => {
     setMenuAnchor(event.currentTarget);
     setSelectedLesson(lesson);
@@ -315,18 +317,27 @@ const LessonList = ({ lessons, unitId, onLessonUpdate }) => {
     setSelectedLesson(null);
   };
 
+  /* -----------------------------
+      FIXED: REACT ROUTER PREVIEW
+      Teacher Dashboard Preview 
+  ------------------------------*/
   const handlePreviewLesson = () => {
-    const base = process.env.REACT_APP_API_URL || "";
-    const url = `${base}/lessons/${selectedLesson.id}/preview`;
-    window.open(url, "_blank");
+    if (!selectedLesson) return;
+    navigate(`/lessons/${selectedLesson.id}/preview`);
     handleMenuClose();
   };
 
+  /* -----------------------------
+      EDIT LESSON
+  ------------------------------*/
   const handleEditLesson = () => {
     navigate(`/lessons/${selectedLesson.id}/edit`);
     handleMenuClose();
   };
 
+  /* -----------------------------
+      DELETE LESSON
+  ------------------------------*/
   const handleDeleteLesson = async () => {
     if (!selectedLesson) return;
 
@@ -337,7 +348,8 @@ const LessonList = ({ lessons, unitId, onLessonUpdate }) => {
       const res = await lessonService.deleteLesson(selectedLesson.id);
 
       if (!res.success) throw new Error(res.error);
-      onLessonUpdate();
+
+      onLessonUpdate(); // refresh list
     } catch (err) {
       setError(err.message);
     } finally {
@@ -346,32 +358,46 @@ const LessonList = ({ lessons, unitId, onLessonUpdate }) => {
     }
   };
 
+  /* -----------------------------
+      ICON PICKER
+  ------------------------------*/
   const getIcon = (type) => {
     switch (type) {
-      case "video": return <VideoLibrary color="primary" />;
-      case "pdf": return <PictureAsPdf color="error" />;
-      case "text": return <TextFields color="success" />;
-      default: return <Description />;
+      case "video":
+        return <VideoLibrary color="primary" />;
+      case "pdf":
+        return <PictureAsPdf color="error" />;
+      case "text":
+        return <TextFields color="success" />;
+      default:
+        return <Description />;
     }
   };
 
+  /* -----------------------------
+      RENDER COMPONENT
+  ------------------------------*/
   return (
     <Box>
       {error && <Alert severity="error">{error}</Alert>}
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {lessons.map((lesson) => (
-          <Card key={lesson.id}>
+          <Card key={lesson.id} variant="outlined">
             <CardContent>
               <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
+                {/* Icon */}
                 {getIcon(lesson.content_type)}
 
+                {/* Lesson Info */}
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="h6">{lesson.title}</Typography>
 
                   <Chip label={lesson.content_type} size="small" />
 
-                  {lesson.is_preview && <Chip label="Preview" size="small" color="warning" />}
+                  {lesson.is_preview && (
+                    <Chip label="Preview" size="small" color="warning" />
+                  )}
 
                   <Typography variant="caption">
                     Order: {lesson.order_index}
@@ -379,11 +405,14 @@ const LessonList = ({ lessons, unitId, onLessonUpdate }) => {
 
                   {lesson.content && (
                     <Typography variant="body2" sx={{ mt: 1 }}>
-                      {lesson.content.slice(0, 150)}...
+                      {lesson.content.length > 150
+                        ? lesson.content.slice(0, 150) + "..."
+                        : lesson.content}
                     </Typography>
                   )}
                 </Box>
 
+                {/* Menu Button */}
                 <IconButton onClick={(e) => handleMenuOpen(e, lesson)}>
                   <MoreVert />
                 </IconButton>
@@ -393,20 +422,33 @@ const LessonList = ({ lessons, unitId, onLessonUpdate }) => {
         ))}
       </Box>
 
-      <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleMenuClose}>
+      {/* Context Menu */}
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={handleMenuClose}
+      >
         <MenuItem onClick={handlePreviewLesson}>
-          <ListItemIcon><Visibility /></ListItemIcon>
-          <ListItemText>View Lesson</ListItemText>
+          <ListItemIcon>
+            <Visibility />
+          </ListItemIcon>
+          <ListItemText>Preview Lesson</ListItemText>
         </MenuItem>
 
         <MenuItem onClick={handleEditLesson}>
-          <ListItemIcon><Edit /></ListItemIcon>
+          <ListItemIcon>
+            <Edit />
+          </ListItemIcon>
           <ListItemText>Edit Lesson</ListItemText>
         </MenuItem>
 
         <MenuItem onClick={handleDeleteLesson} disabled={loading}>
-          <ListItemIcon><Delete /></ListItemIcon>
-          <ListItemText>{loading ? "Deleting..." : "Delete Lesson"}</ListItemText>
+          <ListItemIcon>
+            <Delete />
+          </ListItemIcon>
+          <ListItemText>
+            {loading ? "Deleting..." : "Delete Lesson"}
+          </ListItemText>
         </MenuItem>
       </Menu>
     </Box>
