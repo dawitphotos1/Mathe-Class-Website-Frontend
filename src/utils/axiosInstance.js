@@ -1,45 +1,109 @@
-// utils/axiosInstance.js
+// // utils/axiosInstance.js
+// import axios from "axios";
+
+// // Determine the base URL dynamically
+// const getBaseURL = () => {
+//   return process.env.NODE_ENV === "production"
+//     ? "https://mathe-class-website-backend-1.onrender.com/api/v1"
+//     : "http://localhost:5000/api/v1";
+// };
+
+// // Create axios instance
+// const axiosInstance = axios.create({
+//   baseURL: getBaseURL(),
+//   timeout: 10000,
+//   headers: {
+//     "Content-Type": "application/json",
+//   },
+//   withCredentials: true, // ✅ Send cookies for auth
+// });
+
+// // ------------------------------
+// // Request Interceptor
+// // ------------------------------
+// axiosInstance.interceptors.request.use(
+//   (config) => {
+//     const token = localStorage.getItem("token");
+//     if (token) {
+//       config.headers.Authorization = `Bearer ${token}`;
+//     }
+
+//     if (process.env.NODE_ENV === "development") {
+//       console.log(`🚀 ${config.method?.toUpperCase()} → ${config.url}`);
+//     }
+
+//     return config;
+//   },
+//   (error) => Promise.reject(error)
+// );
+
+// // ------------------------------
+// // Response Interceptor
+// // ------------------------------
+// axiosInstance.interceptors.response.use(
+//   (response) => {
+//     if (process.env.NODE_ENV === "development") {
+//       console.log(`✅ ${response.status} → ${response.config.url}`);
+//     }
+//     return response;
+//   },
+//   (error) => {
+//     if (process.env.NODE_ENV === "development") {
+//       console.error(`💥 API Error:`, error.response?.data || error.message);
+//     }
+
+//     // Handle 401 Unauthorized
+//     if (error.response?.status === 401) {
+//       localStorage.removeItem("token");
+//       window.location.href = "/login";
+//     }
+
+//     return Promise.reject(error);
+//   }
+// );
+
+// export default axiosInstance;
+
+
+
+
+
+// src/utils/axiosInstance.js
 import axios from "axios";
 
-// Determine the base URL dynamically
 const getBaseURL = () => {
   return process.env.NODE_ENV === "production"
     ? "https://mathe-class-website-backend-1.onrender.com/api/v1"
     : "http://localhost:5000/api/v1";
 };
 
-// Create axios instance
 const axiosInstance = axios.create({
   baseURL: getBaseURL(),
-  timeout: 10000,
+  timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // ✅ Send cookies for auth
+  withCredentials: true, // send cookies if backend uses them
 });
 
-// ------------------------------
-// Request Interceptor
-// ------------------------------
+let isRefreshingAuth = false;
+
+// Request interceptor: attach token if present
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-
     if (process.env.NODE_ENV === "development") {
       console.log(`🚀 ${config.method?.toUpperCase()} → ${config.url}`);
     }
-
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// ------------------------------
-// Response Interceptor
-// ------------------------------
+// Response interceptor: central error handling
 axiosInstance.interceptors.response.use(
   (response) => {
     if (process.env.NODE_ENV === "development") {
@@ -48,14 +112,24 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
+    const status = error.response?.status;
+
     if (process.env.NODE_ENV === "development") {
-      console.error(`💥 API Error:`, error.response?.data || error.message);
+      console.error("💥 API Error:", error.response?.data || error.message);
     }
 
-    // Handle 401 Unauthorized
-    if (error.response?.status === 401) {
+    // 401: unauthorized — remove token and redirect to login once
+    if (status === 401) {
       localStorage.removeItem("token");
-      window.location.href = "/login";
+      // Avoid immediate redirect if we're already on login page
+      if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
+    }
+
+    // 429: Too Many Requests — log and propagate without retrying here
+    if (status === 429) {
+      console.warn("API rate-limited (429).", error.response?.data || "");
     }
 
     return Promise.reject(error);
