@@ -1,3 +1,4 @@
+
 // src/App.jsx
 import React, { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -56,7 +57,7 @@ const CreateLessonPage = React.lazy(() => import("./pages/teachers/CreateLessonP
 const MyTeachingCourses = React.lazy(() => import("./pages/teachers/MyTeachingCourses"));
 const TeacherCourseProgress = React.lazy(() => import("./pages/courses/TeacherCourseProgress"));
 
-/* Lesson preview page (protected) */
+/* FIXED LESSON PREVIEW ROUTE */
 const PreviewLesson = React.lazy(() => import("./pages/PreviewLesson"));
 
 const NotFound = React.lazy(() => import("./pages/NotFound"));
@@ -109,7 +110,6 @@ function AppContent() {
       <ErrorBoundary>
         <Navbar />
         <Suspense fallback={<Loading />}>
-
           <Routes>
 
             {/* ========== PUBLIC ROUTES ========== */}
@@ -125,7 +125,7 @@ function AppContent() {
             <Route path="/courses" element={<Courses />} />
             <Route path="/courses/:slug" element={<CourseDetail />} />
 
-            {/* Public Preview */}
+            {/* Public Course Preview */}
             <Route path="/courses/:courseId/preview" element={<CoursePreviewPage />} />
 
             <Route path="/unauthorized" element={<Unauthorized />} />
@@ -176,9 +176,9 @@ function AppContent() {
             <Route path="/courses/:courseId/lessons/new" element={<ProtectedRoute allowedRoles={["teacher","admin"]}><CreateLessonPage /></ProtectedRoute>} />
             <Route path="/lessons/:lessonId/edit" element={<ProtectedRoute allowedRoles={["teacher","admin"]}><EditLesson /></ProtectedRoute>} />
 
-            {/* ================= PRIVATE LESSON PREVIEW (FIXED) ================= */}
+            {/* ========== FIXED PRIVATE LESSON PREVIEW ========== */}
             <Route
-              path="/lessons/:id/preview"
+              path="/lessons/:lessonId/preview"
               element={
                 <ProtectedRoute allowedRoles={["teacher", "student", "admin"]}>
                   <PreviewLesson />
@@ -201,11 +201,9 @@ function AppContent() {
             <Route path="*" element={<NotFound />} />
 
           </Routes>
-
         </Suspense>
 
         <ToastContainer position="top-right" autoClose={5000} />
-
       </ErrorBoundary>
     </div>
   );
