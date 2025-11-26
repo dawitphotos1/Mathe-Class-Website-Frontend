@@ -230,9 +230,7 @@
 // export default LessonForm;
 
 
-
-// src/pages/teachers/LessonForm.jsx
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Box,
   TextField,
@@ -248,19 +246,19 @@ import {
   Typography,
   Alert,
   CircularProgress,
-} from '@mui/material';
-import { CloudUpload, Save, Cancel } from '@mui/icons-material';
-import axiosInstance from '../../utils/axiosInstance';
+} from "@mui/material";
+import { CloudUpload, Save, Cancel } from "@mui/icons-material";
+import axiosInstance from "../../utils/axiosInstance";
 
 const LessonForm = ({ courseId, unitId, onSuccess, onCancel }) => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    contentType: 'text',
-    orderIndex: '',
-    videoUrl: '',
+    title: "",
+    content: "",
+    contentType: "text",
+    orderIndex: "",
+    videoUrl: "",
     isPreview: false,
   });
 
@@ -270,7 +268,7 @@ const LessonForm = ({ courseId, unitId, onSuccess, onCancel }) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
@@ -296,25 +294,44 @@ const LessonForm = ({ courseId, unitId, onSuccess, onCancel }) => {
       const submitData = new FormData();
 
       Object.keys(formData).forEach((key) => {
-        submitData.append(key, formData[key]);
+        if (formData[key] !== "" && formData[key] !== null) {
+          submitData.append(key, formData[key]);
+        }
       });
 
       submitData.append("courseId", courseId);
       if (unitId) submitData.append("unitId", unitId);
-      if (selectedFile) submitData.append("file", selectedFile);
 
+      if (selectedFile) {
+        submitData.append("file", selectedFile);
+      }
+
+      console.log("📤 Creating lesson with:", {
+        ...formData,
+        courseId,
+        unitId,
+        file: selectedFile?.name,
+      });
+
+      // ✨ FIXED ENDPOINT HERE ✨
       const response = await axiosInstance.post(
         `/courses/${courseId}/lessons`,
         submitData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
       );
 
-      if (!response.data.success) throw new Error(response.data.error);
+      if (!response.data.success) {
+        throw new Error(response.data.error || "Unknown error");
+      }
 
       onSuccess(response.data.lesson);
-
     } catch (err) {
-      setError(err.response?.data?.error || err.message);
+      console.error("❌ Lesson create error:", err);
+      setError(
+        err.response?.data?.error || err.message || "Failed to create lesson"
+      );
     } finally {
       setLoading(false);
     }
@@ -331,35 +348,97 @@ const LessonForm = ({ courseId, unitId, onSuccess, onCancel }) => {
 
         <form onSubmit={handleSubmit}>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            <TextField required label="Lesson Title" name="title" value={formData.title} onChange={handleInputChange} />
+            <TextField
+              required
+              label="Lesson Title"
+              name="title"
+              onChange={handleInputChange}
+              value={formData.title}
+            />
 
             <FormControl fullWidth>
               <InputLabel>Content Type</InputLabel>
-              <Select name="contentType" value={formData.contentType} onChange={handleInputChange}>
-                <MenuItem value="text">Text</MenuItem>
-                <MenuItem value="pdf">PDF</MenuItem>
+              <Select
+                name="contentType"
+                value={formData.contentType}
+                label="Content Type"
+                onChange={handleInputChange}
+              >
+                <MenuItem value="text">Text Content</MenuItem>
+                <MenuItem value="pdf">PDF Document</MenuItem>
                 <MenuItem value="video">Video</MenuItem>
-                <MenuItem value="mixed">Mixed</MenuItem>
+                <MenuItem value="mixed">Mixed Content</MenuItem>
               </Select>
             </FormControl>
 
-            <Button component="label" variant="outlined" startIcon={<CloudUpload />} fullWidth>
+            <Button
+              component="label"
+              variant="outlined"
+              startIcon={<CloudUpload />}
+              fullWidth
+            >
               {selectedFile ? selectedFile.name : "Choose File"}
-              <input type="file" hidden onChange={handleFileChange} accept=".pdf, video/*" />
+              <input
+                type="file"
+                hidden
+                onChange={handleFileChange}
+                accept=".pdf, video/*"
+              />
             </Button>
 
-            <TextField label="Video URL" name="videoUrl" value={formData.videoUrl} onChange={handleInputChange} fullWidth />
+            <TextField
+              label="Video URL (Optional)"
+              name="videoUrl"
+              value={formData.videoUrl}
+              onChange={handleInputChange}
+              fullWidth
+            />
 
-            <TextField label="Lesson Content" name="content" multiline rows={4} value={formData.content} onChange={handleInputChange} />
+            <TextField
+              label="Lesson Content"
+              name="content"
+              multiline
+              rows={4}
+              onChange={handleInputChange}
+              value={formData.content}
+              fullWidth
+            />
 
-            <TextField label="Order Index" name="orderIndex" type="number" value={formData.orderIndex} onChange={handleInputChange} />
+            <TextField
+              label="Order Index"
+              name="orderIndex"
+              type="number"
+              value={formData.orderIndex}
+              onChange={handleInputChange}
+              fullWidth
+            />
 
-            <FormControlLabel control={<Checkbox name="isPreview" checked={formData.isPreview} onChange={handleInputChange} />} label="Make Preview" />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  name="isPreview"
+                  checked={formData.isPreview}
+                  onChange={handleInputChange}
+                />
+              }
+              label="Make this a preview (students can view without enrolling)"
+            />
 
             <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
-              <Button onClick={onCancel} startIcon={<Cancel />} disabled={loading}>Cancel</Button>
+              <Button
+                onClick={onCancel}
+                startIcon={<Cancel />}
+                disabled={loading}
+              >
+                Cancel
+              </Button>
 
-              <Button type="submit" variant="contained" startIcon={loading ? <CircularProgress size={16} /> : <Save />} disabled={loading}>
+              <Button
+                type="submit"
+                variant="contained"
+                startIcon={loading ? <CircularProgress size={16} /> : <Save />}
+                disabled={loading || !formData.title}
+              >
                 {loading ? "Saving..." : "Create Lesson"}
               </Button>
             </Box>

@@ -329,25 +329,23 @@
 import React, { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-
 import ErrorBoundary from "./components/ErrorBoundary";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Loading from "./components/Loading";
 import Contact from "./components/Contact";
-import CSSDebug from "./components/CSSDebug";
 import AdminLayout from "./components/AdminLayout";
 import PendingStudents from "./components/PendingStudents";
 import PendingEnrollments from "./components/PendingEnrollments";
+import CSSDebug from "./components/CSSDebug";
 import ConfirmAccount from "./pages/ConfirmAccount";
 
 import "./pages/AdminDashboard.css";
 import "react-toastify/dist/ReactToastify.css";
 
-/* -------------------- LAZY LOADED PAGES -------------------- */
+/* -------------------- Lazy-loaded pages -------------------- */
 const Home = React.lazy(() => import("./pages/Home"));
 const Register = React.lazy(() => import("./pages/auth/Register"));
 const Login = React.lazy(() => import("./pages/auth/Login"));
@@ -367,11 +365,11 @@ const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
 const ManageCourses = React.lazy(() => import("./pages/AdminManageCourses"));
 const ManageUsers = React.lazy(() => import("./pages/AdminManageUsers"));
 const AdminLessonLogs = React.lazy(() => import("./pages/AdminLessonLogs"));
-const FileManager = React.lazy(() => import("./pages/FileManager"));
 
 const CourseViewer = React.lazy(() => import("./pages/courses/CourseViewer"));
 const Profile = React.lazy(() => import("./pages/users/Profile"));
 const Unauthorized = React.lazy(() => import("./pages/Unauthorized"));
+const FileManager = React.lazy(() => import("./pages/FileManager"));
 
 const ManageLessons = React.lazy(() => import("./pages/teachers/ManageLessons"));
 const CreateCourse = React.lazy(() => import("./pages/CreateCourse"));
@@ -390,7 +388,7 @@ const PreviewLesson = React.lazy(() => import("./pages/PreviewLesson"));
 
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
-/* -------------------- PUBLIC ROUTE WRAPPER -------------------- */
+/* -------------------- Public Route Wrapper -------------------- */
 const PublicRoute = ({ children }) => {
   const { isAuthenticated, loading, checked, user } = useAuth();
 
@@ -412,7 +410,7 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
-/* -------------------- ROLE-BASED DASHBOARD REDIRECT -------------------- */
+/* -------------------- Role Redirect (Dashboard) -------------------- */
 const RoleBasedRedirect = () => {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
@@ -429,9 +427,10 @@ const RoleBasedRedirect = () => {
   }
 };
 
-/* -------------------- MAIN APP CONTENT -------------------- */
+/* -------------------- Main App Content -------------------- */
 function AppContent() {
   const { loading, checked } = useAuth();
+
   if (loading || !checked) return <Loading />;
 
   return (
@@ -439,29 +438,43 @@ function AppContent() {
       <CSSDebug />
       <ErrorBoundary>
         <Navbar />
+
         <Suspense fallback={<Loading />}>
           <Routes>
-
-            {/* ---------------- PUBLIC ROUTES ---------------- */}
+            {/* PUBLIC ROUTES */}
             <Route path="/" element={<Home />} />
-
-            <Route path="/register" element={
-              <PublicRoute><Register /></PublicRoute>
-            } />
-
-            <Route path="/login" element={
-              <PublicRoute><Login /></PublicRoute>
-            } />
+            <Route
+              path="/register"
+              element={
+                <PublicRoute>
+                  <Register />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              }
+            />
 
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/unauthorized" element={<Unauthorized />} />
 
-            {/* Public course pages */}
+            {/* Courses */}
             <Route path="/courses" element={<Courses />} />
             <Route path="/courses/:slug" element={<CourseDetail />} />
-            <Route path="/courses/:courseId/preview" element={<CoursePreviewPage />} />
+
+            {/* Public preview route */}
+            <Route
+              path="/courses/:courseId/preview"
+              element={<CoursePreviewPage />}
+            />
+
+            <Route path="/unauthorized" element={<Unauthorized />} />
 
             {/* Payments */}
             <Route path="/payment/:courseId" element={<PaymentPage />} />
@@ -470,9 +483,8 @@ function AppContent() {
             <Route path="/cancel" element={<Cancel />} />
             <Route path="/confirm-account" element={<ConfirmAccount />} />
 
-            {/* Role redirect */}
+            {/* Dashboards */}
             <Route path="/dashboard" element={<RoleBasedRedirect />} />
-
 
             {/* ---------------- ADMIN ROUTES ---------------- */}
             <Route
@@ -492,7 +504,6 @@ function AppContent() {
               <Route path="file-manager" element={<FileManager />} />
             </Route>
 
-
             {/* ---------------- TEACHER ROUTES ---------------- */}
             <Route
               path="/teacher-dashboard"
@@ -503,6 +514,7 @@ function AppContent() {
               }
             />
 
+            {/* Course creation */}
             <Route
               path="/create-course"
               element={
@@ -511,7 +523,6 @@ function AppContent() {
                 </ProtectedRoute>
               }
             />
-
             <Route
               path="/create-course-advanced"
               element={
@@ -521,6 +532,7 @@ function AppContent() {
               }
             />
 
+            {/* Course management */}
             <Route
               path="/courses/:courseId/edit"
               element={
@@ -530,7 +542,7 @@ function AppContent() {
               }
             />
 
-            {/* Lesson management */}
+            {/* Lesson Management */}
             <Route
               path="/courses/:courseId/manage-lessons"
               element={
@@ -539,7 +551,6 @@ function AppContent() {
                 </ProtectedRoute>
               }
             />
-
             <Route
               path="/courses/:courseId/lessons/new"
               element={
@@ -548,7 +559,6 @@ function AppContent() {
                 </ProtectedRoute>
               }
             />
-
             <Route
               path="/lessons/:lessonId/edit"
               element={
@@ -558,8 +568,7 @@ function AppContent() {
               }
             />
 
-
-            {/* ---------------- AUTHENTICATED LESSON PREVIEW (FIXED ORDER) ---------------- */}
+            {/* NEW: authenticated private preview route */}
             <Route
               path="/lessons/:id/preview"
               element={
@@ -569,6 +578,15 @@ function AppContent() {
               }
             />
 
+            {/* Teacher analytics */}
+            <Route
+              path="/teacher/course/:courseId/progress"
+              element={
+                <ProtectedRoute allowedRoles={["teacher"]}>
+                  <TeacherCourseProgress />
+                </ProtectedRoute>
+              }
+            />
 
             {/* ---------------- STUDENT ROUTES ---------------- */}
             <Route
@@ -579,7 +597,6 @@ function AppContent() {
                 </ProtectedRoute>
               }
             />
-
             <Route
               path="/courses/:courseId/view"
               element={
@@ -588,7 +605,6 @@ function AppContent() {
                 </ProtectedRoute>
               }
             />
-
             <Route
               path="/courses/:courseId/view-lessons"
               element={
@@ -608,10 +624,8 @@ function AppContent() {
               }
             />
 
-
-            {/* ---------------- 404 (MUST BE LAST) ---------------- */}
+            {/* 404 fallback */}
             <Route path="*" element={<NotFound />} />
-
           </Routes>
         </Suspense>
 
@@ -621,7 +635,7 @@ function AppContent() {
   );
 }
 
-/* -------------------- ROOT WRAPPER -------------------- */
+/* -------------------- Root Wrapper -------------------- */
 function App() {
   return (
     <ThemeProvider>

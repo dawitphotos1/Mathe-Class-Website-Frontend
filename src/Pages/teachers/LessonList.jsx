@@ -268,7 +268,6 @@
 
 
 
-// src/pages/teachers/LessonList.jsx
 import React, { useState } from "react";
 import {
   Box,
@@ -289,9 +288,9 @@ import {
   Delete,
   Visibility,
   VideoLibrary,
+  Description,
   PictureAsPdf,
   TextFields,
-  Description,
 } from "@mui/icons-material";
 import lessonService from "../../services/lessonService";
 import { useNavigate } from "react-router-dom";
@@ -299,14 +298,11 @@ import { useNavigate } from "react-router-dom";
 const LessonList = ({ lessons, unitId, onLessonUpdate }) => {
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [selectedLesson, setSelectedLesson] = useState(null);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const navigate = useNavigate();
 
-  /* -----------------------------
-      OPEN CONTEXT MENU
-  ------------------------------*/
   const handleMenuOpen = (event, lesson) => {
     setMenuAnchor(event.currentTarget);
     setSelectedLesson(lesson);
@@ -317,27 +313,6 @@ const LessonList = ({ lessons, unitId, onLessonUpdate }) => {
     setSelectedLesson(null);
   };
 
-  /* -----------------------------
-      FIXED: REACT ROUTER PREVIEW
-      Teacher Dashboard Preview 
-  ------------------------------*/
-  const handlePreviewLesson = () => {
-    if (!selectedLesson) return;
-    navigate(`/lessons/${selectedLesson.id}/preview`);
-    handleMenuClose();
-  };
-
-  /* -----------------------------
-      EDIT LESSON
-  ------------------------------*/
-  const handleEditLesson = () => {
-    navigate(`/lessons/${selectedLesson.id}/edit`);
-    handleMenuClose();
-  };
-
-  /* -----------------------------
-      DELETE LESSON
-  ------------------------------*/
   const handleDeleteLesson = async () => {
     if (!selectedLesson) return;
 
@@ -345,24 +320,48 @@ const LessonList = ({ lessons, unitId, onLessonUpdate }) => {
       setLoading(true);
       setError("");
 
-      const res = await lessonService.deleteLesson(selectedLesson.id);
+      const response = await lessonService.deleteLesson(selectedLesson.id);
 
-      if (!res.success) throw new Error(res.error);
-
-      onLessonUpdate(); // refresh list
-    } catch (err) {
-      setError(err.message);
+      if (response.success) {
+        console.log("✅ Lesson deleted successfully");
+        onLessonUpdate();
+      } else {
+        throw new Error(response.error || "Failed to delete lesson");
+      }
+    } catch (error) {
+      console.error("❌ Error deleting lesson:", error);
+      setError(
+        error.response?.data?.error ||
+          error.message ||
+          "Failed to delete lesson"
+      );
     } finally {
       setLoading(false);
       handleMenuClose();
     }
   };
 
-  /* -----------------------------
-      ICON PICKER
-  ------------------------------*/
-  const getIcon = (type) => {
-    switch (type) {
+  // ⭐ NEW: Working Preview
+  const handlePreviewLesson = () => {
+    if (!selectedLesson) return;
+
+    const base = process.env.REACT_APP_API_URL || "";
+    const url = `${base}/lessons/${selectedLesson.id}/preview`;
+
+    window.open(url, "_blank");
+    handleMenuClose();
+  };
+
+  // ⭐ NEW: Working Edit
+  const handleEditLesson = () => {
+    if (!selectedLesson) return;
+
+    navigate(`/lessons/${selectedLesson.id}/edit`);
+    handleMenuClose();
+  };
+
+  const getLessonIcon = (contentType) => {
+    switch (contentType) {
       case "video":
         return <VideoLibrary color="primary" />;
       case "pdf":
@@ -370,50 +369,106 @@ const LessonList = ({ lessons, unitId, onLessonUpdate }) => {
       case "text":
         return <TextFields color="success" />;
       default:
-        return <Description />;
+        return <Description color="action" />;
     }
   };
 
-  /* -----------------------------
-      RENDER COMPONENT
-  ------------------------------*/
+  const getContentTypeLabel = (contentType) => {
+    switch (contentType) {
+      case "video":
+        return "Video";
+      case "pdf":
+        return "PDF";
+      case "text":
+        return "Text";
+      case "unit_header":
+        return "Unit Header";
+      default:
+        return contentType || "Content";
+    }
+  };
+
+  if (!lessons || lessons.length === 0) {
+    return (
+      <Box sx={{ textAlign: "center", py: 3 }}>
+        <Typography variant="body1" color="textSecondary">
+          No lessons available
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box>
-      {error && <Alert severity="error">{error}</Alert>}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {lessons.map((lesson) => (
           <Card key={lesson.id} variant="outlined">
             <CardContent>
               <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
-                {/* Icon */}
-                {getIcon(lesson.content_type)}
+                <Box sx={{ mt: 0.5 }}>{getLessonIcon(lesson.content_type)}</Box>
 
-                {/* Lesson Info */}
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="h6">{lesson.title}</Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mb: 1,
+                    }}
+                  >
+                    <Typography variant="h6" component="h4">
+                      {lesson.title}
+                    </Typography>
 
-                  <Chip label={lesson.content_type} size="small" />
+                    <Chip
+                      label={getContentTypeLabel(lesson.content_type)}
+                      size="small"
+                    />
 
-                  {lesson.is_preview && (
-                    <Chip label="Preview" size="small" color="warning" />
-                  )}
+                    {lesson.is_preview && (
+                      <Chip
+                        label="Preview"
+                        size="small"
+                        color="warning"
+                        variant="outlined"
+                      />
+                    )}
 
-                  <Typography variant="caption">
-                    Order: {lesson.order_index}
-                  </Typography>
+                    <Chip
+                      label={`Order: ${lesson.order_index}`}
+                      size="small"
+                      variant="outlined"
+                    />
+                  </Box>
 
                   {lesson.content && (
-                    <Typography variant="body2" sx={{ mt: 1 }}>
+                    <Typography variant="body2" color="textSecondary" paragraph>
                       {lesson.content.length > 150
-                        ? lesson.content.slice(0, 150) + "..."
+                        ? `${lesson.content.substring(0, 150)}...`
                         : lesson.content}
                     </Typography>
                   )}
+
+                  <Typography
+                    variant="caption"
+                    color="textSecondary"
+                    sx={{ mt: 1, display: "block" }}
+                  >
+                    Created: {new Date(lesson.created_at).toLocaleDateString()}
+                  </Typography>
                 </Box>
 
-                {/* Menu Button */}
-                <IconButton onClick={(e) => handleMenuOpen(e, lesson)}>
+                <IconButton
+                  size="small"
+                  onClick={(e) => handleMenuOpen(e, lesson)}
+                  disabled={loading}
+                >
                   <MoreVert />
                 </IconButton>
               </Box>
@@ -422,7 +477,7 @@ const LessonList = ({ lessons, unitId, onLessonUpdate }) => {
         ))}
       </Box>
 
-      {/* Context Menu */}
+      {/* ⭐ FIXED MENU */}
       <Menu
         anchorEl={menuAnchor}
         open={Boolean(menuAnchor)}
@@ -430,21 +485,21 @@ const LessonList = ({ lessons, unitId, onLessonUpdate }) => {
       >
         <MenuItem onClick={handlePreviewLesson}>
           <ListItemIcon>
-            <Visibility />
+            <Visibility fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Preview Lesson</ListItemText>
+          <ListItemText>View Lesson</ListItemText>
         </MenuItem>
 
         <MenuItem onClick={handleEditLesson}>
           <ListItemIcon>
-            <Edit />
+            <Edit fontSize="small" />
           </ListItemIcon>
           <ListItemText>Edit Lesson</ListItemText>
         </MenuItem>
 
         <MenuItem onClick={handleDeleteLesson} disabled={loading}>
           <ListItemIcon>
-            <Delete />
+            <Delete fontSize="small" />
           </ListItemIcon>
           <ListItemText>
             {loading ? "Deleting..." : "Delete Lesson"}
