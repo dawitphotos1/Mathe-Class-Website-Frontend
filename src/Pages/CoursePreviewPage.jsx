@@ -29,8 +29,8 @@ const CoursePreviewPage = () => {
 
       try {
         setLoading(true);
-        
-        // Fetch course details
+
+        /** ✅ Fetch course details */
         const courseResponse = await axiosInstance.get(`/courses/id/${courseId}`);
         if (courseResponse.data?.course) {
           setCourse(courseResponse.data.course);
@@ -38,21 +38,23 @@ const CoursePreviewPage = () => {
           throw new Error("Course not found");
         }
 
-        // Fetch lessons for this course
-        const lessonsResponse = await axiosInstance.get(`/lessons/course/${courseId}`);
+        /** ✅ FIXED — Correct backend route */
+        const lessonsResponse = await axiosInstance.get(
+          `/courses/${courseId}/lessons`
+        );
         setLessons(lessonsResponse.data?.lessons || []);
 
-        // Check enrollment status if user is logged in
+        /** Enrollment check */
         if (user) {
           try {
-            const enrollmentResponse = await axiosInstance.get(`/enrollments/check/${courseId}`);
-            setIsEnrolled(enrollmentResponse.data.enrolled || false);
+            const enrollRes = await axiosInstance.get(
+              `/enrollments/check/${courseId}`
+            );
+            setIsEnrolled(enrollRes.data.enrolled || false);
           } catch (err) {
             console.error("Error checking enrollment:", err);
-            setIsEnrolled(false);
           }
         }
-
       } catch (err) {
         console.error("Error fetching course data:", err);
         setError("Failed to load course preview");
@@ -72,7 +74,7 @@ const CoursePreviewPage = () => {
     }
 
     if (isEnrolled) {
-      toast.error("You are already enrolled in this course!");
+      toast.error("You are already enrolled!");
       navigate(`/courses/${courseId}/view-lessons`);
       return;
     }
@@ -84,27 +86,24 @@ const CoursePreviewPage = () => {
     }
   };
 
-  const getDisplayPrice = () => {
-    if (!course?.price) return "0.00";
-    return parseFloat(course.price).toFixed(2);
-  };
+  const getDisplayPrice = () =>
+    course?.price ? parseFloat(course.price).toFixed(2) : "0.00";
 
-  // Group lessons by units if they have unit information
+  /** Group lessons by units */
   const groupLessonsByUnit = () => {
     const units = {};
-    
-    lessons.forEach(lesson => {
-      // Assuming lessons have a unit_id or similar property for grouping
-      const unitId = lesson.unit_id || 'default';
+
+    lessons.forEach((lesson) => {
+      const unitId = lesson.unit_id || "default";
       if (!units[unitId]) {
         units[unitId] = {
-          title: lesson.unit_title || 'Course Content',
-          lessons: []
+          title: lesson.unit_title || "Course Content",
+          lessons: [],
         };
       }
       units[unitId].lessons.push(lesson);
     });
-    
+
     return Object.values(units);
   };
 
@@ -152,18 +151,16 @@ const CoursePreviewPage = () => {
 
   return (
     <div className="course-preview-page">
-      {/* Header Section */}
       <div className="preview-header">
         <button onClick={() => navigate("/courses")} className="back-btn">
           ← Back to Courses
         </button>
         <h1>{course.title}</h1>
         <p className="preview-subtitle">
-          Explore the course content. Enroll to get full access to all lessons and features.
+          Explore the course content. Enroll to get full access.
         </p>
       </div>
 
-      {/* Course Info */}
       <div className="course-info-section">
         <div className="course-meta">
           {course.teacher && (
@@ -180,13 +177,12 @@ const CoursePreviewPage = () => {
         </p>
       </div>
 
-      {/* Course Content Preview */}
       <div className="course-content-section">
         <h2>Course Curriculum Preview</h2>
-        
+
         {lessons.length === 0 ? (
           <div className="no-lessons">
-            <p>No lessons available for preview yet.</p>
+            <p>No lessons available yet.</p>
           </div>
         ) : (
           <div className="curriculum-container">
@@ -196,23 +192,37 @@ const CoursePreviewPage = () => {
                 <div className="lessons-list">
                   {unit.lessons.map((lesson, index) => (
                     <div key={lesson.id} className="lesson-item">
-                      <div className="lesson-number">{unitIndex + 1}.{index + 1}</div>
+                      <div className="lesson-number">
+                        {unitIndex + 1}.{index + 1}
+                      </div>
+
                       <div className="lesson-info">
                         <h4 className="lesson-title">{lesson.title}</h4>
                         {lesson.contentType && (
-                          <span className="lesson-type">{lesson.contentType}</span>
+                          <span className="lesson-type">
+                            {lesson.contentType}
+                          </span>
                         )}
                         {lesson.description && (
-                          <p className="lesson-description">{lesson.description}</p>
+                          <p className="lesson-description">
+                            {lesson.description}
+                          </p>
                         )}
                       </div>
+
                       <div className="lesson-preview">
-                        {lesson.contentType === 'video' && lesson.video_url ? (
-                          <span className="preview-badge video-preview">🎥 Video Preview</span>
-                        ) : lesson.contentType === 'text' ? (
-                          <span className="preview-badge text-preview">📖 Text Preview</span>
+                        {lesson.contentType === "video" && lesson.video_url ? (
+                          <span className="preview-badge video-preview">
+                            🎥 Video Preview
+                          </span>
+                        ) : lesson.contentType === "text" ? (
+                          <span className="preview-badge text-preview">
+                            📖 Text Preview
+                          </span>
                         ) : (
-                          <span className="preview-badge">👀 Preview Available</span>
+                          <span className="preview-badge">
+                            👀 Preview Available
+                          </span>
                         )}
                       </div>
                     </div>
@@ -224,30 +234,32 @@ const CoursePreviewPage = () => {
         )}
       </div>
 
-      {/* Enrollment Section - Fixed at bottom */}
       <div className="enrollment-section">
         <div className="enrollment-card">
           <div className="enrollment-info">
             <h3>Ready to start learning?</h3>
-            <p>Enroll now to get full access to all course materials, exercises, and instructor support.</p>
+            <p>Enroll now for full access.</p>
             <div className="enrollment-features">
-              <div className="feature">✅ Full access to all {lessons.length} lessons</div>
-              <div className="feature">✅ Downloadable resources and exercises</div>
-              <div className="feature">✅ Certificate of completion</div>
-              <div className="feature">✅ Direct instructor support</div>
-              <div className="feature">✅ Progress tracking</div>
-              <div className="feature">✅ Lifetime access to course updates</div>
+              <div className="feature">
+                ✅ Full access to all {lessons.length} lessons
+              </div>
+              <div className="feature">✅ Downloadable resources</div>
+              <div className="feature">✅ Instructor support</div>
             </div>
           </div>
+
           <div className="enrollment-action">
             <div className="price-section">
               <div className="price-display">${displayPrice}</div>
-              <div className="price-note">One-time payment • Lifetime access</div>
+              <div className="price-note">One-time payment</div>
             </div>
+
             <button
               onClick={handleEnroll}
               disabled={processing || isEnrolled}
-              className={`enroll-btn-large ${processing ? 'processing' : ''} ${isEnrolled ? 'enrolled' : ''}`}
+              className={`enroll-btn-large ${
+                processing ? "processing" : ""
+              } ${isEnrolled ? "enrolled" : ""}`}
             >
               {processing
                 ? "Processing..."
@@ -255,18 +267,17 @@ const CoursePreviewPage = () => {
                 ? "✓ Already Enrolled"
                 : `ENROLL NOW - $${displayPrice}`}
             </button>
+
             {isEnrolled && (
-              <button 
-                onClick={() => navigate(`/courses/${courseId}/view-lessons`)}
+              <button
+                onClick={() =>
+                  navigate(`/courses/${courseId}/view-lessons`)
+                }
                 className="access-course-btn"
               >
                 Access Full Course
               </button>
             )}
-            <div className="security-guarantee">
-              <p className="security-note">🔒 Secure payment powered by Stripe</p>
-              <p className="guarantee-note">30-day money-back guarantee</p>
-            </div>
           </div>
         </div>
       </div>
