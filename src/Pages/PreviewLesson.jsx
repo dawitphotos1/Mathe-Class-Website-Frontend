@@ -128,73 +128,70 @@
 
 
 
-// src/pages/PreviewLesson.jsx
+// src/pages/teachers/PreviewLesson.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
-import { CircularProgress, Box, Typography, Button } from "@mui/material";
+import { Box, Typography, CircularProgress, Button } from "@mui/material";
 
 const PreviewLesson = () => {
   const { lessonId } = useParams();
   const navigate = useNavigate();
-
   const [lesson, setLesson] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await axiosInstance.get(`/lessons/preview/${lessonId}`);
-        if (res.data.success) setLesson(res.data.lesson);
-        else setError(res.data.error || "Failed to load preview");
+        const res = await axiosInstance.get(`/lessons/${lessonId}/preview`);
+        if (res.data?.success) setLesson(res.data.lesson);
       } catch (err) {
-        setError(err.response?.data?.error || err.message);
+        console.error("Preview load error:", err);
       } finally {
         setLoading(false);
       }
     };
-
     load();
   }, [lessonId]);
 
   if (loading)
     return (
-      <Box sx={{ textAlign: "center", py: 5 }}>
+      <Box sx={{ p: 4, textAlign: "center" }}>
         <CircularProgress />
       </Box>
     );
 
-  if (error)
+  if (!lesson)
     return (
-      <Box sx={{ p: 3 }}>
-        <Typography color="error">{error}</Typography>
-        <Button onClick={() => navigate(-1)} variant="contained">
-          Back
-        </Button>
+      <Box sx={{ p: 4 }}>
+        <Typography variant="h6" color="error">
+          Lesson not found
+        </Typography>
+        <Button onClick={() => navigate(-1)}>Back</Button>
       </Box>
     );
 
-  const { title, content_type, content, video_url, file_url } = lesson;
-
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" sx={{ mb: 2 }}>
-        {title}
+    <Box sx={{ p: 4 }}>
+      <Typography variant="h4" gutterBottom>
+        {lesson.title}
       </Typography>
 
-      {content_type === "pdf" && file_url && (
-        <iframe src={file_url} style={{ width: "100%", height: "80vh" }} />
+      {lesson.content_type === "text" && (
+        <Box dangerouslySetInnerHTML={{ __html: lesson.content }} />
       )}
 
-      {content_type === "video" && video_url && (
-        <video controls style={{ width: "100%" }}>
-          <source src={video_url} />
+      {lesson.content_type === "video" && lesson.video_url && (
+        <video width="100%" controls>
+          <source src={lesson.video_url} />
         </video>
       )}
 
-      {content_type === "text" && (
-        <div dangerouslySetInnerHTML={{ __html: content }} />
+      {lesson.content_type === "pdf" && lesson.file_url && (
+        <iframe
+          src={lesson.file_url}
+          style={{ width: "100%", height: "80vh", border: "none" }}
+        />
       )}
     </Box>
   );
