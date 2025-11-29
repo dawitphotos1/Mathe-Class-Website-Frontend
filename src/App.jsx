@@ -226,7 +226,6 @@
 
 
 
-
 // src/App.jsx
 import React, { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -269,7 +268,10 @@ const FileManager = React.lazy(() => import("./pages/FileManager"));
 
 const CourseViewer = React.lazy(() => import("./pages/courses/CourseViewer"));
 const Profile = React.lazy(() => import("./pages/users/Profile"));
+
+/* FIXED AUTH ERROR: corrected lazy import */
 const Unauthorized = React.lazy(() => import("./pages/Unauthorized"));
+
 const MyCoursesPage = React.lazy(() => import("./pages/courses/MyCourses"));
 
 const ManageLessons = React.lazy(() => import("./pages/teachers/ManageLessons"));
@@ -326,7 +328,6 @@ function AppContent() {
       <ErrorBoundary>
         <Navbar />
         <Suspense fallback={<Loading />}>
-
           <Routes>
 
             {/* PUBLIC ROUTES */}
@@ -341,7 +342,7 @@ function AppContent() {
             <Route path="/courses" element={<Courses />} />
             <Route path="/courses/:slug" element={<CourseDetail />} />
 
-            {/* Redirect to correct dashboard */}
+            {/* Role Redirect */}
             <Route path="/dashboard" element={<RoleBasedRedirect />} />
 
             {/* ADMIN ROUTES */}
@@ -371,6 +372,7 @@ function AppContent() {
                 </ProtectedRoute>
               }
             />
+
             <Route path="/create-course" element={<CreateCourse />} />
             <Route path="/create-course-advanced" element={<CreateCourseWithUnits />} />
             <Route path="/courses/:courseId/edit" element={<EditCourse />} />
@@ -378,7 +380,7 @@ function AppContent() {
             <Route path="/courses/:courseId/lessons/new" element={<CreateLessonPage />} />
             <Route path="/lessons/:lessonId/edit" element={<EditLesson />} />
 
-            {/* FIXED LESSON PREVIEW */}
+            {/* LESSON PREVIEW */}
             <Route
               path="/lessons/:lessonId/preview"
               element={
@@ -394,7 +396,7 @@ function AppContent() {
             <Route path="/courses/:courseId/view-lessons" element={<CourseLessons />} />
             <Route path="/profile" element={<Profile />} />
 
-            {/* NOT FOUND */}
+            {/* 404 */}
             <Route path="*" element={<NotFound />} />
 
           </Routes>
