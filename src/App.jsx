@@ -225,7 +225,6 @@
 
 
 
-
 // src/App.jsx
 import React, { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -269,7 +268,7 @@ const FileManager = React.lazy(() => import("./pages/FileManager"));
 const CourseViewer = React.lazy(() => import("./pages/courses/CourseViewer"));
 const Profile = React.lazy(() => import("./pages/users/Profile"));
 
-/* FIXED AUTH ERROR: corrected lazy import */
+/* Corrected Unauthorized import */
 const Unauthorized = React.lazy(() => import("./pages/Unauthorized"));
 
 const MyCoursesPage = React.lazy(() => import("./pages/courses/MyCourses"));
@@ -283,8 +282,8 @@ const EditLesson = React.lazy(() => import("./pages/teachers/EditLesson"));
 const CreateLessonPage = React.lazy(() => import("./pages/teachers/CreateLessonPage"));
 const MyTeachingCourses = React.lazy(() => import("./pages/teachers/MyTeachingCourses"));
 
-/* FIXED LESSON PREVIEW ROUTE */
-const PreviewLesson = React.lazy(() => import("./pages/teachers/PreviewLesson"));
+/* FIXED LESSON PREVIEW ROUTE — updated path */
+const PreviewLesson = React.lazy(() => import("./pages/PreviewLesson"));
 
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
