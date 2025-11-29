@@ -162,8 +162,6 @@
 
 
 
-
-// src/pages/PreviewLesson.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -177,23 +175,6 @@ import {
 } from "@mui/material";
 import axiosInstance from "../utils/axiosInstance";
 
-const getBackendUrl = () => {
-  return (
-    process.env.REACT_APP_BACKEND_URL?.replace(/\/+$/, "") ||
-    "http://localhost:5000"
-  );
-};
-
-/* Ensure absolute URL for PDF/video */
-const fixUrl = (url) => {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
-
-  const backend = getBackendUrl();
-  const clean = url.replace(/^\/+/, "");
-  return `${backend}/api/v1/files/${clean}`;
-};
-
 const PreviewLesson = () => {
   const { lessonId } = useParams();
   const navigate = useNavigate();
@@ -204,43 +185,22 @@ const PreviewLesson = () => {
 
   useEffect(() => {
     loadLesson();
-    // eslint-disable-next-line
   }, [lessonId]);
 
   const loadLesson = async () => {
-    setLoading(true);
-    setError("");
+    try {
+      const res = await axiosInstance.get(`/lessons/${lessonId}`);
 
-    const endpoints = [
-      `/lessons/${lessonId}/preview`,
-      `/lessons/${lessonId}`,
-      `/lessons/preview/${lessonId}`,
-    ];
-
-    for (const ep of endpoints) {
-      try {
-        const res = await axiosInstance.get(ep);
-
-        if (res.data?.success) {
-          const l = res.data.lesson;
-
-          l.file_url = fixUrl(l.file_url);
-          l.video_url = fixUrl(l.video_url);
-
-          setLesson(l);
-          setLoading(false);
-          return;
-        }
-      } catch (err) {
-        if (err?.response?.status === 404) continue;
-        setError(err.response?.data?.error || err.message);
-        setLoading(false);
-        return;
+      if (res.data?.success) {
+        setLesson(res.data.lesson);
+      } else {
+        setError("Lesson not found");
       }
+    } catch (err) {
+      setError("Unable to load lesson");
+    } finally {
+      setLoading(false);
     }
-
-    setError("Lesson not found.");
-    setLoading(false);
   };
 
   if (loading)
@@ -261,56 +221,42 @@ const PreviewLesson = () => {
       </Box>
     );
 
-  if (!lesson)
-    return (
-      <Alert severity="warning" sx={{ mt: 5 }}>
-        Lesson not found
-      </Alert>
-    );
+  if (!lesson) return <Alert severity="warning">Lesson not found</Alert>;
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        {lesson.title}
-      </Typography>
+      <Typography variant="h4">{lesson.title}</Typography>
 
       {/* TEXT */}
       {lesson.content_type === "text" && (
         <Card sx={{ mt: 2 }}>
           <CardContent>
-            <Typography
-              variant="body1"
-              dangerouslySetInnerHTML={{ __html: lesson.content }}
-            />
+            <Typography dangerouslySetInnerHTML={{ __html: lesson.content }} />
           </CardContent>
         </Card>
       )}
 
       {/* VIDEO */}
       {lesson.content_type === "video" && (
-        <Box sx={{ mt: 3 }}>
-          <video
-            src={lesson.video_url}
-            controls
-            style={{ width: "100%", borderRadius: 8 }}
-          />
-        </Box>
+        <video
+          src={lesson.video_url}
+          controls
+          style={{ width: "100%", marginTop: 20 }}
+        />
       )}
 
       {/* PDF */}
       {lesson.content_type === "pdf" && (
-        <Box sx={{ mt: 3, height: "85vh" }}>
-          <iframe
-            title="PDF Preview"
-            src={lesson.file_url}
-            style={{
-              width: "100%",
-              height: "100%",
-              border: "1px solid #ddd",
-              borderRadius: "8px",
-            }}
-          />
-        </Box>
+        <iframe
+          src={lesson.file_url}
+          style={{
+            width: "100%",
+            height: "85vh",
+            border: "1px solid #ddd",
+            marginTop: 20,
+          }}
+          title="PDF Preview"
+        />
       )}
     </Box>
   );
