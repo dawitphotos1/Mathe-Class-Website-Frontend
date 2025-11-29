@@ -208,7 +208,7 @@ import Home from "./pages/Home";
 import Courses from "./pages/courses/Courses";
 import CourseDetails from "./pages/courses/CourseDetails";
 import PaymentPage from "./pages/PaymentPage";
-import MyCourses from "./pages/student/MyCourses";
+import MyCourses from "./pages/courses/MyCourses";
 import ViewLessons from "./pages/student/ViewLessons";
 
 import Login from "./pages/auth/Login";
