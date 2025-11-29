@@ -223,7 +223,7 @@ import EditLesson from "./pages/teachers/EditLesson";
 
 import PreviewLesson from "./pages/PreviewLesson";
 
-import ProtectedRoute from "./components/auth/ProtectedRoute";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
   return (
