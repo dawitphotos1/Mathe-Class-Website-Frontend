@@ -207,7 +207,7 @@ import Footer from "./components/layout/Footer";
 import Home from "./pages/Home";
 import Courses from "./pages/courses/Courses";
 import CourseDetails from "./pages/courses/CourseDetails";
-import PaymentPage from "./pages/payment/PaymentPage";
+import PaymentPage from "./pages/PaymentPage";
 import MyCourses from "./pages/student/MyCourses";
 import ViewLessons from "./pages/student/ViewLessons";
 
