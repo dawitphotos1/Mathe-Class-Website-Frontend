@@ -209,7 +209,7 @@ import Courses from "./pages/courses/Courses";
 import CourseDetails from "./pages/courses/CourseDetails";
 import PaymentPage from "./pages/PaymentPage";
 import MyCourses from "./pages/courses/MyCourses";
-import ViewLessons from "./pages/student/ViewLessons";
+import ViewLessons from "./pages/students/ViewLessons";
 
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
