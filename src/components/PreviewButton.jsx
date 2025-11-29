@@ -1,27 +1,3 @@
-// // src/components/PreviewButton.jsx
-// import React from "react";
-// import { useNavigate } from "react-router-dom";
-// import { Button } from "@mui/material";
-
-// const PreviewButton = ({ lessonId }) => {
-//   const navigate = useNavigate();
-
-//   return (
-//     <Button
-//       variant="outlined"
-//       size="small"
-//       onClick={() => navigate(`/teacher/preview/${lessonId}`)}
-//     >
-//       Preview
-//     </Button>
-//   );
-// };
-
-// export default PreviewButton;
-
-
-
-
 // src/components/PreviewButton.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
