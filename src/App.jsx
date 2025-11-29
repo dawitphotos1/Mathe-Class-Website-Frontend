@@ -218,7 +218,7 @@ import CreateCourse from "./pages/CreateCourse";
 import CreateCourseAdvanced from "./pages/teachers/CreateCourseAdvanced";
 import MyTeachingCourses from "./pages/teachers/MyTeachingCourses";
 import ManageLessons from "./pages/teachers/ManageLessons";
-import CreateLesson from "./pages/teachers/CreateLesson";
+import CreateLesson from "./pages/CreateCourse";
 import EditLesson from "./pages/teachers/EditLesson";
 
 import PreviewLesson from "./pages/PreviewLesson";
