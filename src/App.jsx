@@ -214,7 +214,7 @@ import ViewLessons from "./pages/student/ViewLessons";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 
-import CreateCourse from "./pages/teachers/CreateCourse";
+import CreateCourse from "./pages/CreateCourse";
 import CreateCourseAdvanced from "./pages/teachers/CreateCourseAdvanced";
 import MyTeachingCourses from "./pages/teachers/MyTeachingCourses";
 import ManageLessons from "./pages/teachers/ManageLessons";
