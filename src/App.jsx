@@ -194,7 +194,6 @@
 
 
 
-
 // src/App.jsx
 import React, { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -218,7 +217,7 @@ const ForgotPassword = React.lazy(() => import("./pages/auth/ForgotPassword"));
 const ResetPassword = React.lazy(() => import("./pages/auth/ResetPassword"));
 
 const Courses = React.lazy(() => import("./pages/courses/Courses"));
-const CourseDetail = React.lazy(() => import("./pages/courses/CourseDetail")); // corrected
+const CourseDetail = React.lazy(() => import("./pages/courses/CourseDetail"));
 
 const PaymentPage = React.lazy(() => import("./pages/PaymentPage"));
 const PaymentSuccess = React.lazy(() => import("./pages/payments/PaymentSuccess"));
@@ -290,10 +289,28 @@ function AppContent() {
         <Navbar />
         <Suspense fallback={<Loading />}>
           <Routes>
+
             {/* Public */}
             <Route path="/" element={<Home />} />
-            <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
-            <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+
+            <Route
+              path="/register"
+              element={
+                <PublicRoute>
+                  <Register />
+                </PublicRoute>
+              }
+            />
+
+            <Route
+              path="/login"
+              element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              }
+            />
+
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/contact" element={<Contact />} />
@@ -302,13 +319,20 @@ function AppContent() {
             <Route path="/courses" element={<Courses />} />
             <Route path="/courses/:slug" element={<CourseDetail />} />
 
-            {/* Public preview -> anyone can view */}
+            {/* ⭐ PUBLIC PREVIEW (ONLY ROUTE THAT SHOULD EXIST) */}
             <Route path="/preview/:lessonId" element={<PreviewLesson />} />
 
             <Route path="/dashboard" element={<RoleBasedRedirect />} />
 
             {/* Admin */}
-            <Route path="/admin/*" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout /></ProtectedRoute>}>
+            <Route
+              path="/admin/*"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
               <Route index element={<AdminDashboard />} />
               <Route path="pending-students" element={<PendingStudents />} />
               <Route path="pending-enrollments" element={<PendingEnrollments />} />
@@ -319,7 +343,15 @@ function AppContent() {
             </Route>
 
             {/* Teacher */}
-            <Route path="/teacher-dashboard" element={<ProtectedRoute allowedRoles={["teacher"]}><MyTeachingCourses /></ProtectedRoute>} />
+            <Route
+              path="/teacher-dashboard"
+              element={
+                <ProtectedRoute allowedRoles={["teacher"]}>
+                  <MyTeachingCourses />
+                </ProtectedRoute>
+              }
+            />
+
             <Route path="/create-course" element={<CreateCourse />} />
             <Route path="/create-course-advanced" element={<CreateCourseWithUnits />} />
             <Route path="/courses/:courseId/edit" element={<EditCourse />} />
@@ -327,8 +359,10 @@ function AppContent() {
             <Route path="/courses/:courseId/lessons/new" element={<CreateLessonPage />} />
             <Route path="/lessons/:lessonId/edit" element={<EditLesson />} />
 
-            {/* Protected lesson preview (if you keep it) */}
-            <Route path="/lessons/:lessonId/preview" element={<ProtectedRoute allowedRoles={["teacher", "student", "admin"]}><PreviewLesson /></ProtectedRoute>} />
+            {/* ❌ REMOVED — THIS CAUSED LOGIN REDIRECT */}
+            {/*
+            <Route path="/lessons/:lessonId/preview" element={<PreviewLesson />} />
+            */}
 
             {/* Student */}
             <Route path="/my-courses" element={<MyCoursesPage />} />
@@ -355,6 +389,3 @@ export default function App() {
     </ThemeProvider>
   );
 }
-
-
-
