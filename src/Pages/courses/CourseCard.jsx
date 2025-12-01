@@ -228,6 +228,7 @@ const CourseCard = ({ course, onCourseDeleted }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+  // Check enrollment status
   useEffect(() => {
     let isMounted = true;
 
@@ -249,33 +250,56 @@ const CourseCard = ({ course, onCourseDeleted }) => {
     return () => (isMounted = false);
   }, [user, course?.id]);
 
+  // Get display price
   const getDisplayPrice = () => {
     if (!course) return "0.00";
+
     const price = course.price;
-    if (price === undefined || price === null) return "0.00";
+
+    if (price === undefined || price === null) {
+      return "0.00";
+    }
+
     return parseFloat(price).toFixed(2);
   };
 
   const displayPrice = getDisplayPrice();
 
+  // ✅ FIXED: Improved Free Preview handler
   const handleFreePreview = async () => {
     try {
-      if (!course?.id) {
-        toast.error("Invalid course");
-        return;
-      }
-      const res = await axiosInstance.get(
-        `/api/v1/courses/${course.id}/preview-lesson`
+      console.log(
+        `Loading preview for course: ${course.title} (ID: ${course.id})`
       );
-      const lessonId = res.data?.lessonId;
-      if (lessonId) {
-        navigate(`/lessons/${lessonId}/preview`);
+
+      // Call the preview endpoint
+      const response = await axiosInstance.get(
+        `/courses/${course.id}/preview-lesson`
+      );
+
+      if (response.data.success && response.data.lesson) {
+        // Navigate to the new preview page
+        navigate(`/preview/${response.data.lesson.id}`, {
+          state: {
+            lesson: response.data.lesson,
+            courseId: course.id,
+            courseTitle: course.title,
+          },
+        });
       } else {
-        toast.error("No Free Preview Available");
+        toast.error(
+          response.data.error || "No preview available for this course"
+        );
       }
-    } catch (err) {
-      console.error("Preview error:", err);
-      toast.error("Unable to load preview");
+    } catch (error) {
+      console.error("Free Preview error:", error);
+
+      if (error.response?.status === 404) {
+        // Try alternative: navigate to course slug preview
+        navigate(`/courses/${course.slug || course.id}/preview`);
+      } else {
+        toast.error("Unable to load preview. Please try again.");
+      }
     }
   };
 
@@ -315,6 +339,7 @@ const CourseCard = ({ course, onCourseDeleted }) => {
   const canAccessCourse = isEnrolled || user?.id === course.teacher_id;
   const isTeacher = user?.role === "teacher";
 
+  // Get course image based on title
   const getCourseImage = (courseTitle) => {
     const images = {
       "Algebra 1": "/images/math-logos/algebra1.jpeg",
@@ -324,6 +349,7 @@ const CourseCard = ({ course, onCourseDeleted }) => {
       "Geometry & Trigonometry": "/images/math-logos/geometry.jpeg",
       "Statistics & Probability": "/images/math-logos/statistic.png",
     };
+
     return images[courseTitle] || "/images/default-course.jpg";
   };
 
@@ -338,13 +364,15 @@ const CourseCard = ({ course, onCourseDeleted }) => {
             e.target.src = "/images/default-course.jpg";
           }}
         />
+
         {isEnrolled && <div className="enrolled-badge">Enrolled</div>}
       </div>
 
       <div className="course-content">
         <h3 className="course-title">{course.title}</h3>
         <p className="course-description">
-          {course.description || "Learn essential mathematical concepts and techniques."}
+          {course.description ||
+            "Learn essential mathematical concepts and techniques."}
         </p>
 
         {course.teacher && (
@@ -354,15 +382,26 @@ const CourseCard = ({ course, onCourseDeleted }) => {
           </div>
         )}
 
+        {/* Free Preview Button - Always visible */}
         <div className="preview-section">
-          <button className="preview-btn" onClick={handleFreePreview}>
+          <button
+            className="preview-btn"
+            onClick={handleFreePreview}
+            disabled={!course.id}
+          >
             🎬 Free Preview
           </button>
-          <p className="preview-note">Explore course content before enrolling</p>
+          <p className="preview-note">
+            Explore course content before enrolling
+          </p>
         </div>
 
+        {/* Action Buttons */}
         <div className="course-actions">
-          <Link to={`/courses/${course.slug || course.id}`} className="btn-details">
+          <Link
+            to={`/courses/${course.slug || course.id}`}
+            className="btn-details"
+          >
             View Details
           </Link>
 
@@ -388,12 +427,18 @@ const CourseCard = ({ course, onCourseDeleted }) => {
         <div className="modal-overlay">
           <div className="modal-content">
             <h3>Confirm Delete</h3>
-            <p>Are you sure you want to delete "{course.title}"? This action cannot be undone.</p>
+            <p>
+              Are you sure you want to delete "{course.title}"? This action
+              cannot be undone.
+            </p>
             <div className="modal-actions">
               <button onClick={handleDelete} className="btn-danger">
                 {isDeleting ? "Deleting..." : "Delete"}
               </button>
-              <button onClick={() => setShowDeleteModal(false)} className="btn-secondary">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="btn-secondary"
+              >
                 Cancel
               </button>
             </div>
