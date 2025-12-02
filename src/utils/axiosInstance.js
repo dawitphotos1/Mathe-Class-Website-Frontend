@@ -8,6 +8,8 @@ const BACKEND =
     ? "https://mathe-class-website-backend-1.onrender.com"
     : "http://localhost:5000");
 
+console.log("🔧 Axios baseURL:", `${BACKEND}/api/v1`);
+
 const axiosInstance = axios.create({
   baseURL: `${BACKEND}/api/v1`,
   timeout: 20000,
@@ -23,16 +25,26 @@ axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) config.headers.Authorization = `Bearer ${token}`;
+    
+    // Log request for debugging
+    console.log(`📤 [Axios] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+    
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-/* Handle errors */
+/* Handle responses */
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(`📥 [Axios] Response ${response.status}: ${response.config.url}`);
+    return response;
+  },
   (error) => {
     const status = error.response?.status;
+    const url = error.config?.url;
+
+    console.error(`❌ [Axios] Error ${status}: ${url}`, error.message);
 
     if (status === 401) {
       localStorage.removeItem("token");
