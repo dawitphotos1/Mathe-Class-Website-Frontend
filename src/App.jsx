@@ -28,16 +28,24 @@ const CourseDetail = React.lazy(() => import("./pages/courses/CourseDetail"));
 const PreviewLessonPage = React.lazy(() => import("./pages/PreviewLessonPage"));
 
 const PaymentPage = React.lazy(() => import("./pages/PaymentPage"));
-const PaymentSuccess = React.lazy(() => import("./pages/payments/PaymentSuccess"));
-const PaymentCancel = React.lazy(() => import("./pages/payments/PaymentCancel"));
+const PaymentSuccess = React.lazy(() =>
+  import("./pages/payments/PaymentSuccess")
+);
+const PaymentCancel = React.lazy(() =>
+  import("./pages/payments/PaymentCancel")
+);
 const Cancel = React.lazy(() => import("./pages/payments/Cancel"));
 
 const AdminLayout = React.lazy(() => import("./components/AdminLayout"));
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
 const ManageCourses = React.lazy(() => import("./pages/AdminManageCourses"));
 const ManageUsers = React.lazy(() => import("./pages/AdminManageUsers"));
-const PendingStudents = React.lazy(() => import("./components/PendingStudents"));
-const PendingEnrollments = React.lazy(() => import("./components/PendingEnrollments"));
+const PendingStudents = React.lazy(() =>
+  import("./components/PendingStudents")
+);
+const PendingEnrollments = React.lazy(() =>
+  import("./components/PendingEnrollments")
+);
 const AdminLessonLogs = React.lazy(() => import("./pages/AdminLessonLogs"));
 const FileManager = React.lazy(() => import("./pages/FileManager"));
 
@@ -49,14 +57,22 @@ const Unauthorized = React.lazy(() => import("./pages/Unauthorized"));
 
 const MyCoursesPage = React.lazy(() => import("./pages/courses/MyCourses"));
 
-const ManageLessons = React.lazy(() => import("./pages/teachers/ManageLessons"));
+const ManageLessons = React.lazy(() =>
+  import("./pages/teachers/ManageLessons")
+);
 const CreateCourse = React.lazy(() => import("./pages/CreateCourse"));
-const CreateCourseWithUnits = React.lazy(() => import("./pages/CreateCourseWithUnits"));
+const CreateCourseWithUnits = React.lazy(() =>
+  import("./pages/CreateCourseWithUnits")
+);
 const CourseLessons = React.lazy(() => import("./pages/CourseLessons"));
 const EditCourse = React.lazy(() => import("./pages/teachers/EditCourse"));
 const EditLesson = React.lazy(() => import("./pages/teachers/EditLesson"));
-const CreateLessonPage = React.lazy(() => import("./pages/teachers/CreateLessonPage"));
-const MyTeachingCourses = React.lazy(() => import("./pages/teachers/MyTeachingCourses"));
+const CreateLessonPage = React.lazy(() =>
+  import("./pages/teachers/CreateLessonPage")
+);
+const MyTeachingCourses = React.lazy(() =>
+  import("./pages/teachers/MyTeachingCourses")
+);
 
 /* FIXED: Preview routes for public access */
 const PreviewLesson = React.lazy(() => import("./pages/PreviewLesson"));
@@ -70,10 +86,14 @@ const PublicRoute = ({ children }) => {
 
   if (isAuthenticated && user?.role) {
     switch (user.role) {
-      case "admin": return <Navigate to="/admin" replace />;
-      case "teacher": return <Navigate to="/teacher-dashboard" replace />;
-      case "student": return <Navigate to="/my-courses" replace />;
-      default: return <Navigate to="/" replace />;
+      case "admin":
+        return <Navigate to="/admin" replace />;
+      case "teacher":
+        return <Navigate to="/teacher-dashboard" replace />;
+      case "student":
+        return <Navigate to="/my-courses" replace />;
+      default:
+        return <Navigate to="/" replace />;
     }
   }
   return children;
@@ -85,10 +105,14 @@ const RoleBasedRedirect = () => {
   if (!user) return <Navigate to="/login" replace />;
 
   switch (user.role) {
-    case "admin": return <Navigate to="/admin" replace />;
-    case "teacher": return <Navigate to="/teacher-dashboard" replace />;
-    case "student": return <Navigate to="/my-courses" replace />;
-    default: return <Navigate to="/" replace />;
+    case "admin":
+      return <Navigate to="/admin" replace />;
+    case "teacher":
+      return <Navigate to="/teacher-dashboard" replace />;
+    case "student":
+      return <Navigate to="/my-courses" replace />;
+    default:
+      return <Navigate to="/" replace />;
   }
 };
 
@@ -104,11 +128,24 @@ function AppContent() {
         <Navbar />
         <Suspense fallback={<Loading />}>
           <Routes>
-
             {/* PUBLIC ROUTES */}
             <Route path="/" element={<Home />} />
-            <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
-            <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+            <Route
+              path="/register"
+              element={
+                <PublicRoute>
+                  <Register />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              }
+            />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/contact" element={<Contact />} />
@@ -119,8 +156,11 @@ function AppContent() {
 
             {/* ✅ FIXED: PUBLIC PREVIEW ROUTES - No authentication required */}
             <Route path="/preview/:lessonId" element={<PreviewLessonPage />} />
-            <Route path="/courses/:courseId/preview" element={<PreviewLessonPage />} />
-            
+            <Route
+              path="/courses/:courseId/preview"
+              element={<PreviewLessonPage />}
+            />
+
             {/* Keep the existing protected preview for enrolled users */}
             <Route
               path="/lessons/:lessonId/preview"
@@ -145,7 +185,10 @@ function AppContent() {
             >
               <Route index element={<AdminDashboard />} />
               <Route path="pending-students" element={<PendingStudents />} />
-              <Route path="pending-enrollments" element={<PendingEnrollments />} />
+              <Route
+                path="pending-enrollments"
+                element={<PendingEnrollments />}
+              />
               <Route path="manage-courses" element={<ManageCourses />} />
               <Route path="manage-users" element={<ManageUsers />} />
               <Route path="lesson-logs" element={<AdminLessonLogs />} />
@@ -163,16 +206,28 @@ function AppContent() {
             />
 
             <Route path="/create-course" element={<CreateCourse />} />
-            <Route path="/create-course-advanced" element={<CreateCourseWithUnits />} />
+            <Route
+              path="/create-course-advanced"
+              element={<CreateCourseWithUnits />}
+            />
             <Route path="/courses/:courseId/edit" element={<EditCourse />} />
-            <Route path="/courses/:courseId/manage-lessons" element={<ManageLessons />} />
-            <Route path="/courses/:courseId/lessons/new" element={<CreateLessonPage />} />
+            <Route
+              path="/courses/:courseId/manage-lessons"
+              element={<ManageLessons />}
+            />
+            <Route
+              path="/courses/:courseId/lessons/new"
+              element={<CreateLessonPage />}
+            />
             <Route path="/lessons/:lessonId/edit" element={<EditLesson />} />
 
             {/* STUDENT ROUTES */}
             <Route path="/my-courses" element={<MyCoursesPage />} />
             <Route path="/courses/:courseId/view" element={<CourseViewer />} />
-            <Route path="/courses/:courseId/view-lessons" element={<CourseLessons />} />
+            <Route
+              path="/courses/:courseId/view-lessons"
+              element={<CourseLessons />}
+            />
             <Route path="/profile" element={<Profile />} />
 
             {/* PAYMENT ROUTES */}
@@ -183,7 +238,6 @@ function AppContent() {
 
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
-
           </Routes>
         </Suspense>
 
