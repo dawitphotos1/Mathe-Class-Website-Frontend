@@ -18,12 +18,10 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [checked, setChecked] = useState(false);
 
-  // Prevent concurrent checks / StrictMode double-calls
   const checkingRef = useRef(false);
   const lastCheckRef = useRef(0);
 
   useEffect(() => {
-    // Run once on mount. If you re-mount in StrictMode, checkingRef prevents duplicates.
     checkAuthStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -32,7 +30,6 @@ export const AuthProvider = ({ children }) => {
     try {
       if (checkingRef.current && !force) return;
       const now = Date.now();
-      // If we checked recently (< 3s) don't re-check unless forced
       if (!force && now - lastCheckRef.current < 3000) return;
 
       checkingRef.current = true;
@@ -59,7 +56,6 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(false);
       }
     } catch (error) {
-      // If the server returns 429 (rate limit), wait a second and allow manual retry but avoid spamming.
       if (error.response?.status === 429) {
         console.warn("Auth rate-limited. Will not retry automatically.");
       } else {

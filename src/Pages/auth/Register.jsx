@@ -6,7 +6,7 @@ import { useAuth } from "../../context/AuthContext";
 import "./Register.css";
 
 const Register = () => {
-  const { registerUser } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -32,9 +32,6 @@ const Register = () => {
     "Statistics & Probability",
   ];
 
-  /* ============================================================
-     🧠 Handlers
-  ============================================================ */
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -68,9 +65,6 @@ const Register = () => {
     return null;
   };
 
-  /* ============================================================
-     📨 Submit Registration - FAST OPTIMISTIC
-  ============================================================ */
   const handleSubmit = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -93,77 +87,75 @@ const Register = () => {
     setLoading(true);
 
     try {
-      // ⬅️ This returns IMMEDIATELY with optimistic response
-      const result = await registerUser(payload);
+      const result = await register(payload);
+      console.log("📥 Registration response:", result);
 
-      // ⬅️ IMMEDIATE SUCCESS FEEDBACK (within 100ms)
-      if (result.optimistic) {
-        showToast.success(
-          <div>
-            <strong>✅ Registration Successful!</strong>
-            <br />
-            Your account has been created.
-            <br />
-            Redirecting to login...
-          </div>,
-          {
-            autoClose: 3000,
-            position: "top-center",
-          }
-        );
+      if (result.success) {
+        if (result.user) {
+          // Auto-approved (teacher/admin)
+          showToast.success("Registration successful! Welcome!");
+          navigate("/my-courses");
+        } else {
+          // Student needs admin approval
+          showToast.success(
+            <div>
+              <strong>✅ Registration Submitted!</strong>
+              <br />
+              Your student account is pending admin approval.
+              <br />
+              Check your email for updates.
+            </div>,
+            { autoClose: 5000, position: "top-center" }
+          );
 
-        // Clear form immediately
-        setFormData({
-          name: "",
-          email: "",
-          confirmEmail: "",
+          // Clear form
+          setFormData({
+            name: "",
+            email: "",
+            confirmEmail: "",
+            password: "",
+            confirmPassword: "",
+            role: "student",
+            subject: "",
+          });
+
+          // Redirect to login
+          setTimeout(() => {
+            navigate("/login", {
+              state: {
+                message:
+                  "Registration submitted! Please wait for admin approval.",
+                email: payload.email,
+              },
+            });
+          }, 3000);
+        }
+      } else {
+        showToast.error(result.error || "Registration failed");
+        setFormData((prev) => ({
+          ...prev,
           password: "",
           confirmPassword: "",
-          role: "student",
-          subject: "",
-        });
-
-        // Redirect to login after short delay
-        setTimeout(() => {
-          navigate("/login", {
-            state: {
-              message: "Registration successful! Please log in.",
-              email: payload.email,
-              justRegistered: true,
-            },
-          });
-        }, 2000);
-
-        return;
-      }
-
-      // Handle actual backend response (if it was fast enough)
-      if (result.token) {
-        showToast.success("Registration successful! Welcome!");
-        navigate("/my-courses");
-      } else {
-        showToast.success(result.message || "Registration complete!");
-        navigate("/login");
+        }));
       }
     } catch (error) {
       console.error("❌ Registration error:", error);
+      let errorMsg = "Registration failed. Please try again.";
 
-      // Only show error for non-optimistic failures
-      if (!error.optimisticSuccess) {
-        let errorMsg = "Registration failed. Please try again.";
-
-        if (error.response?.data?.error) {
-          errorMsg = error.response.data.error;
-        } else if (error.response?.data?.message) {
-          errorMsg = error.response.data.message;
-        } else if (error.message) {
-          errorMsg = error.message;
-        }
-
-        showToast.error(errorMsg);
+      if (error.response?.data?.error) {
+        errorMsg = error.response.data.error;
+      } else if (error.message) {
+        errorMsg = error.message;
       }
 
-      // Clear passwords for safety
+      if (
+        errorMsg.toLowerCase().includes("already exists") ||
+        errorMsg.toLowerCase().includes("duplicate")
+      ) {
+        errorMsg = "An account with this email already exists.";
+      }
+
+      showToast.error(errorMsg);
       setFormData((prev) => ({
         ...prev,
         password: "",
@@ -174,15 +166,11 @@ const Register = () => {
     }
   };
 
-  /* ============================================================
-     🧩 JSX
-  ============================================================ */
   return (
     <div className="auth-container">
       <div className="auth-form">
         <h2>Create Your Account</h2>
         <form onSubmit={handleSubmit}>
-          {/* Name */}
           <div className="form-group">
             <label>Name *</label>
             <input
@@ -196,7 +184,6 @@ const Register = () => {
             />
           </div>
 
-          {/* Email */}
           <div className="form-group">
             <label>Email *</label>
             <input
@@ -210,7 +197,6 @@ const Register = () => {
             />
           </div>
 
-          {/* Confirm Email */}
           <div className="form-group">
             <label>Confirm Email *</label>
             <input
@@ -224,7 +210,6 @@ const Register = () => {
             />
           </div>
 
-          {/* Password */}
           <div className="form-group password-group">
             <label>Password *</label>
             <div className="password-input">
@@ -247,9 +232,9 @@ const Register = () => {
                 {showPassword ? "🙈" : "👁️"}
               </button>
             </div>
+            <small className="password-hint">Minimum 6 characters</small>
           </div>
 
-          {/* Confirm Password */}
           <div className="form-group password-group">
             <label>Confirm Password *</label>
             <div className="password-input">
@@ -274,7 +259,6 @@ const Register = () => {
             </div>
           </div>
 
-          {/* Role */}
           <div className="form-group">
             <label>Role *</label>
             <select
@@ -287,9 +271,14 @@ const Register = () => {
               <option value="teacher">Teacher</option>
               <option value="admin">Admin</option>
             </select>
+            <small className="role-hint">
+              • Students: Need admin approval (1-2 business days)
+              <br />
+              • Teachers: Auto-approved, can create courses
+              <br />• Admin: Auto-approved, full system access
+            </small>
           </div>
 
-          {/* Subject */}
           {(formData.role === "teacher" || formData.role === "student") && (
             <div className="form-group">
               <label>Subject *</label>
@@ -323,7 +312,7 @@ const Register = () => {
           )}
 
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? "⚡ Processing..." : "Register"}
+            {loading ? "⚡ Processing..." : "Create Account"}
           </button>
         </form>
 
@@ -331,8 +320,14 @@ const Register = () => {
           Already have an account? <Link to="/login">Login here</Link>
         </div>
 
-        <div className="test-card-notice">
-          ⚡ Instant registration - actual processing happens in background
+        <div className="registration-info">
+          <h4>📝 Registration Info:</h4>
+          <ul>
+            <li>✅ Students: Account requires admin approval (check email)</li>
+            <li>✅ Teachers: Auto-approved, can create courses immediately</li>
+            <li>✅ Admins: Auto-approved, full system access</li>
+            <li>📧 You'll receive email notifications for approvals</li>
+          </ul>
         </div>
       </div>
     </div>

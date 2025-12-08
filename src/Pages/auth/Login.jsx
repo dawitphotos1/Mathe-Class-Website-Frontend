@@ -14,9 +14,6 @@ const Login = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  // ------------------------------
-  // Redirect Path Logic
-  // ------------------------------
   const getRedirectPath = (role) => {
     switch (role) {
       case "admin":
@@ -30,9 +27,6 @@ const Login = () => {
     }
   };
 
-  // ------------------------------
-  // Handle Expired Session
-  // ------------------------------
   useEffect(() => {
     if (searchParams.get("session") === "expired") {
       showToast.error("Your session has expired. Please log in again.");
@@ -42,42 +36,16 @@ const Login = () => {
     }
   }, [searchParams, navigate, location]);
 
-  // ------------------------------
-  // Auto Redirect if Already Logged In
-  // ------------------------------
   useEffect(() => {
     if (checked && isAuthenticated && user?.role) {
       navigate(getRedirectPath(user.role), { replace: true });
     }
   }, [checked, isAuthenticated, user, navigate]);
 
-  // ------------------------------
-  // Handle Registration Success
-  // ------------------------------
-  useEffect(() => {
-    const handleRegistrationCompleted = (event) => {
-      if (event.detail?.email === formData.email) {
-        showToast.success("🎉 Your registration is now complete! You can log in.");
-      }
-    };
-
-    window.addEventListener("registrationCompleted", handleRegistrationCompleted);
-
-    return () => {
-      window.removeEventListener("registrationCompleted", handleRegistrationCompleted);
-    };
-  }, [formData.email]);
-
-  // ------------------------------
-  // Form Handlers
-  // ------------------------------
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // ------------------------------
-  // Submit Login
-  // ------------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     const { email, password } = formData;
@@ -100,7 +68,6 @@ const Login = () => {
       }
     } catch (error) {
       console.error("❌ Login error:", error);
-
       let errorMsg = error.message || "Login failed. Please try again.";
 
       if (errorMsg.toLowerCase().includes("pending approval")) {
@@ -130,22 +97,16 @@ const Login = () => {
         errorMsg.toLowerCase().includes("invalid password")
       ) {
         showToast.error("Invalid email or password. Please check your credentials.");
-      } else if (errorMsg.toLowerCase().includes("timeout")) {
-        showToast.warning("Login is taking longer than expected. Please try again.");
       } else {
         showToast.error(errorMsg);
       }
 
-      // Clear password for security
       setFormData((prev) => ({ ...prev, password: "" }));
     } finally {
       setLoading(false);
     }
   };
 
-  // ------------------------------
-  // Render
-  // ------------------------------
   if (checked && isAuthenticated) {
     return (
       <div className="auth-container">
@@ -169,7 +130,6 @@ const Login = () => {
         )}
 
         <form onSubmit={handleSubmit}>
-          {/* Email */}
           <div className="form-group">
             <label>Email *</label>
             <input
@@ -184,7 +144,6 @@ const Login = () => {
             />
           </div>
 
-          {/* Password */}
           <div className="form-group password-group">
             <label>Password *</label>
             <div className="password-input">

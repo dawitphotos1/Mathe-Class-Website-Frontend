@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 const MotionDiv = ({ children, ...props }) => <div {...props}>{children}</div>;
 
 // import heroImage from "../assets/images/math-hero.jpg";
-import heroImage from "../assets/images/main15.png";
+import heroImage from "../assets/images/main19.png";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "./Home.css";
 
