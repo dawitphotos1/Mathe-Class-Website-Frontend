@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 const MotionDiv = ({ children, ...props }) => <div {...props}>{children}</div>;
 
 // import heroImage from "../assets/images/math-hero.jpg";
-import heroImage from "../assets/images/main3.png";
+import heroImage from "../assets/images/main15.png";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "./Home.css";
 
@@ -22,8 +22,16 @@ const Home = () => {
       { id: 2, name: "Algebra 2", image: "/math-logos/algebra2.png" },
       { id: 3, name: "Pre-Calculus", image: "/math-logos/Pre-calculus.jpeg" },
       { id: 4, name: "Calculus", image: "/math-logos/Calculus.jpeg" },
-      { id: 5, name: "Geometry & Trigonometry", image: "/math-logos/geometry.jpeg" },
-      { id: 6, name: "Statistics & Probability", image: "/math-logos/statistic.png" },
+      {
+        id: 5,
+        name: "Geometry & Trigonometry",
+        image: "/math-logos/geometry.jpeg",
+      },
+      {
+        id: 6,
+        name: "Statistics & Probability",
+        image: "/math-logos/statistic.png",
+      },
     ],
     []
   );
@@ -33,7 +41,9 @@ const Home = () => {
     try {
       setSubjects(subjectList);
       if (!hasShownToast.current) {
-        toast.success("Subjects loaded successfully", { toastId: "subjects-toast" });
+        toast.success("Subjects loaded successfully", {
+          toastId: "subjects-toast",
+        });
         hasShownToast.current = true;
       }
     } catch (err) {
@@ -74,11 +84,12 @@ const Home = () => {
           <MotionDiv className="hero-content">
             <div className="hero-text">
               <h1>
-                <span className="highlight">Master Mathematics</span> with Expert Guidance
+                <span className="highlight">Master Mathematics</span> with
+                Expert Guidance
               </h1>
               <p>
-                Interactive courses designed to help you understand complex math concepts
-                through engaging lessons and practical examples.
+                Interactive courses designed to help you understand complex math
+                concepts through engaging lessons and practical examples.
               </p>
               <div className="cta-buttons">
                 <Link
@@ -106,7 +117,9 @@ const Home = () => {
       </section>
 
       <section className="featured-subjects">
-        <h2 className="section-title center-top-heading">📘 Explore Our Core Subjects</h2>
+        <h2 className="section-title center-top-heading">
+          📘 Explore Our Core Subjects
+        </h2>
         <div className="container">
           <div className="subjects-grid">
             {subjects.length === 0 ? (
@@ -118,7 +131,9 @@ const Home = () => {
                     src={subject.image}
                     alt={subject.name}
                     className="subject-image"
-                    onError={(e) => { e.target.src = "/default-instructor.jpg"; }}
+                    onError={(e) => {
+                      e.target.src = "/default-instructor.jpg";
+                    }}
                   />
                   <h3 className="subject-title">{subject.name}</h3>
                 </MotionDiv>
@@ -132,11 +147,17 @@ const Home = () => {
         <h2 className="section-title center-top-heading">📊 Success Stories</h2>
         <div className="testimonial-carousel">
           <MotionDiv className="testimonial">
-            <p>"Thanks to Math Class, I finally understood calculus. The lessons are fun and clear!"</p>
+            <p>
+              "Thanks to Math Class, I finally understood calculus. The lessons
+              are fun and clear!"
+            </p>
             <h4>- Sarah L., High School Senior</h4>
           </MotionDiv>
           <MotionDiv className="testimonial">
-            <p>"I passed my college algebra exam with confidence. Highly recommend these courses!"</p>
+            <p>
+              "I passed my college algebra exam with confidence. Highly
+              recommend these courses!"
+            </p>
             <h4>- Daniel W., College Freshman</h4>
           </MotionDiv>
         </div>
@@ -156,10 +177,26 @@ const Home = () => {
           <div className="footer-section quick-links">
             <h3>Quick Links</h3>
             <ul>
-              <li><Link to="/courses" onClick={handleLinkClick}>Courses</Link></li>
-              <li><Link to="/register" onClick={handleLinkClick}>Register</Link></li>
-              <li><Link to="/login" onClick={handleLinkClick}>Login</Link></li>
-              <li><Link to="/contact" onClick={handleLinkClick}>Contact Us</Link></li>
+              <li>
+                <Link to="/courses" onClick={handleLinkClick}>
+                  Courses
+                </Link>
+              </li>
+              <li>
+                <Link to="/register" onClick={handleLinkClick}>
+                  Register
+                </Link>
+              </li>
+              <li>
+                <Link to="/login" onClick={handleLinkClick}>
+                  Login
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" onClick={handleLinkClick}>
+                  Contact Us
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -168,16 +205,28 @@ const Home = () => {
             <p>Email: greenw17@yahoo.com</p>
             <p>Phone: +1 (123) 456-7890</p>
             <div className="social-icons">
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <i className="fab fa-facebook-f"></i>
               </a>
               <a href="https://x.com" target="_blank" rel="noopener noreferrer">
                 <i className="fab fa-x-twitter"></i>
               </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <i className="fab fa-instagram"></i>
               </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <i className="fab fa-linkedin-in"></i>
               </a>
             </div>
