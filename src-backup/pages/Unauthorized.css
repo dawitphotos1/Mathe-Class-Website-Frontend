@@ -1,0 +1,139 @@
+/* Unauthorized.css - Modern Admin Theme */
+
+.unauth-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  padding: 1rem;
+}
+
+.unauth-content {
+  background: #ffffff;
+  color: #333;
+  padding: 3rem 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.unauth-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  color: #667eea;
+}
+
+.unauth-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #dc3545;
+  margin-bottom: 0.5rem;
+}
+
+.unauth-text {
+  font-size: 1.1rem;
+  color: #555;
+  margin-bottom: 0.5rem;
+}
+
+.unauth-subtext {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.unauth-role {
+  color: #667eea;
+  font-weight: 600;
+}
+
+.unauth-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.unauth-btn {
+  background: #e2e8f0;
+  border: none;
+  color: #333;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.unauth-btn:hover {
+  background: #d1d8e0;
+}
+
+.unauth-btn.primary {
+  background: #667eea;
+  color: #fff;
+}
+
+.unauth-btn.primary:hover {
+  background: #5a67d8;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==== Dark Mode Support (if your theme toggles) ==== */
+.dark-mode .unauth-content {
+  background: #2d3748;
+  color: #e2e8f0;
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .unauth-title {
+  color: #fc8181;
+}
+
+.dark-mode .unauth-role {
+  color: #90cdf4;
+}
+
+.dark-mode .unauth-btn {
+  background: #4a5568;
+  color: #e2e8f0;
+}
+
+.dark-mode .unauth-btn.primary {
+  background: #667eea;
+}
+
+/* ==== Responsive ==== */
+@media (max-width: 480px) {
+  .unauth-content {
+    padding: 2rem 1.5rem;
+  }
+
+  .unauth-title {
+    font-size: 1.6rem;
+  }
+
+  .unauth-text {
+    font-size: 1rem;
+  }
+
+  .unauth-btn {
+    width: 100%;
+  }
+}

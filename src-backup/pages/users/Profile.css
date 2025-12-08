@@ -1,0 +1,111 @@
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap');
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: linear-gradient(135deg, #e0eafc, #cfdef3);
+  margin: 0;
+  padding: 0;
+}
+
+.profile-container {
+  max-width: 700px;
+  margin: 60px auto;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(12px);
+  padding: 40px 35px;
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.avatar-wrapper {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  padding: 4px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+.profile-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  background-color: #f1f1f1;
+}
+
+.profile-header h1 {
+  font-size: 30px;
+  margin: 0;
+  color: #222;
+}
+
+.profile-details p {
+  font-size: 17px;
+  color: #333;
+  margin: 14px 0;
+  line-height: 1.6;
+}
+
+.profile-details strong {
+  color: #111;
+}
+
+.error {
+  color: #d8000c;
+  background-color: #ffdddd;
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin: 20px auto;
+  max-width: 600px;
+  border-left: 6px solid #f44336;
+  font-size: 14px;
+}
+
+.loading {
+  text-align: center;
+  font-size: 18px;
+  color: #888;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .profile-container {
+    padding: 30px 20px;
+    margin: 30px 15px;
+  }
+
+  .profile-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .avatar-wrapper {
+    width: 90px;
+    height: 90px;
+  }
+}

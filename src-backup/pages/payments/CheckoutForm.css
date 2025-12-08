@@ -1,0 +1,99 @@
+/* ================================
+   ✅ CHECKOUT FORM STYLING
+   ================================ */
+
+.checkout-form {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  margin-top: 1.5rem;
+  width: 100%;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  transition: all 0.3s ease-in-out;
+}
+
+.checkout-form:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.checkout-form h3 {
+  font-size: 1.3rem;
+  color: #222;
+  margin-bottom: 0.5rem;
+}
+
+.checkout-form p {
+  color: #555;
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Button Styles */
+.checkout-form .btn-primary {
+  background: linear-gradient(135deg, #0072ff, #00c6ff);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  width: 100%;
+}
+
+.checkout-form .btn-primary:hover {
+  background: linear-gradient(135deg, #005de0, #00a8cc);
+  transform: translateY(-1px);
+}
+
+.checkout-form .btn-primary:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Status Message */
+.status-message {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  color: #444;
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  display: inline-block;
+  word-break: break-word;
+}
+
+/* Success / Error States */
+.status-message:before {
+  content: "💬 ";
+}
+
+.status-message.success {
+  color: #0a8754;
+}
+
+.status-message.error {
+  color: #d90429;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .checkout-form {
+    padding: 1.25rem;
+  }
+
+  .checkout-form h3 {
+    font-size: 1.1rem;
+  }
+
+  .checkout-form .btn-primary {
+    font-size: 0.95rem;
+  }
+}
