@@ -12,7 +12,6 @@
 
 
 
-
 // config-overrides.js
 const { override, addWebpackModuleRule } = require('customize-cra');
 
@@ -24,5 +23,9 @@ module.exports = override(
     resolve: {
       fullySpecified: false,
     },
+  }),
+  addWebpackModuleRule({
+    test: /\.css$/,
+    use: ['style-loader', 'css-loader'],
   })
 );
