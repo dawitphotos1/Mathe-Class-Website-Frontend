@@ -1,7 +1,7 @@
-// src/utils/axiosInstance.js
+//utils/axiosInstance.js
 import axios from "axios";
 
-/* Decide backend */
+// Determine backend base URL
 const BACKEND =
   process.env.REACT_APP_BACKEND_URL?.replace(/\/+$/, "") ||
   (process.env.NODE_ENV === "production"
@@ -12,7 +12,7 @@ console.log("🔧 Axios baseURL:", `${BACKEND}/api/v1`);
 
 const axiosInstance = axios.create({
   baseURL: `${BACKEND}/api/v1`,
-  timeout: 20000,
+  timeout: 60000, // Increased to 60s for Render cold starts
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -20,24 +20,29 @@ const axiosInstance = axios.create({
   },
 });
 
-/* Auto attach token */
+// Automatically attach auth token
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) config.headers.Authorization = `Bearer ${token}`;
-    
-    // Log request for debugging
-    console.log(`📤 [Axios] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
-    
+
+    console.log(
+      `📤 [Axios] ${config.method?.toUpperCase()} ${config.baseURL}${
+        config.url
+      }`
+    );
+
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-/* Handle responses */
+// Response handling
 axiosInstance.interceptors.response.use(
   (response) => {
-    console.log(`📥 [Axios] Response ${response.status}: ${response.config.url}`);
+    console.log(
+      `📥 [Axios] Response ${response.status}: ${response.config.url}`
+    );
     return response;
   },
   (error) => {
@@ -62,5 +67,3 @@ axiosInstance.interceptors.response.use(
 );
 
 export default axiosInstance;
-
-
