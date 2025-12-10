@@ -1,35 +1,3 @@
-// // src/components/FixedToastContainer.jsx
-// import { ToastContainer } from "react-toastify";
-// import "react-toastify/dist/ReactToastify.css";
-
-// const FixedToastContainer = () => {
-//   return (
-//     <ToastContainer
-//       position="top-right"
-//       autoClose={5000}
-//       hideProgressBar={false}
-//       newestOnTop={false}
-//       closeOnClick
-//       rtl={false}
-//       pauseOnFocusLoss
-//       draggable
-//       pauseOnHover
-//       theme="light"
-//     />
-//   );
-// };
-
-// // Also update ProgressBar if you're using it
-// const FixedProgressBar = ({ progress }) => {
-//   return (
-//     <div className="Toastify__progress-bar" style={{ width: `${progress}%` }} />
-//   );
-// };
-
-// export { FixedToastContainer, FixedProgressBar };
-
-
-
 // src/components/FixedToastContainer.jsx - FIXED VERSION
 import React from 'react';
 import { ToastContainer, Slide } from 'react-toastify';
