@@ -30,26 +30,27 @@
 
 
 
-
-// src/components/FixedToastContainer.jsx
+// src/components/FixedToastContainer.jsx - FIXED VERSION
 import React from 'react';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, Slide } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Custom ProgressBar component to avoid defaultProps warning
-const FixedProgressBar = ({ progress, rtl, controlledProgress, isRunning, ariaLabel = "progress bar" }) => {
+// Custom ProgressBar to avoid defaultProps warning
+const CustomProgressBar = ({ progress, isRunning, rtl, controlledProgress }) => {
+  const width = typeof progress === 'number' ? `${progress}%` : '0%';
+  
   return (
     <div 
       className="Toastify__progress-bar" 
       style={{ 
-        width: `${progress}%`,
+        width: width,
+        animationPlayState: isRunning ? 'running' : 'paused',
         direction: rtl ? 'rtl' : 'ltr'
       }}
       role="progressbar"
-      aria-label={ariaLabel}
       aria-valuemin="0"
       aria-valuemax="100"
-      aria-valuenow={progress}
+      aria-valuenow={typeof progress === 'number' ? Math.round(progress) : 0}
     />
   );
 };
@@ -67,10 +68,13 @@ const FixedToastContainer = () => {
       draggable
       pauseOnHover
       theme="light"
-      // Override default components to avoid warnings
-      // We'll handle progress bar separately if needed
+      transition={Slide}
+      // Pass empty object to avoid defaultProps warning
+      closeButton={{}}
+      // Use our custom ProgressBar
+      progressBar={CustomProgressBar}
     />
   );
 };
 
-export { FixedToastContainer, FixedProgressBar };
+export { FixedToastContainer };
