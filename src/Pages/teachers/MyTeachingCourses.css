@@ -1,5 +1,9 @@
 /* src/pages/teachers/MyTeachingCourses.css */
 
+/* ==========================
+   BASE DASHBOARD STYLES
+========================== */
+
 .teacher-dashboard {
   min-height: 100vh;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -18,7 +22,10 @@
   min-height: 400px;
 }
 
-/* ✅ PROFESSIONAL: Enhanced creation options card */
+/* ==========================
+   CREATION OPTIONS CARD
+========================== */
+
 .creation-options-card {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
@@ -26,9 +33,7 @@
   padding: 40px;
   margin-bottom: 40px;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(255, 255, 255, 0.8);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.8);
   position: relative;
   overflow: hidden;
 }
@@ -48,9 +53,7 @@
 .dark-mode .creation-options-card {
   background: rgba(45, 45, 45, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 .creation-option {
@@ -95,20 +98,16 @@
 .creation-option.simple:hover {
   border-color: #1976d2;
   transform: translateY(-8px) scale(1.02);
-  box-shadow: 
-    0 20px 40px rgba(25, 118, 210, 0.2),
-    0 0 30px rgba(25, 118, 210, 0.1);
+  box-shadow: 0 20px 40px rgba(25, 118, 210, 0.2), 0 0 30px rgba(25, 118, 210, 0.1);
 }
 
 .creation-option.advanced:hover {
   border-color: #9c27b0;
   transform: translateY(-8px) scale(1.02);
-  box-shadow: 
-    0 20px 40px rgba(156, 39, 176, 0.2),
-    0 0 30px rgba(156, 39, 176, 0.1);
+  box-shadow: 0 20px 40px rgba(156, 39, 176, 0.2), 0 0 30px rgba(156, 39, 176, 0.1);
 }
 
-/* ✅ PROFESSIONAL: Premium feature list */
+/* Feature List Styles */
 .feature-list {
   text-align: left;
   padding-left: 0;
@@ -172,7 +171,10 @@
   box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
 }
 
-/* ✅ PROFESSIONAL: Enhanced course cards */
+/* ==========================
+   COURSE CARDS
+========================== */
+
 .course-card {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -200,17 +202,14 @@
 
 .course-card:hover {
   transform: translateY(-8px);
-  box-shadow: 
-    0 25px 50px rgba(0, 0, 0, 0.15),
-    0 0 0 1px rgba(255, 255, 255, 0.8);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.8);
 }
 
 .dark-mode .course-card:hover {
-  box-shadow: 
-    0 25px 50px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
+/* Lessons Accordion */
 .lessons-accordion {
   margin: 20px 0 !important;
   border-radius: 16px !important;
@@ -254,6 +253,7 @@
   border-bottom: none;
 }
 
+/* Course Actions */
 .course-actions {
   display: flex;
   justify-content: space-between;
@@ -269,6 +269,7 @@
   background: rgba(255, 255, 255, 0.05);
 }
 
+/* Empty State */
 .empty-state {
   text-align: center;
   padding: 80px 40px;
@@ -285,7 +286,11 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* ✅ PROFESSIONAL: Premium button styles */
+/* ==========================
+   BUTTON STYLES
+========================== */
+
+/* Premium button styles */
 .creation-option .MuiButton-contained {
   background: linear-gradient(135deg, #1976d2, #1565c0);
   color: white;
@@ -293,9 +298,7 @@
   padding: 14px 32px;
   border-radius: 50px;
   text-transform: none;
-  box-shadow: 
-    0 8px 25px rgba(25, 118, 210, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 25px rgba(25, 118, 210, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
   position: relative;
   overflow: hidden;
   transition: all 0.4s ease;
@@ -320,9 +323,7 @@
 .creation-option .MuiButton-contained:hover {
   background: linear-gradient(135deg, #1565c0, #0d47a1);
   transform: translateY(-2px);
-  box-shadow: 
-    0 12px 35px rgba(25, 118, 210, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 12px 35px rgba(25, 118, 210, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .creation-option .MuiButton-outlined {
@@ -350,7 +351,10 @@
   box-shadow: 0 8px 25px rgba(156, 39, 176, 0.3);
 }
 
-/* ✅ PROFESSIONAL: Enhanced typography */
+/* ==========================
+   TYPOGRAPHY
+========================== */
+
 .creation-option .MuiTypography-h6 {
   font-weight: 800;
   margin-bottom: 16px;
@@ -379,7 +383,34 @@
   color: rgba(255, 255, 255, 0.8);
 }
 
-/* ✅ PROFESSIONAL: Icon enhancements */
+/* Section titles */
+.creation-options-card .MuiTypography-h5 {
+  color: #2d3748;
+  font-weight: 800;
+  margin-bottom: 12px;
+  font-size: 2rem;
+  text-align: center;
+}
+
+.dark-mode .creation-options-card .MuiTypography-h5 {
+  color: white;
+}
+
+.creation-options-card .MuiTypography-body2 {
+  color: #718096;
+  text-align: center;
+  font-size: 1.2rem;
+  margin-bottom: 40px;
+}
+
+.dark-mode .creation-options-card .MuiTypography-body2 {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ==========================
+   ICONS
+========================== */
+
 .creation-option-header {
   text-align: center;
   margin-bottom: 30px;
@@ -403,22 +434,42 @@
   filter: drop-shadow(0 8px 20px rgba(156, 39, 176, 0.3));
 }
 
-/* Animations */
+/* ==========================
+   PREVIEW BUTTON
+========================== */
+
+.preview-button {
+  background: linear-gradient(135deg, #00bcd4, #0097a7);
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 0.8em;
+  text-transform: none;
+  box-shadow: 0 4px 15px rgba(0, 188, 212, 0.4);
+  transition: all 0.3s ease;
+}
+
+.preview-button:hover {
+  background: linear-gradient(135deg, #0097a7, #00838f);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 188, 212, 0.6);
+}
+
+/* ==========================
+   ANIMATIONS
+========================== */
+
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
+/* ==========================
+   RESPONSIVE DESIGN
+========================== */
 
-.floating {
-  animation: float 3s ease-in-out infinite;
-}
-
-/* Responsive design */
 @media (max-width: 768px) {
   .teacher-dashboard {
     padding: 20px 10px;
@@ -463,61 +514,4 @@
     padding: 12px 24px;
     font-size: 0.9em;
   }
-}
-
-/* Enhanced preview button */
-.preview-button {
-  background: linear-gradient(135deg, #00bcd4, #0097a7);
-  color: white;
-  font-weight: 600;
-  border: none;
-  border-radius: 20px;
-  padding: 6px 16px;
-  font-size: 0.8em;
-  text-transform: none;
-  box-shadow: 0 4px 15px rgba(0, 188, 212, 0.4);
-  transition: all 0.3s ease;
-}
-
-.preview-button:hover {
-  background: linear-gradient(135deg, #0097a7, #00838f);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 188, 212, 0.6);
-}
-
-/* Section titles */
-.creation-options-card .MuiTypography-h5 {
-  color: #2d3748;
-  font-weight: 800;
-  margin-bottom: 12px;
-  font-size: 2rem;
-  text-align: center;
-}
-
-.dark-mode .creation-options-card .MuiTypography-h5 {
-  color: white;
-}
-
-.creation-options-card .MuiTypography-body2 {
-  color: #718096;
-  text-align: center;
-  font-size: 1.2rem;
-  margin-bottom: 40px;
-}
-
-.dark-mode .creation-options-card .MuiTypography-body2 {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-/* Glass morphism effect */
-.glass {
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-}
-
-.dark-mode .glass {
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.1);
 }
