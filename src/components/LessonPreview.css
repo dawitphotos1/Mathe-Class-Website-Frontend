@@ -1,0 +1,183 @@
+/* =====================================================
+   Lesson Preview – Fullscreen Embedded Viewer
+===================================================== */
+
+.lesson-preview-dialog {
+  background: linear-gradient(
+    180deg,
+    rgba(10, 10, 10, 0.92),
+    rgba(3, 3, 3, 0.96)
+  );
+  color: #ffffff;
+}
+
+/* =========================
+   APP BAR / TOOLBAR
+========================= */
+
+.lp-appbar {
+  background: rgba(10, 10, 10, 0.75) !important;
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lp-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+}
+
+.lp-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.lp-subtitle {
+  margin-left: 10px;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+/* =========================
+   BODY
+========================= */
+
+.lp-body {
+  position: relative;
+  height: calc(100vh - 64px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  overflow: auto;
+}
+
+/* =========================
+   LOADER / ERROR
+========================= */
+
+.lp-loader {
+  position: absolute;
+  top: 48%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  color: #ffffff;
+}
+
+.lp-error {
+  text-align: center;
+  color: #ffb4b4;
+  max-width: 600px;
+}
+
+/* =========================
+   EMBEDDED PDF / IFRAME
+========================= */
+
+.lp-embedded-wrapper {
+  width: 100%;
+  height: 100%;
+  max-width: 1400px;
+  background: #ffffff;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 14px 45px rgba(0, 0, 0, 0.65);
+}
+
+.lp-iframe {
+  width: 100%;
+  height: 100vh;
+  min-height: 720px;
+  border: none;
+  background: #ffffff;
+}
+
+/* =========================
+   VIDEO
+========================= */
+
+.lp-media-wrapper {
+  width: 100%;
+  max-width: 1400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.lp-video {
+  width: 100%;
+  max-height: calc(100vh - 160px);
+  border-radius: 8px;
+  background: #000;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* =========================
+   IMAGE
+========================= */
+
+.lp-image {
+  max-width: 100%;
+  max-height: calc(100vh - 160px);
+  border-radius: 8px;
+  display: block;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* =========================
+   TEXT CONTENT
+========================= */
+
+.lp-text-wrapper {
+  width: 100%;
+  max-width: 1000px;
+  background: #0f1720;
+  border-radius: 8px;
+  padding: 28px;
+  color: #e6eef8;
+  line-height: 1.65;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6);
+  overflow: auto;
+}
+
+.lp-text {
+  font-size: 1rem;
+}
+
+/* =========================
+   FALLBACK BUTTON
+========================= */
+
+.lp-open-btn {
+  background: linear-gradient(135deg, #1976d2, #42a5f5);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 768px) {
+  .lp-toolbar {
+    padding: 8px 12px;
+  }
+
+  .lp-title {
+    font-size: 1rem;
+  }
+
+  .lp-body {
+    padding: 12px;
+  }
+
+  .lp-iframe {
+    min-height: 520px;
+  }
+}
