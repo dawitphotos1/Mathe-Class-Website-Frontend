@@ -1059,7 +1059,7 @@ const MyTeachingCourses = () => {
             Refresh
           </Button>
         </Box>
-      </Typography>
+      </Box>
 
       {/* Debug Section */}
       {showDebug && (
