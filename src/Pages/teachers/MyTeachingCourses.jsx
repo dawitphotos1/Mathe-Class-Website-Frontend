@@ -742,8 +742,7 @@
 
 
 
-
-// src/pages/teachers/MyTeachingCourses.jsx
+// src/pages/teachers/MyTeachingCourses.jsx - FIXED VERSION
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -784,10 +783,11 @@ import {
   Build as BuildIcon,
   TextSnippet as TextIcon,
   PictureAsPdf as PdfIcon,
+  BugReport as BugIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../context/ThemeContext";
 import axiosInstance from "../../utils/axiosInstance";
-import PdfPreviewButton from "../../components/PdfPreviewButton"; // Added import
+import PdfPreviewButton from "../../components/PdfPreviewButton";
 import "./MyTeachingCourses.css";
 
 const MyTeachingCourses = () => {
@@ -811,12 +811,15 @@ const MyTeachingCourses = () => {
     message: "",
     severity: "success",
   });
+  const [showDebug, setShowDebug] = useState(false);
 
   const fetchTeacherCourses = async () => {
     try {
       setLoading(true);
 
-      const coursesResponse = await axiosInstance.get("/courses/teacher/my-courses");
+      const coursesResponse = await axiosInstance.get(
+        "/courses/teacher/my-courses"
+      );
 
       if (coursesResponse.data?.success) {
         const coursesData = coursesResponse.data.courses || [];
@@ -838,7 +841,10 @@ const MyTeachingCourses = () => {
                   ) || [],
               };
             } catch (error) {
-              console.error(`Error fetching structure for course ${course.id}:`, error);
+              console.error(
+                `Error fetching structure for course ${course.id}:`,
+                error
+              );
               return { courseId: course.id, lessons: [] };
             }
           })
@@ -865,7 +871,6 @@ const MyTeachingCourses = () => {
 
   useEffect(() => {
     fetchTeacherCourses();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const normalizeLesson = (lesson) => {
@@ -964,7 +969,8 @@ const MyTeachingCourses = () => {
   const getLessonIcon = (contentType) => {
     const ct = (contentType || "").toLowerCase();
     if (ct === "video") return <VideoIcon color="primary" fontSize="small" />;
-    if (ct === "pdf" || ct === "file") return <PdfIcon color="secondary" fontSize="small" />;
+    if (ct === "pdf" || ct === "file")
+      return <PdfIcon color="secondary" fontSize="small" />;
     if (ct === "text") return <TextIcon color="action" fontSize="small" />;
     return <ArticleIcon color="action" fontSize="small" />;
   };
@@ -985,6 +991,38 @@ const MyTeachingCourses = () => {
     }).format(price || 0);
   };
 
+  const testLesson5788 = async () => {
+    try {
+      console.log('🧪 Testing lesson 5788...');
+      const response = await axiosInstance.get('/lessons/5788');
+      const lesson = response.data.lesson || response.data;
+      console.log('📦 Lesson 5788 data:', lesson);
+      
+      // Test the PDF Preview Button logic
+      const normalizedLesson = normalizeLesson(lesson);
+      console.log('📝 Normalized lesson:', normalizedLesson);
+      
+      // Manually test the file URL
+      const fileUrl = normalizedLesson.fileUrl;
+      if (fileUrl) {
+        console.log('🔗 File URL:', fileUrl);
+        
+        let finalUrl = fileUrl;
+        if (fileUrl.startsWith('/uploads/') || (fileUrl.startsWith('/') && !fileUrl.startsWith('http'))) {
+          finalUrl = 'https://mathe-class-website-backend-1.onrender.com' + fileUrl;
+          console.log('🔄 Converted URL:', finalUrl);
+        }
+        
+        console.log('🚀 Opening URL:', finalUrl);
+        window.open(finalUrl, '_blank');
+      } else {
+        console.warn('⚠️ No file URL found for lesson 5788');
+      }
+    } catch (error) {
+      console.error('❌ Error testing lesson:', error);
+    }
+  };
+
   if (loading) {
     return (
       <Box className="loading-container">
@@ -998,101 +1036,183 @@ const MyTeachingCourses = () => {
       sx={{ p: 3 }}
       className={`teacher-dashboard ${isDark ? "dark-mode" : ""}`}
     >
-      <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
-        📘 My Teaching Courses
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4">
+          📘 My Teaching Courses
+        </Typography>
+        
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            variant="outlined"
+            startIcon={<BugIcon />}
+            onClick={() => setShowDebug(!showDebug)}
+            size="small"
+          >
+            {showDebug ? 'Hide Debug' : 'Show Debug'}
+          </Button>
+          
+          <Button
+            variant="outlined"
+            onClick={fetchTeacherCourses}
+            size="small"
+          >
+            Refresh
+          </Button>
+        </Box>
       </Typography>
 
+      {/* Debug Section */}
+      {showDebug && (
+        <Card sx={{ mb: 3, border: '2px solid #FF9800', backgroundColor: '#FFF8E1' }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom color="#FF9800">
+              🐛 Debug Tools
+            </Typography>
+            
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
+              <Button
+                variant="contained"
+                color="warning"
+                onClick={testLesson5788}
+                startIcon={<BugIcon />}
+              >
+                Test Lesson 5788
+              </Button>
+              
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  console.clear();
+                  console.log('🧹 Console cleared');
+                  console.log('📊 Current state:', { 
+                    coursesCount: courses.length,
+                    lessonsMap: Object.keys(lessons).length
+                  });
+                }}
+              >
+                Clear Console
+              </Button>
+              
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  localStorage.removeItem('token');
+                  window.location.reload();
+                }}
+                color="error"
+              >
+                Logout & Refresh
+              </Button>
+            </Box>
+            
+            <Typography variant="body2" color="text.secondary">
+              Current courses: {courses.length} | Total lessons: {Object.values(lessons).reduce((sum, ls) => sum + (ls?.length || 0), 0)}
+            </Typography>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Course Creation Options */}
-      <Card className="creation-options-card">
-        <Typography variant="h5" gutterBottom>
-          Create New Course
-        </Typography>
-        <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
-          Choose your preferred method for creating a new course
-        </Typography>
+      <Card className="creation-options-card" sx={{ mb: 3 }}>
+        <CardContent>
+          <Typography variant="h5" gutterBottom>
+            Create New Course
+          </Typography>
+          <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
+            Choose your preferred method for creating a new course
+          </Typography>
 
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <Card
-              variant="outlined"
-              className="creation-option simple"
-              sx={{
-                p: 2,
-                height: "100%",
-                cursor: "pointer",
-              }}
-              onClick={() => navigate("/create-course")}
-            >
-              <Box className="creation-option-header">
-                <RocketIcon className="floating" />
-                <Typography variant="h6" gutterBottom>
-                  Simple Course Creation
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="textSecondary"
-                  sx={{ mb: 2 }}
-                >
-                  Quick setup with basic course information
-                </Typography>
-                <ul className="feature-list">
-                  <li>Basic course information</li>
-                  <li>File uploads</li>
-                  <li>Fast setup</li>
-                  <li>Add structure later</li>
-                </ul>
-                <Button
-                  variant="contained"
-                  startIcon={<RocketIcon />}
-                  sx={{ mt: 2 }}
-                >
-                  Get Started
-                </Button>
-              </Box>
-            </Card>
-          </Grid>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <Card
+                variant="outlined"
+                className="creation-option simple"
+                sx={{
+                  p: 2,
+                  height: "100%",
+                  cursor: "pointer",
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                    backgroundColor: 'action.hover'
+                  }
+                }}
+                onClick={() => navigate("/create-course")}
+              >
+                <Box className="creation-option-header">
+                  <RocketIcon className="floating" />
+                  <Typography variant="h6" gutterBottom>
+                    Simple Course Creation
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="textSecondary"
+                    sx={{ mb: 2 }}
+                  >
+                    Quick setup with basic course information
+                  </Typography>
+                  <ul className="feature-list">
+                    <li>Basic course information</li>
+                    <li>File uploads</li>
+                    <li>Fast setup</li>
+                    <li>Add structure later</li>
+                  </ul>
+                  <Button
+                    variant="contained"
+                    startIcon={<RocketIcon />}
+                    sx={{ mt: 2 }}
+                  >
+                    Get Started
+                  </Button>
+                </Box>
+              </Card>
+            </Grid>
 
-          <Grid item xs={12} md={6}>
-            <Card
-              variant="outlined"
-              className="creation-option advanced"
-              sx={{
-                p: 2,
-                height: "100%",
-                cursor: "pointer",
-              }}
-              onClick={() => navigate("/create-course-advanced")}
-            >
-              <Box className="creation-option-header">
-                <BuildIcon className="floating" />
-                <Typography variant="h6" gutterBottom>
-                  Advanced Course Creation
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="textSecondary"
-                  sx={{ mb: 2 }}
-                >
-                  Complete course structure with custom URLs
-                </Typography>
-                <ul className="feature-list">
-                  <li>Custom slugs for everything</li>
-                  <li>Multi-step creation</li>
-                  <li>Units and lessons setup</li>
-                  <li>Complete URL control</li>
-                </ul>
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  startIcon={<BuildIcon />}
-                  sx={{ mt: 2 }}
-                >
-                  Create Complete Course
-                </Button>
-              </Box>
-            </Card>
+            <Grid item xs={12} md={6}>
+              <Card
+                variant="outlined"
+                className="creation-option advanced"
+                sx={{
+                  p: 2,
+                  height: "100%",
+                  cursor: "pointer",
+                  '&:hover': {
+                    borderColor: 'secondary.main',
+                    backgroundColor: 'action.hover'
+                  }
+                }}
+                onClick={() => navigate("/create-course-advanced")}
+              >
+                <Box className="creation-option-header">
+                  <BuildIcon className="floating" />
+                  <Typography variant="h6" gutterBottom>
+                    Advanced Course Creation
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="textSecondary"
+                    sx={{ mb: 2 }}
+                  >
+                    Complete course structure with custom URLs
+                  </Typography>
+                  <ul className="feature-list">
+                    <li>Custom slugs for everything</li>
+                    <li>Multi-step creation</li>
+                    <li>Units and lessons setup</li>
+                    <li>Complete URL control</li>
+                  </ul>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    startIcon={<BuildIcon />}
+                    sx={{ mt: 2 }}
+                  >
+                    Create Complete Course
+                  </Button>
+                </Box>
+              </Card>
+            </Grid>
           </Grid>
-        </Grid>
+        </CardContent>
       </Card>
 
       {/* Existing Courses */}
@@ -1112,7 +1232,7 @@ const MyTeachingCourses = () => {
         <Grid container spacing={3}>
           {courses.map((course) => (
             <Grid item xs={12} key={course.id}>
-              <Card className="course-card">
+              <Card className="course-card" sx={{ mb: 2 }}>
                 <CardContent>
                   <Box
                     sx={{
@@ -1189,6 +1309,7 @@ const MyTeachingCourses = () => {
                     expanded={expandedCourse === course.id}
                     onChange={() => handleCourseClick(course.id)}
                     className="lessons-accordion"
+                    sx={{ mt: 2 }}
                   >
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                       <Typography variant="h6">
@@ -1201,13 +1322,19 @@ const MyTeachingCourses = () => {
                         <List dense className="lessons-list">
                           {lessons[course.id].map((lesson) => {
                             const normalizedLesson = normalizeLesson(lesson);
-                            const contentType = normalizedLesson.contentType?.toLowerCase();
-                            const isPdf = contentType === 'pdf' || contentType === 'file';
-                            
+                            const contentType =
+                              normalizedLesson.contentType?.toLowerCase();
+                            const isPdf =
+                              contentType === "pdf" || contentType === "file";
+
                             return (
                               <ListItem
                                 key={lesson.id}
                                 className="lesson-item main-lesson"
+                                sx={{
+                                  borderBottom: '1px solid #f0f0f0',
+                                  '&:last-child': { borderBottom: 'none' }
+                                }}
                               >
                                 <Box
                                   sx={{
@@ -1239,8 +1366,25 @@ const MyTeachingCourses = () => {
                                             lesson={normalizedLesson}
                                             variant="teacher"
                                             size="small"
-                                            style={{ marginLeft: '8px' }}
+                                            style={{ marginLeft: "8px" }}
                                           />
+                                        )}
+                                        {!isPdf && normalizedLesson.fileUrl && (
+                                          <Button
+                                            size="small"
+                                            variant="outlined"
+                                            onClick={() => {
+                                              const fileUrl = normalizedLesson.fileUrl;
+                                              let finalUrl = fileUrl;
+                                              if (fileUrl.startsWith('/uploads/') || (fileUrl.startsWith('/') && !fileUrl.startsWith('http'))) {
+                                                finalUrl = 'https://mathe-class-website-backend-1.onrender.com' + fileUrl;
+                                              }
+                                              window.open(finalUrl, '_blank');
+                                            }}
+                                            sx={{ ml: 1 }}
+                                          >
+                                            📎 Open File
+                                          </Button>
                                         )}
                                         {lesson.is_preview && (
                                           <Chip
@@ -1262,15 +1406,29 @@ const MyTeachingCourses = () => {
                                         }}
                                       >
                                         <Chip
-                                          label={getContentTypeLabel(contentType)}
+                                          label={getContentTypeLabel(
+                                            contentType
+                                          )}
                                           size="small"
                                           variant="outlined"
                                         />
                                         <Chip
-                                          label={`Order: ${lesson.order_index ?? lesson.orderIndex ?? 0}`}
+                                          label={`Order: ${
+                                            lesson.order_index ??
+                                            lesson.orderIndex ??
+                                            0
+                                          }`}
                                           size="small"
                                           variant="outlined"
                                         />
+                                        {normalizedLesson.fileUrl && (
+                                          <Chip
+                                            label="Has Attachment"
+                                            size="small"
+                                            color="info"
+                                            variant="outlined"
+                                          />
+                                        )}
                                       </Box>
                                     }
                                   />
@@ -1316,44 +1474,47 @@ const MyTeachingCourses = () => {
                   </Accordion>
                 </CardContent>
 
-                <CardActions className="course-actions">
-                  <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                    <Button
-                      size="small"
-                      startIcon={<SettingsIcon />}
-                      onClick={() => handleManageLessons(course.id)}
-                      variant="outlined"
-                    >
-                      Manage Lessons
-                    </Button>
-                    <Button
-                      size="small"
-                      startIcon={<AddIcon />}
-                      onClick={() => handleCreateLesson(course.id)}
-                      variant="outlined"
-                    >
-                      Create Lesson
-                    </Button>
-                  </Box>
-                  <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                    <Button
-                      size="small"
-                      startIcon={<EditIcon />}
-                      onClick={() => handleEditCourse(course.id)}
-                      variant="outlined"
-                    >
-                      Edit Course
-                    </Button>
-                    <Button
-                      size="small"
-                      startIcon={<DeleteIcon />}
-                      onClick={() => handleDeleteCourse(course)}
-                      variant="outlined"
-                      color="error"
-                      disabled={deleting}
-                    >
-                      {deleting ? "Deleting..." : "Delete"}
-                    </Button>
+                <CardActions className="course-actions" sx={{ p: 2, borderTop: '1px solid #f0f0f0' }}>
+                  <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", width: '100%', justifyContent: 'space-between' }}>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      <Button
+                        size="small"
+                        startIcon={<SettingsIcon />}
+                        onClick={() => handleManageLessons(course.id)}
+                        variant="outlined"
+                      >
+                        Manage Lessons
+                      </Button>
+                      <Button
+                        size="small"
+                        startIcon={<AddIcon />}
+                        onClick={() => handleCreateLesson(course.id)}
+                        variant="outlined"
+                      >
+                        Create Lesson
+                      </Button>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      <Button
+                        size="small"
+                        startIcon={<EditIcon />}
+                        onClick={() => handleEditCourse(course.id)}
+                        variant="outlined"
+                      >
+                        Edit Course
+                      </Button>
+                      <Button
+                        size="small"
+                        startIcon={<DeleteIcon />}
+                        onClick={() => handleDeleteCourse(course)}
+                        variant="outlined"
+                        color="error"
+                        disabled={deleting}
+                      >
+                        {deleting ? "Deleting..." : "Delete"}
+                      </Button>
+                    </Box>
                   </Box>
                 </CardActions>
               </Card>
@@ -1375,10 +1536,7 @@ const MyTeachingCourses = () => {
         }
       >
         <DialogTitle>
-          Delete{" "}
-          {deleteDialog.type === "course"
-            ? "Course"
-            : "Lesson"}
+          Delete {deleteDialog.type === "course" ? "Course" : "Lesson"}
         </DialogTitle>
         <DialogContent>
           <Typography>

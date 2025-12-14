@@ -199,27 +199,49 @@
 
 
 
-
 // src/components/PdfPreviewButton.jsx
 import React from 'react';
 import PropTypes from 'prop-types';
+import axiosInstance from '../utils/axiosInstance';
 
 const PdfPreviewButton = ({ lesson, variant = 'default', size = 'medium', style = {}, ...props }) => {
-  const handlePreviewClick = () => {
-    if (!lesson?.fileUrl) {
+  const handlePreviewClick = async () => {
+    console.log('📄 PDF Preview clicked for lesson:', lesson);
+    
+    if (!lesson) {
+      console.error('No lesson data provided');
+      alert('Lesson data not available');
+      return;
+    }
+
+    // Get the file URL - check both fileUrl and file_url properties
+    let fileUrl = lesson.fileUrl || lesson.file_url || lesson.file;
+    
+    if (!fileUrl) {
       console.error('No PDF URL available for lesson:', lesson);
       alert('PDF not available for preview');
       return;
     }
 
-    // Transform Cloudinary URL for better PDF viewing
-    let viewerUrl = lesson.fileUrl;
+    console.log('🔍 Original file URL:', fileUrl);
+
+    // Transform the URL based on its type
+    let viewerUrl = fileUrl;
+    
+    // If it's a relative path (starts with /uploads/), make it absolute
+    if (viewerUrl.startsWith('/uploads/') || viewerUrl.startsWith('/') && !viewerUrl.startsWith('http')) {
+      // Use the axios base URL without /api/v1 for static files
+      const baseUrl = 'https://mathe-class-website-backend-1.onrender.com';
+      viewerUrl = baseUrl + viewerUrl;
+      console.log('🔄 Converted relative to absolute URL:', viewerUrl);
+    }
     
     // If it's a Cloudinary URL, optimize it for PDF viewing
     if (viewerUrl.includes('cloudinary.com')) {
       // Convert raw upload to image upload for better PDF viewing
       if (viewerUrl.includes('/raw/upload/')) {
         viewerUrl = viewerUrl.replace('/raw/upload/', '/image/upload/');
+        console.log('🔄 Converted Cloudinary raw to image URL');
       }
       
       // Ensure .pdf extension for proper MIME type detection
@@ -230,22 +252,31 @@ const PdfPreviewButton = ({ lesson, variant = 'default', size = 'medium', style 
         } else {
           viewerUrl += '.pdf';
         }
+        console.log('🔄 Added .pdf extension to URL');
       }
       
       // Add Cloudinary transformations for better PDF display
       const separator = viewerUrl.includes('?') ? '&' : '?';
       viewerUrl += `${separator}flags=layer_apply`;
+      console.log('🔄 Added Cloudinary flags');
     }
     
-    // Open in new tab with proper security attributes
-    window.open(viewerUrl, '_blank', 'noopener,noreferrer');
+    console.log('🚀 Opening PDF URL:', viewerUrl);
     
-    console.log('Opening PDF:', {
-      originalUrl: lesson.fileUrl,
-      optimizedUrl: viewerUrl,
-      lessonId: lesson.id,
-      lessonTitle: lesson.title
-    });
+    // Open in new tab with proper security attributes
+    const newWindow = window.open(viewerUrl, '_blank', 'noopener,noreferrer');
+    
+    if (!newWindow) {
+      // Handle popup blockers
+      console.warn('Popup blocked, trying alternative method');
+      const link = document.createElement('a');
+      link.href = viewerUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.click();
+    }
+    
+    console.log('✅ PDF opened successfully');
   };
 
   const getButtonStyles = () => {
@@ -329,7 +360,12 @@ const PdfPreviewButton = ({ lesson, variant = 'default', size = 'medium', style 
     };
   };
 
-  if (!lesson?.fileUrl) {
+  // Check if PDF is available - check multiple possible properties
+  const hasPdf = lesson?.fileUrl || lesson?.file_url || lesson?.file;
+  const contentType = (lesson?.contentType || lesson?.content_type || '').toLowerCase();
+  const isPdfType = contentType === 'pdf' || contentType === 'file';
+
+  if (!hasPdf || !isPdfType) {
     return (
       <button
         disabled
@@ -349,8 +385,8 @@ const PdfPreviewButton = ({ lesson, variant = 'default', size = 'medium', style 
     <button
       onClick={handlePreviewClick}
       style={getButtonStyles()}
-      title={`Preview PDF: ${lesson.title}`}
-      aria-label={`Preview PDF document for ${lesson.title}`}
+      title={`Preview PDF: ${lesson.title || 'Document'}`}
+      aria-label={`Preview PDF document for ${lesson.title || 'lesson'}`}
       {...props}
     >
       <span>📄</span>
@@ -363,7 +399,11 @@ PdfPreviewButton.propTypes = {
   lesson: PropTypes.shape({
     id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     title: PropTypes.string,
-    fileUrl: PropTypes.string
+    fileUrl: PropTypes.string,
+    file_url: PropTypes.string,
+    file: PropTypes.string,
+    contentType: PropTypes.string,
+    content_type: PropTypes.string
   }).isRequired,
   variant: PropTypes.oneOf(['default', 'primary', 'outline', 'teacher', 'student']),
   size: PropTypes.oneOf(['small', 'medium', 'large']),

@@ -767,14 +767,15 @@ const CourseContent = () => {
   };
 
   // Helper function to normalize lesson data for PdfPreviewButton
-  const normalizeLesson = (lesson) => {
-    return {
-      id: lesson.id,
-      title: lesson.title || "Untitled Lesson",
-      fileUrl: lesson.fileUrl || lesson.file_url || null,
-      contentType: lesson.contentType || lesson.content_type,
-    };
+const normalizeLesson = (lesson) => {
+  console.log("📝 Normalizing lesson data:", lesson);
+  return {
+    id: lesson.id,
+    title: lesson.title || "Untitled Lesson",
+    fileUrl: lesson.fileUrl || lesson.file_url || null,
+    contentType: lesson.contentType || lesson.content_type,
   };
+};
 
   if (loading) {
     return (
