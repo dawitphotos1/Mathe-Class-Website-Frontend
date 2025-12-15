@@ -1,3 +1,4 @@
+//ManageLessons.jsx
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
 import axios from "../utils/axiosInstance"; // updated import
