@@ -231,8 +231,7 @@
 
 
 
-
-// src/components/FullscreenLessonViewer.jsx - FIXED VERSION
+// src/components/FullscreenLessonViewer.jsx - UPDATED
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import PropTypes from "prop-types";
 import {
@@ -308,20 +307,18 @@ const FullscreenLessonViewer = ({ open, onClose, lessonId, darkMode = false }) =
     a.remove();
   };
 
-  // FIXED: Update iframe src instead of opening new tab
+  // Fixed: Update iframe instead of opening new tab
   const openInNewTab = () => {
     if (!lesson) return;
     const url = lesson.fileUrl || lesson.videoUrl;
     if (!url) return;
     
-    // For PDFs, update the iframe src in the same window
     if (lesson.contentType === 'pdf' || lesson.contentType === 'file') {
       if (pdfIframeRef.current) {
         pdfIframeRef.current.src = url;
-        console.log('🔄 PDF iframe URL updated in same window');
+        console.log('🔄 PDF iframe URL updated');
       }
     } else {
-      // For non-PDF content, open in new tab
       window.open(url, "_blank", "noopener,noreferrer");
     }
   };
@@ -329,9 +326,8 @@ const FullscreenLessonViewer = ({ open, onClose, lessonId, darkMode = false }) =
   const zoomIn = () => setZoom((z) => Math.min(3, +(z + 0.25).toFixed(2)));
   const zoomOut = () => setZoom((z) => Math.max(0.5, +(z - 0.25).toFixed(2)));
 
-  // Handle PDF iframe load
   const handleIframeLoad = () => {
-    console.log('✅ PDF iframe loaded successfully');
+    console.log('✅ PDF iframe loaded');
   };
 
   return (
@@ -352,29 +348,11 @@ const FullscreenLessonViewer = ({ open, onClose, lessonId, darkMode = false }) =
             {lesson?.title || "Preview"}
           </Typography>
 
-          <Tooltip title="Zoom out">
-            <IconButton color="inherit" onClick={zoomOut}>
-              <ZoomOutIcon />
-            </IconButton>
-          </Tooltip>
-
-          <Tooltip title="Zoom in">
-            <IconButton color="inherit" onClick={zoomIn}>
-              <ZoomInIcon />
-            </IconButton>
-          </Tooltip>
-
-          <Tooltip title="Download">
-            <IconButton color="inherit" onClick={downloadFile}>
-              <GetAppIcon />
-            </IconButton>
-          </Tooltip>
-
-          {/* FIXED: This now updates iframe instead of opening new tab for PDFs */}
+          <Tooltip title="Zoom out"><IconButton color="inherit" onClick={zoomOut}><ZoomOutIcon /></IconButton></Tooltip>
+          <Tooltip title="Zoom in"><IconButton color="inherit" onClick={zoomIn}><ZoomInIcon /></IconButton></Tooltip>
+          <Tooltip title="Download"><IconButton color="inherit" onClick={downloadFile}><GetAppIcon /></IconButton></Tooltip>
           <Tooltip title={lesson?.contentType === 'pdf' ? "Reload PDF" : "Open in new tab"}>
-            <IconButton color="inherit" onClick={openInNewTab}>
-              <OpenInNewIcon />
-            </IconButton>
+            <IconButton color="inherit" onClick={openInNewTab}><OpenInNewIcon /></IconButton>
           </Tooltip>
         </Toolbar>
       </AppBar>
@@ -387,35 +365,22 @@ const FullscreenLessonViewer = ({ open, onClose, lessonId, darkMode = false }) =
           </Box>
         ) : lesson ? (
           <Box className="viewer-wrapper">
-            {/* TEXT */}
             {lesson.contentType === "text" && (
               <Box className="text-viewer" dangerouslySetInnerHTML={{ __html: lesson.textContent || "<p>No content</p>" }} />
             )}
 
-            {/* VIDEO */}
             {lesson.contentType === "video" && lesson.videoUrl && (
               <Box className="media-container" style={{ transform: `scale(${zoom})` }}>
-                <video
-                  key={lesson.videoUrl}
-                  src={lesson.videoUrl}
-                  controls
-                  style={{ maxWidth: "100%", maxHeight: "80vh", width: "100%" }}
-                />
+                <video key={lesson.videoUrl} src={lesson.videoUrl} controls style={{ maxWidth: "100%", maxHeight: "80vh", width: "100%" }} />
               </Box>
             )}
 
-            {/* IMAGE */}
             {lesson.contentType === "image" && lesson.fileUrl && (
               <Box className="media-container" style={{ transform: `scale(${zoom})` }}>
-                <img
-                  src={lesson.fileUrl}
-                  alt={lesson.title}
-                  style={{ maxWidth: "100%", maxHeight: "80vh", display: "block", margin: "0 auto" }}
-                />
+                <img src={lesson.fileUrl} alt={lesson.title} style={{ maxWidth: "100%", maxHeight: "80vh", display: "block", margin: "0 auto" }} />
               </Box>
             )}
 
-            {/* PDF / RAW / FILE - FIXED: Using ref to update src */}
             {(lesson.contentType === "pdf" || lesson.contentType === "file") && lesson.fileUrl && (
               <Box className="media-container" style={{ transform: `scale(${zoom})` }}>
                 <iframe
@@ -436,20 +401,13 @@ const FullscreenLessonViewer = ({ open, onClose, lessonId, darkMode = false }) =
               </Box>
             )}
 
-            {/* fallback */}
             {!lesson.fileUrl && lesson.contentType !== "text" && (
               <Box sx={{ textAlign: "center", py: 6 }}>
                 <Typography variant="h6">No preview available</Typography>
-                <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-                  You can download or open the file in a new tab.
-                </Typography>
+                <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>You can download or open the file.</Typography>
                 <Box sx={{ mt: 2 }}>
-                  <Button variant="contained" startIcon={<GetAppIcon />} onClick={downloadFile} sx={{ mr: 1 }}>
-                    Download
-                  </Button>
-                  <Button variant="outlined" startIcon={<OpenInNewIcon />} onClick={openInNewTab}>
-                    Open in new tab
-                  </Button>
+                  <Button variant="contained" startIcon={<GetAppIcon />} onClick={downloadFile} sx={{ mr: 1 }}>Download</Button>
+                  <Button variant="outlined" startIcon={<OpenInNewIcon />} onClick={openInNewTab}>Open in new tab</Button>
                 </Box>
               </Box>
             )}

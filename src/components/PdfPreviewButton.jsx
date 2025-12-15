@@ -209,17 +209,73 @@
 
 
 
-
-
-// src/components/PdfPreviewButton.jsx - FIXED VERSION (opens in modal, not new tab)
+// src/components/PdfPreviewButton.jsx - UPDATED WITH DEBUGGING
 import React from 'react';
 import PropTypes from 'prop-types';
 
+/**
+ * PDF Preview Button Component
+ * Opens PDF in modal with iframe (not new tab)
+ */
+
+const normalizeLessonForPreview = (lesson) => {
+  if (!lesson) {
+    console.log('❌ normalizeLessonForPreview: No lesson provided');
+    return null;
+  }
+  
+  console.log('📦 Original lesson data:', JSON.parse(JSON.stringify(lesson)));
+  
+  // Check all possible file URL properties
+  const fileUrl = 
+    lesson.fileUrl || 
+    lesson.file_url || 
+    lesson.file ||
+    (lesson.uploads && lesson.uploads.fileUrl) ||
+    (lesson.metadata && lesson.metadata.fileUrl) ||
+    null;
+  
+  console.log('🔍 File URL found:', fileUrl);
+  
+  // Determine content type
+  let contentType = 
+    lesson.contentType || 
+    lesson.content_type || 
+    lesson.type ||
+    (fileUrl ? (fileUrl.includes('.pdf') ? 'pdf' : 'file') : 'text');
+  
+  contentType = (contentType || '').toLowerCase();
+  console.log('🔍 Content type found:', contentType);
+  
+  const normalized = {
+    id: lesson.id || Date.now(),
+    title: lesson.title || "Untitled Lesson",
+    fileUrl: fileUrl,
+    contentType: contentType,
+    content_type: contentType,
+    file_url: fileUrl,
+    _original: { ...lesson }
+  };
+  
+  console.log('✨ Normalized lesson:', normalized);
+  return normalized;
+};
+
+const fixCloudinaryUrl = (url) => {
+  if (!url || typeof url !== 'string') return url;
+  
+  if (url.includes('cloudinary.com') && url.includes('/image/upload/')) {
+    if (url.includes('.pdf') || url.includes('/pdfs/')) {
+      return url.replace('/image/upload/', '/raw/upload/');
+    }
+  }
+  
+  return url;
+};
+
 const PdfPreviewButton = ({ lesson, variant = 'default', size = 'medium', style = {}, ...props }) => {
-  /**
-   * Opens PDF in a modal with iframe instead of new tab
-   */
-  const handlePreviewClick = () => {
+  const handlePreviewClick = (e) => {
+    e.stopPropagation();
     console.log('🎬 ========== PDF PREVIEW CLICKED ==========');
     
     if (!lesson) {
@@ -228,9 +284,16 @@ const PdfPreviewButton = ({ lesson, variant = 'default', size = 'medium', style 
       return;
     }
 
-    // Get the file URL - check all possible properties
-    const fileUrl = lesson.fileUrl || lesson.file_url || lesson.file;
-    console.log('🔍 File URL from lesson:', fileUrl);
+    const normalizedLesson = normalizeLessonForPreview(lesson);
+    
+    if (!normalizedLesson) {
+      console.error('❌ Failed to normalize lesson data');
+      alert('Unable to process lesson data');
+      return;
+    }
+    
+    const fileUrl = normalizedLesson.fileUrl;
+    console.log('🔍 Normalized file URL:', fileUrl);
     
     if (!fileUrl) {
       console.error('❌ No PDF URL available for lesson');
@@ -238,76 +301,74 @@ const PdfPreviewButton = ({ lesson, variant = 'default', size = 'medium', style 
       return;
     }
 
-    console.log('🚀 Original file URL:', fileUrl);
-
-    // Transform the URL based on its type
     let viewerUrl = fileUrl;
     
-    // Handle Cloudinary URLs
+    // Fix Cloudinary URLs
     if (viewerUrl.includes('cloudinary.com')) {
-      console.log('☁️ Cloudinary URL detected');
-      
-      // For Cloudinary PDFs: Keep raw upload URLs AS-IS
-      if (viewerUrl.includes('/raw/upload/')) {
-        console.log('  - Raw upload URL, keeping as-is');
-      }
-      // If it's an image upload URL (incorrect for PDFs)
-      else if (viewerUrl.includes('/image/upload/')) {
-        console.log('  - Image upload URL, converting to raw');
-        viewerUrl = viewerUrl.replace('/image/upload/', '/raw/upload/');
-        viewerUrl = viewerUrl.replace('.pdf', '');
-      }
+      viewerUrl = fixCloudinaryUrl(viewerUrl);
     }
-    // Handle relative URLs (local uploads)
-    else if (fileUrl.startsWith('/uploads/') || (fileUrl.startsWith('/') && !fileUrl.startsWith('http'))) {
-      console.log('📁 Relative URL detected');
+    // Handle relative URLs
+    else if (viewerUrl.startsWith('/uploads/') || (viewerUrl.startsWith('/') && !viewerUrl.startsWith('http'))) {
       const baseUrl = 'https://mathe-class-website-backend-1.onrender.com';
-      viewerUrl = baseUrl + fileUrl;
-      console.log('🔄 Converted to:', viewerUrl);
+      viewerUrl = baseUrl + viewerUrl;
+    }
+    // Handle Uploads folder
+    else if (viewerUrl.includes('Uploads/')) {
+      const baseUrl = 'https://mathe-class-website-backend-1.onrender.com';
+      viewerUrl = viewerUrl.replace(/^\/?Uploads\//, '');
+      viewerUrl = `${baseUrl}/api/v1/files/${encodeURIComponent(viewerUrl)}`;
     }
     
-    console.log('🎯 Final URL to open:', viewerUrl);
+    console.log('🎯 Final viewer URL:', viewerUrl);
     
-    // Open modal with iframe instead of new tab
-    openPdfModal(viewerUrl, lesson.title || 'PDF Preview');
+    // Open modal
+    openPdfModal(viewerUrl, normalizedLesson.title || 'PDF Preview');
   };
 
-  /**
-   * Opens a modal with iframe for PDF preview
-   */
   const openPdfModal = (pdfUrl, title) => {
-    // Remove existing modal if any
+    console.log('🎪 Opening PDF modal with URL:', pdfUrl);
+    
+    // Remove existing modal
     const existingModal = document.getElementById('pdf-preview-modal');
     if (existingModal) {
       document.body.removeChild(existingModal);
     }
 
-    // Create modal container
+    // Create modal
     const modal = document.createElement('div');
     modal.id = 'pdf-preview-modal';
     modal.style.cssText = `
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.9);
-      z-index: 9999;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.95);
+      z-index: 99999;
       display: flex;
       flex-direction: column;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     `;
     
-    // Create modal header
+    // Add CSS
+    const styleEl = document.createElement('style');
+    styleEl.textContent = `
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(styleEl);
+    
+    // Header
     const header = document.createElement('div');
     header.style.cssText = `
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #2c3e50;
       color: white;
-      padding: 16px 24px;
+      padding: 15px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      flex-shrink: 0;
     `;
     
     const titleSpan = document.createElement('span');
@@ -325,44 +386,34 @@ const PdfPreviewButton = ({ lesson, variant = 'default', size = 'medium', style 
     const closeBtn = document.createElement('button');
     closeBtn.textContent = '✕ Close';
     closeBtn.style.cssText = `
-      background: #ef4444;
+      background: #e74c3c;
       color: white;
       border: none;
-      padding: 10px 20px;
-      border-radius: 6px;
+      padding: 8px 16px;
+      border-radius: 4px;
       cursor: pointer;
       font-size: 14px;
-      font-weight: 500;
-      transition: all 0.2s ease;
-      min-width: 80px;
     `;
-    closeBtn.onmouseenter = () => {
-      closeBtn.style.background = '#dc2626';
-      closeBtn.style.transform = 'scale(1.05)';
-    };
-    closeBtn.onmouseleave = () => {
-      closeBtn.style.background = '#ef4444';
-      closeBtn.style.transform = 'scale(1)';
-    };
     closeBtn.onclick = () => {
       document.body.removeChild(modal);
-      console.log('✅ PDF modal closed');
+      document.head.removeChild(styleEl);
     };
     
     header.appendChild(titleSpan);
     header.appendChild(closeBtn);
     
-    // Create iframe container
+    // Iframe container
     const iframeContainer = document.createElement('div');
     iframeContainer.style.cssText = `
       flex: 1;
       padding: 20px;
-      background: #1a202c;
+      background: #34495e;
       position: relative;
       overflow: hidden;
+      min-height: 0;
     `;
     
-    // Create loading indicator
+    // Loading
     const loading = document.createElement('div');
     loading.style.cssText = `
       position: absolute;
@@ -370,11 +421,10 @@ const PdfPreviewButton = ({ lesson, variant = 'default', size = 'medium', style 
       left: 50%;
       transform: translate(-50%, -50%);
       color: white;
-      font-size: 16px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     `;
     
     const spinner = document.createElement('div');
@@ -382,19 +432,10 @@ const PdfPreviewButton = ({ lesson, variant = 'default', size = 'medium', style 
       width: 40px;
       height: 40px;
       border: 4px solid rgba(255,255,255,0.1);
-      border-left-color: #667eea;
+      border-left-color: #3498db;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     `;
-    
-    // Add CSS animation
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-    `;
-    document.head.appendChild(style);
     
     const loadingText = document.createElement('span');
     loadingText.textContent = 'Loading PDF...';
@@ -403,61 +444,54 @@ const PdfPreviewButton = ({ lesson, variant = 'default', size = 'medium', style 
     loading.appendChild(loadingText);
     iframeContainer.appendChild(loading);
     
-    // Create iframe
+    // Iframe
     const iframe = document.createElement('iframe');
     iframe.src = pdfUrl;
     iframe.style.cssText = `
       width: 100%;
       height: 100%;
       border: none;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      border-radius: 8px;
+      background: white;
       opacity: 0;
       transition: opacity 0.3s ease;
-      background: white;
     `;
     iframe.title = `PDF Viewer - ${title}`;
     iframe.allow = 'fullscreen';
     
-    // When iframe loads, hide loading indicator
     iframe.onload = () => {
-      console.log('✅ PDF iframe loaded successfully');
+      console.log('✅ PDF iframe loaded');
       iframe.style.opacity = '1';
       iframeContainer.removeChild(loading);
     };
     
     iframe.onerror = (e) => {
       console.error('❌ PDF iframe error:', e);
-      loadingText.textContent = 'Failed to load PDF. Click to download.';
+      loadingText.textContent = 'Failed to load PDF. Click to open in new tab.';
       loading.style.cursor = 'pointer';
       loading.onclick = () => {
         window.open(pdfUrl, '_blank');
         document.body.removeChild(modal);
+        document.head.removeChild(styleEl);
       };
     };
     
     iframeContainer.appendChild(iframe);
-    
-    // Assemble modal
     modal.appendChild(header);
     modal.appendChild(iframeContainer);
+    document.body.appendChild(modal);
     
-    // Add escape key listener
+    // Escape key
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
         document.body.removeChild(modal);
+        document.head.removeChild(styleEl);
         document.removeEventListener('keydown', handleEscape);
       }
     };
     document.addEventListener('keydown', handleEscape);
     
-    // Add to page
-    document.body.appendChild(modal);
-    
-    // Focus the modal
-    modal.focus();
-    
-    console.log('✅ PDF modal opened in same window');
+    console.log('✅ PDF modal opened');
   };
 
   const getButtonStyles = () => {
@@ -476,86 +510,38 @@ const PdfPreviewButton = ({ lesson, variant = 'default', size = 'medium', style 
       '&:hover': {
         transform: 'translateY(-2px)',
         boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-      },
-      '&:active': {
-        transform: 'translateY(0)',
-        boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
       }
     };
 
     const variants = {
-      default: {
-        backgroundColor: '#10b981',
-        color: 'white',
-        '&:hover': {
-          backgroundColor: '#059669'
-        }
-      },
-      primary: {
-        backgroundColor: '#3b82f6',
-        color: 'white',
-        '&:hover': {
-          backgroundColor: '#2563eb'
-        }
-      },
-      outline: {
-        backgroundColor: 'transparent',
-        color: '#3b82f6',
-        border: '2px solid #3b82f6',
-        '&:hover': {
-          backgroundColor: '#3b82f6',
-          color: 'white'
-        }
-      },
-      teacher: {
-        backgroundColor: '#8b5cf6',
-        color: 'white',
-        '&:hover': {
-          backgroundColor: '#7c3aed'
-        }
-      },
-      student: {
-        backgroundColor: '#f59e0b',
-        color: 'white',
-        '&:hover': {
-          backgroundColor: '#d97706'
-        }
-      }
+      default: { backgroundColor: '#10b981', color: 'white' },
+      primary: { backgroundColor: '#3b82f6', color: 'white' },
+      outline: { backgroundColor: 'transparent', color: '#3b82f6', border: '2px solid #3b82f6' },
+      teacher: { backgroundColor: '#8b5cf6', color: 'white' },
+      student: { backgroundColor: '#f59e0b', color: 'white' }
     };
 
     const sizes = {
-      small: {
-        padding: '6px 12px',
-        fontSize: '13px',
-        minHeight: '32px'
-      },
-      medium: {
-        padding: '10px 20px',
-        fontSize: '14px',
-        minHeight: '40px'
-      },
-      large: {
-        padding: '14px 28px',
-        fontSize: '16px',
-        minHeight: '48px'
-      }
+      small: { padding: '6px 12px', fontSize: '13px', minHeight: '32px', minWidth: '120px' },
+      medium: { padding: '10px 20px', fontSize: '14px', minHeight: '40px', minWidth: '140px' },
+      large: { padding: '14px 28px', fontSize: '16px', minHeight: '48px', minWidth: '160px' }
     };
 
     return {
       ...baseStyles,
-      ...variants[variant],
+      ...(variants[variant] || variants.default),
       ...sizes[size],
       ...style
     };
   };
 
-  // Check if PDF is available
-  const hasPdf = lesson?.fileUrl || lesson?.file_url || lesson?.file;
-  const contentType = (lesson?.contentType || lesson?.content_type || '').toLowerCase();
+  const normalizedLesson = normalizeLessonForPreview(lesson);
+  const hasPdf = !!normalizedLesson?.fileUrl;
+  const contentType = normalizedLesson?.contentType || '';
   const isPdfType = contentType === 'pdf' || contentType === 'file' || 
-                   (hasPdf && (lesson.fileUrl?.includes('.pdf') || 
-                              lesson.file_url?.includes('.pdf') || 
-                              lesson.file?.includes('.pdf')));
+                   (hasPdf && normalizedLesson.fileUrl.includes('.pdf'));
+
+  console.log('🔍 Button state:', { hasPdf, contentType, isPdfType, fileUrl: normalizedLesson?.fileUrl });
 
   if (!hasPdf || !isPdfType) {
     return (
@@ -567,10 +553,10 @@ const PdfPreviewButton = ({ lesson, variant = 'default', size = 'medium', style 
           cursor: 'not-allowed',
           pointerEvents: 'none'
         }}
-        title="No PDF available for this lesson"
+        title={!hasPdf ? "No file attached" : `File type: ${contentType}`}
       >
         <span>📄</span>
-        No PDF Available
+        {!hasPdf ? 'No PDF' : 'No Preview'}
       </button>
     );
   }
@@ -579,8 +565,7 @@ const PdfPreviewButton = ({ lesson, variant = 'default', size = 'medium', style 
     <button
       onClick={handlePreviewClick}
       style={getButtonStyles()}
-      title={`Preview PDF: ${lesson.title || 'Document'}`}
-      aria-label={`Preview PDF document for ${lesson.title || 'lesson'}`}
+      title={`Preview PDF: ${normalizedLesson.title || 'Document'}`}
       {...props}
     >
       <span>📄</span>
@@ -590,17 +575,9 @@ const PdfPreviewButton = ({ lesson, variant = 'default', size = 'medium', style 
 };
 
 PdfPreviewButton.propTypes = {
-  lesson: PropTypes.shape({
-    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    title: PropTypes.string,
-    fileUrl: PropTypes.string,
-    file_url: PropTypes.string,
-    file: PropTypes.string,
-    contentType: PropTypes.string,
-    content_type: PropTypes.string
-  }).isRequired,
-  variant: PropTypes.oneOf(['default', 'primary', 'outline', 'teacher', 'student']),
-  size: PropTypes.oneOf(['small', 'medium', 'large']),
+  lesson: PropTypes.object.isRequired,
+  variant: PropTypes.string,
+  size: PropTypes.string,
   style: PropTypes.object
 };
 
