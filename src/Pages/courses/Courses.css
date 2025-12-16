@@ -1,4 +1,4 @@
-/* src/pages/courses/Courses.css */
+/* src/pages/courses/Courses.css - UPDATED VERSION */
 .courses {
   max-width: 1200px;
   margin: 0 auto;
@@ -16,6 +16,21 @@
   color: #7f8c8d;
   margin-bottom: 2rem;
   font-size: 1.1rem;
+}
+
+/* Enrollment notice */
+.enrollment-notice {
+  background-color: #e8f5e9;
+  border-left: 4px solid #4caf50;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+}
+
+.enrollment-notice p {
+  margin: 0;
+  color: #2e7d32;
+  font-size: 14px;
 }
 
 .course-list {
@@ -70,13 +85,45 @@
   font-size: 0.9rem;
 }
 
-.course-actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+/* Enrollment badges */
+.enrollment-badge {
+  margin-top: 8px;
 }
 
-.btn-enroll, .btn-preview {
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge.enrolled {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #4caf50;
+}
+
+.badge.teacher {
+  background-color: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #2196f3;
+}
+
+/* Course actions layout */
+.course-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+/* Course action buttons - ALL BUTTON STYLES */
+.btn-enroll, 
+.btn-preview, 
+.btn-access,
+.btn-details {
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 6px;
@@ -85,8 +132,11 @@
   transition: all 0.3s ease;
   flex: 1;
   min-width: 120px;
+  text-align: center;
+  font-size: 0.95rem;
 }
 
+/* Specific button styles */
 .btn-enroll {
   background: linear-gradient(135deg, #3498db, #2980b9);
   color: white;
@@ -105,6 +155,28 @@
 .btn-preview:hover {
   background: #d5dbdb;
   border-color: #95a5a6;
+}
+
+.btn-access {
+  background-color: #4caf50;
+  color: white;
+  border: 2px solid #4caf50;
+}
+
+.btn-access:hover {
+  background-color: #388e3c;
+  border-color: #388e3c;
+}
+
+.btn-details {
+  background-color: #757575;
+  color: white;
+  border: 2px solid #757575;
+}
+
+.btn-details:hover {
+  background-color: #616161;
+  border-color: #616161;
 }
 
 .payment-success-navigation {
@@ -205,5 +277,12 @@
   
   .navigation-buttons {
     flex-direction: column;
+  }
+  
+  .btn-enroll, 
+  .btn-preview, 
+  .btn-access,
+  .btn-details {
+    min-width: 100%;
   }
 }
