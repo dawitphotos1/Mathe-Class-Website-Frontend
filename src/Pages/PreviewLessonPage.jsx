@@ -212,7 +212,6 @@
 
 
 
-
 // src/pages/PreviewLessonPage.jsx - UPDATED with role-based rendering
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
@@ -454,14 +453,41 @@ const PreviewLessonPage = () => {
   };
 
   const handleAccessCourse = () => {
+    if (!courseId) {
+      toast.error("Course information missing");
+      return;
+    }
+
+    console.log("Access Course clicked:", {
+      userRole: user?.role,
+      isEnrolled: isUserEnrolled,
+      isCourseOwner: isCourseOwner,
+      courseId
+    });
+
     if (isUserEnrolled) {
-      // Navigate to course viewer
+      // Enrolled student: Navigate to course viewer
       navigate(`/courses/${courseId}/view-lessons`);
-    } else if (isUserTeacher || isCourseOwner) {
-      // Navigate to course management
-      navigate(`/courses/${courseId}/manage-lessons`);
+    } else if (isCourseOwner || isUserTeacher) {
+      // Teacher or course owner: Navigate to teacher dashboard or course management
+      
+      // First, check if this teacher owns/manages this course
+      if (isCourseOwner) {
+        // Teacher owns the course - go to course management
+        navigate(`/courses/${courseId}/manage-lessons`);
+      } else {
+        // Teacher doesn't own this course - check if they can view it
+        if (user?.role === "admin") {
+          // Admin can view any course
+          navigate(`/courses/${courseId}/manage-lessons`);
+        } else {
+          // Regular teacher viewing someone else's course
+          // Navigate to the TeacherCourseViewer route
+          navigate(`/teacher/courses/${courseId}/view`);
+        }
+      }
     } else {
-      // Navigate to enrollment/payment
+      // Not enrolled, not a teacher - navigate to enrollment
       navigate(`/payment/${courseId}`);
     }
   };
@@ -673,6 +699,20 @@ const PreviewLessonPage = () => {
         </Box>
       );
     } else {
+      let buttonText = "View Course";
+      let buttonIcon = <MenuBook />;
+      
+      if (isUserEnrolled) {
+        buttonText = "Access Full Course";
+        buttonIcon = <MenuBook />;
+      } else if (isCourseOwner) {
+        buttonText = "Manage Course";
+        buttonIcon = <Dashboard />;
+      } else if (isUserTeacher) {
+        buttonText = "View Course Details";
+        buttonIcon = <Description />;
+      }
+      
       return (
         <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
           <Button
@@ -689,13 +729,9 @@ const PreviewLessonPage = () => {
             onClick={handleAccessCourse}
             sx={{ flexGrow: 1 }}
             size="large"
-            startIcon={isUserEnrolled ? <MenuBook /> : <Dashboard />}
+            startIcon={buttonIcon}
           >
-            {isUserEnrolled 
-              ? "Access Full Course" 
-              : isCourseOwner
-              ? "Manage Course"
-              : "View Course"}
+            {buttonText}
           </Button>
         </Box>
       );
