@@ -1,4 +1,5 @@
-// src/pages/teachers/CourseContent.jsx
+
+// src/pages/teachers/CourseContent.jsx - FIXED VERSION
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -18,18 +19,18 @@ import {
 import {
   Add,
   Description,
-  Visibility,
   Refresh,
   Error as ErrorIcon,
   FolderOpen,
   MenuBook,
   Dashboard,
+  BugReport,
 } from "@mui/icons-material";
 import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
 import UnitAccordion from "./UnitAccordion";
 import LessonForm from "./LessonForm";
-import PdfPreviewButton from "../../components/PdfPreviewButton"; // Changed from LessonPreview
+import PdfPreviewButton from "../../components/PdfPreviewButton";
 
 const CourseContent = () => {
   const { courseId } = useParams();
@@ -46,10 +47,8 @@ const CourseContent = () => {
 
   useEffect(() => {
     if (courseId) {
-      console.log(`📚 CourseContent mounted with courseId: ${courseId}`);
       fetchCourseStructure();
     } else {
-      console.error("❌ No courseId found in URL params");
       setError("Course ID missing in URL");
       navigate("/teacher-dashboard");
     }
@@ -63,99 +62,37 @@ const CourseContent = () => {
     try {
       setLoading(true);
       setError("");
-      console.log(`🔄 Fetching course structure for courseId: ${courseId}`);
       
-      // Try multiple endpoint patterns since we're seeing 401/404 issues
-      const endpoints = [
-        `/courses/teacher/${courseId}/full`,
-        `/courses/${courseId}/full`,
-        `/teacher/courses/${courseId}`,
-      ];
-      
-      let response = null;
-      let usedEndpoint = '';
-      
-      for (const endpoint of endpoints) {
-        try {
-          console.log(`🔍 Trying endpoint: ${endpoint}`);
-          const result = await axiosInstance.get(endpoint);
-          if (result.data) {
-            response = result;
-            usedEndpoint = endpoint;
-            console.log(`✅ Success with endpoint: ${endpoint}`);
-            break;
-          }
-        } catch (endpointError) {
-          console.log(`❌ Failed with ${endpoint}:`, endpointError.message);
-          continue;
-        }
-      }
-      
-      if (!response) {
-        throw new Error("All course endpoints failed");
-      }
+      const response = await axiosInstance.get(`/courses/teacher/${courseId}/full`);
       
       setApiStatus({
-        endpoint: usedEndpoint,
+        endpoint: `/courses/teacher/${courseId}/full`,
         status: response.status,
         timestamp: new Date().toISOString(),
       });
       
       const data = response.data;
-      
-      if (!data.success && !data.course) {
-        throw new Error(data.error || "Invalid course data structure");
-      }
-      
       const courseData = data.course || data;
-      console.log("✅ Course data loaded:", {
-        id: courseData.id,
-        title: courseData.title,
-        units: courseData.units?.length || 0,
-        lessons: courseData.lessons?.length || 0,
-      });
       
-      // Ensure units and lessons are arrays
       if (!Array.isArray(courseData.units)) {
         courseData.units = [];
       }
       
       setCourse(courseData);
-      showNotification("Course content loaded successfully", "success");
+      showNotification("Course content loaded", "success");
       
     } catch (error) {
       console.error("❌ Error fetching course structure:", error);
-      
       let errorMessage = "Failed to load course content";
       
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        console.error("Response error:", error.response.status, error.response.data);
-        
-        if (error.response.status === 401) {
-          errorMessage = "Authentication failed. Please log in again.";
-          showNotification(errorMessage, "error");
-          // Redirect to login after a delay
-          setTimeout(() => {
-            localStorage.removeItem("token");
-            navigate("/login", { state: { from: `/teacher/courses/${courseId}` } });
-          }, 2000);
-        } else if (error.response.status === 404) {
-          errorMessage = "Course not found. It may have been deleted or you don't have access.";
-        } else if (error.response.status === 403) {
-          errorMessage = "You don't have permission to access this course.";
-        } else if (error.response.status === 500) {
-          errorMessage = "Server error. Please try again later.";
-        }
-      } else if (error.request) {
-        // The request was made but no response was received
-        console.error("No response received:", error.request);
-        errorMessage = "Network error. Please check your internet connection.";
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error("Request setup error:", error.message);
-        errorMessage = error.message || "Failed to load course content";
+      if (error.response?.status === 401) {
+        errorMessage = "Authentication failed";
+        setTimeout(() => {
+          localStorage.removeItem("token");
+          navigate("/login");
+        }, 2000);
+      } else if (error.response?.status === 404) {
+        errorMessage = "Course not found";
       }
       
       setError(errorMessage);
@@ -166,49 +103,66 @@ const CourseContent = () => {
     }
   };
 
+  const normalizeLesson = (lesson) => {
+    const fileUrl = 
+      lesson.fileUrl || 
+      lesson.file_url || 
+      lesson.file ||
+      (lesson.uploads && lesson.uploads.fileUrl) ||
+      null;
+    
+    const contentType = 
+      lesson.contentType || 
+      lesson.content_type || 
+      (fileUrl ? (fileUrl.includes('.pdf') ? 'pdf' : 'file') : 'text');
+    
+    return {
+      id: lesson.id,
+      title: lesson.title || "Untitled Lesson",
+      fileUrl: fileUrl,
+      contentType: contentType.toLowerCase(),
+      content_type: contentType.toLowerCase(),
+      file_url: fileUrl,
+    };
+  };
+
   const handleCreateLesson = (unit = null) => {
-    console.log(`➕ Creating lesson for ${unit ? `unit ${unit.id}` : 'course'}`);
     setSelectedUnit(unit);
     setShowLessonForm(true);
   };
 
   const handleLessonCreated = () => {
-    console.log("✅ Lesson created successfully");
     setShowLessonForm(false);
     setSelectedUnit(null);
-    showNotification("Lesson created successfully", "success");
+    showNotification("Lesson created", "success");
     fetchCourseStructure();
   };
 
   const handleLessonFormCancel = () => {
-    console.log("❌ Lesson creation cancelled");
     setShowLessonForm(false);
     setSelectedUnit(null);
   };
 
   const handleRefresh = () => {
-    console.log("🔄 Manually refreshing course data");
     fetchCourseStructure();
-    showNotification("Refreshing course data...", "info");
+    showNotification("Refreshing...", "info");
   };
 
   const handleDebugToggle = () => {
     setDebugMode(!debugMode);
-    console.log(`🔧 Debug mode ${!debugMode ? 'enabled' : 'disabled'}`);
   };
 
   const handleBackToDashboard = () => {
     navigate("/teacher-dashboard");
   };
 
-  // Debug information display
   const renderDebugInfo = () => {
     if (!debugMode) return null;
     
     return (
       <Paper sx={{ mt: 2, p: 2, backgroundColor: '#f5f5f5', border: '1px solid #ddd' }}>
         <Typography variant="h6" gutterBottom>
-          Debug Information
+          🔧 Debug Information
         </Typography>
         <Grid container spacing={1}>
           <Grid item xs={12} sm={6}>
@@ -221,41 +175,50 @@ const CourseContent = () => {
               <strong>API Status:</strong> {apiStatus.status || 'N/A'}
             </Typography>
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <Typography variant="body2">
-              <strong>API Endpoint:</strong> {apiStatus.endpoint || 'N/A'}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Typography variant="body2">
-              <strong>Token Present:</strong> {localStorage.getItem("token") ? "Yes" : "No"}
-            </Typography>
-          </Grid>
           <Grid item xs={12}>
             <Typography variant="body2">
               <strong>Course Data:</strong> {course ? "Loaded" : "Not Loaded"}
             </Typography>
           </Grid>
         </Grid>
-        <Box sx={{ mt: 2 }}>
+        
+        {course?.units?.[0]?.lessons?.[0] && (
+          <Box sx={{ mt: 2, p: 2, backgroundColor: '#e8f4fd', borderRadius: 1 }}>
+            <Typography variant="subtitle2" gutterBottom>
+              📖 Sample Lesson Data (First lesson in first unit):
+            </Typography>
+            <Typography variant="body2" component="div" sx={{ 
+              fontSize: '12px', 
+              overflow: 'auto', 
+              maxHeight: '200px',
+              backgroundColor: '#f8f9fa',
+              p: 1,
+              borderRadius: 1,
+              fontFamily: 'monospace'
+            }}>
+              {JSON.stringify(course.units[0].lessons[0], null, 2)}
+            </Typography>
+          </Box>
+        )}
+        
+        <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
           <Button variant="outlined" size="small" onClick={handleDebugToggle}>
             Hide Debug Info
+          </Button>
+          <Button 
+            variant="outlined" 
+            size="small" 
+            onClick={() => {
+              console.log("📊 Course data:", course);
+            }}
+            startIcon={<BugReport />}
+          >
+            Log Data to Console
           </Button>
         </Box>
       </Paper>
     );
   };
-
-  // Helper function to normalize lesson data for PdfPreviewButton
-const normalizeLesson = (lesson) => {
-  console.log("📝 Normalizing lesson data:", lesson);
-  return {
-    id: lesson.id,
-    title: lesson.title || "Untitled Lesson",
-    fileUrl: lesson.fileUrl || lesson.file_url || null,
-    contentType: lesson.contentType || lesson.content_type,
-  };
-};
 
   if (loading) {
     return (
@@ -264,12 +227,6 @@ const normalizeLesson = (lesson) => {
         <Typography variant="h6" sx={{ mt: 3 }}>
           Loading Course Content...
         </Typography>
-        <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-          Course ID: {courseId}
-        </Typography>
-        <Typography variant="body2" color="textSecondary" sx={{ mt: 0.5 }}>
-          Please wait while we fetch your course data
-        </Typography>
       </Box>
     );
   }
@@ -277,39 +234,22 @@ const normalizeLesson = (lesson) => {
   if (error) {
     return (
       <Box sx={{ p: 3 }}>
-        <Button 
-          startIcon={<Dashboard />}
-          onClick={handleBackToDashboard}
-          sx={{ mb: 2 }}
-        >
+        <Button startIcon={<Dashboard />} onClick={handleBackToDashboard} sx={{ mb: 2 }}>
           Back to Dashboard
         </Button>
         
-        <Alert 
-          severity="error" 
-          sx={{ mb: 2 }}
-          icon={<ErrorIcon />}
-        >
+        <Alert severity="error" sx={{ mb: 2 }} icon={<ErrorIcon />}>
           <Typography variant="h6" gutterBottom>
             Failed to Load Course Content
           </Typography>
-          <Typography variant="body2">
-            {error}
-          </Typography>
+          <Typography variant="body2">{error}</Typography>
         </Alert>
         
         <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-          <Button 
-            variant="contained" 
-            startIcon={<Refresh />}
-            onClick={handleRefresh}
-          >
+          <Button variant="contained" startIcon={<Refresh />} onClick={handleRefresh}>
             Retry
           </Button>
-          <Button 
-            variant="outlined"
-            onClick={handleDebugToggle}
-          >
+          <Button variant="outlined" onClick={handleDebugToggle}>
             {debugMode ? "Hide" : "Show"} Debug Info
           </Button>
         </Box>
@@ -323,14 +263,7 @@ const normalizeLesson = (lesson) => {
     return (
       <Alert severity="warning" sx={{ m: 3 }}>
         <Typography variant="h6">Course Not Found</Typography>
-        <Typography variant="body2">
-          The course you're trying to access doesn't exist or you don't have permission to view it.
-        </Typography>
-        <Button 
-          variant="outlined" 
-          onClick={handleBackToDashboard}
-          sx={{ mt: 1 }}
-        >
+        <Button variant="outlined" onClick={handleBackToDashboard} sx={{ mt: 1 }}>
           Return to Dashboard
         </Button>
       </Alert>
@@ -453,26 +386,40 @@ const normalizeLesson = (lesson) => {
               onLessonUpdate={fetchCourseStructure}
               previewButton={(lesson) => {
                 const normalizedLesson = normalizeLesson(lesson);
-                // Only show PDF preview button if it's a PDF lesson
-                if (normalizedLesson.fileUrl && (normalizedLesson.contentType === 'pdf' || normalizedLesson.contentType === 'file')) {
+                
+                const isPdf = normalizedLesson.fileUrl && 
+                  (normalizedLesson.contentType === 'pdf' || 
+                   normalizedLesson.contentType === 'file' ||
+                   (normalizedLesson.fileUrl && normalizedLesson.fileUrl.includes('.pdf')));
+                
+                if (isPdf) {
                   return (
                     <PdfPreviewButton
                       lesson={normalizedLesson}
                       variant="teacher"
                       size="small"
-                      style={{ marginLeft: '8px', marginRight: '8px' }}
+                      style={{ 
+                        marginLeft: '8px', 
+                        marginRight: '8px',
+                        minWidth: '120px'
+                      }}
                     />
                   );
                 } else {
-                  // For non-PDF lessons, show a disabled preview button
                   return (
                     <Button
                       size="small"
                       variant="outlined"
                       disabled
-                      style={{ marginLeft: '8px', marginRight: '8px', opacity: 0.7 }}
+                      sx={{ 
+                        marginLeft: '8px', 
+                        marginRight: '8px', 
+                        opacity: 0.7,
+                        minWidth: '120px'
+                      }}
+                      title={normalizedLesson.fileUrl ? "Preview not available for this file type" : "No file attached"}
                     >
-                      Preview Not Available
+                      {normalizedLesson.fileUrl ? "No Preview" : "No File"}
                     </Button>
                   );
                 }
@@ -510,9 +457,14 @@ const normalizeLesson = (lesson) => {
         open={notification.open}
         autoHideDuration={6000}
         onClose={() => setNotification({ ...notification, open: false })}
-        message={notification.message}
-        severity={notification.severity}
-      />
+      >
+        <Alert 
+          severity={notification.severity} 
+          onClose={() => setNotification({ ...notification, open: false })}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

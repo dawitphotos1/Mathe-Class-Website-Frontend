@@ -1,503 +1,155 @@
-// // src/components/PdfPreviewButton.jsx - FINAL FIXED VERSION
-// import React from 'react';
-// import PropTypes from 'prop-types';
 
-// const PdfPreviewButton = ({ lesson, variant = 'default', size = 'medium', style = {}, ...props }) => {
-//   const handlePreviewClick = () => {
-//     console.log('🎬 ========== PDF PREVIEW CLICKED ==========');
-    
-//     if (!lesson) {
-//       console.error('❌ No lesson data provided');
-//       alert('Lesson data not available');
-//       return;
-//     }
-
-//     // Get the file URL - check all possible properties
-//     const fileUrl = lesson.fileUrl || lesson.file_url || lesson.file;
-//     console.log('🔍 File URL from lesson:', fileUrl);
-    
-//     if (!fileUrl) {
-//       console.error('❌ No PDF URL available for lesson');
-//       alert('PDF not available for preview');
-//       return;
-//     }
-
-//     console.log('🚀 Original file URL:', fileUrl);
-
-//     // Transform the URL based on its type
-//     let viewerUrl = fileUrl;
-    
-//     // Handle Cloudinary URLs
-//     if (viewerUrl.includes('cloudinary.com')) {
-//       console.log('☁️ Cloudinary URL detected');
-      
-//       // For Cloudinary PDFs: Keep raw upload URLs AS-IS, no .pdf extension!
-//       if (viewerUrl.includes('/raw/upload/')) {
-//         console.log('  - Raw upload URL, keeping as-is');
-//         // DO NOT add .pdf extension (Cloudinary doesn't need it)
-//         // DO NOT convert to image/upload
-//       }
-//       // If it's an image upload URL (incorrect for PDFs)
-//       else if (viewerUrl.includes('/image/upload/')) {
-//         console.log('  - Image upload URL, converting to raw');
-//         // Convert to raw upload for PDFs
-//         viewerUrl = viewerUrl.replace('/image/upload/', '/raw/upload/');
-//         // Remove .pdf extension if present
-//         viewerUrl = viewerUrl.replace('.pdf', '');
-//       }
-//     }
-//     // Handle relative URLs (local uploads)
-//     else if (fileUrl.startsWith('/uploads/') || (fileUrl.startsWith('/') && !fileUrl.startsWith('http'))) {
-//       console.log('📁 Relative URL detected');
-//       const baseUrl = 'https://mathe-class-website-backend-1.onrender.com';
-//       viewerUrl = baseUrl + fileUrl;
-//       console.log('🔄 Converted to:', viewerUrl);
-//     }
-    
-//     console.log('🎯 Final URL to open:', viewerUrl);
-    
-//     // Open in new tab
-//     console.log('📖 Opening PDF...');
-//     const newWindow = window.open(viewerUrl, '_blank', 'noopener,noreferrer');
-    
-//     if (!newWindow) {
-//       console.warn('🚫 Popup blocked, using download link');
-//       // Create download link as fallback
-//       const link = document.createElement('a');
-//       link.href = viewerUrl;
-//       link.target = '_blank';
-//       link.rel = 'noopener noreferrer';
-//       link.click();
-//     }
-    
-//     console.log('✅ PDF opened successfully');
-//   };
-
-//   const getButtonStyles = () => {
-//     const baseStyles = {
-//       border: 'none',
-//       borderRadius: '6px',
-//       cursor: 'pointer',
-//       display: 'inline-flex',
-//       alignItems: 'center',
-//       justifyContent: 'center',
-//       gap: '8px',
-//       fontFamily: 'inherit',
-//       fontWeight: 500,
-//       transition: 'all 0.2s ease',
-//       '&:hover': {
-//         transform: 'translateY(-1px)',
-//         boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-//       }
-//     };
-
-//     const variants = {
-//       default: {
-//         backgroundColor: '#4CAF50',
-//         color: 'white',
-//         '&:hover': {
-//           backgroundColor: '#45a049'
-//         }
-//       },
-//       primary: {
-//         backgroundColor: '#2196F3',
-//         color: 'white',
-//         '&:hover': {
-//           backgroundColor: '#1976D2'
-//         }
-//       },
-//       outline: {
-//         backgroundColor: 'transparent',
-//         color: '#2196F3',
-//         border: '2px solid #2196F3',
-//         '&:hover': {
-//           backgroundColor: '#2196F3',
-//           color: 'white'
-//         }
-//       },
-//       teacher: {
-//         backgroundColor: '#9C27B0',
-//         color: 'white',
-//         '&:hover': {
-//           backgroundColor: '#7B1FA2'
-//         }
-//       },
-//       student: {
-//         backgroundColor: '#FF9800',
-//         color: 'white',
-//         '&:hover': {
-//           backgroundColor: '#F57C00'
-//         }
-//       }
-//     };
-
-//     const sizes = {
-//       small: {
-//         padding: '6px 12px',
-//         fontSize: '13px'
-//       },
-//       medium: {
-//         padding: '8px 16px',
-//         fontSize: '14px'
-//       },
-//       large: {
-//         padding: '12px 24px',
-//         fontSize: '16px'
-//       }
-//     };
-
-//     return {
-//       ...baseStyles,
-//       ...variants[variant],
-//       ...sizes[size],
-//       ...style
-//     };
-//   };
-
-//   // Check if PDF is available
-//   const hasPdf = lesson?.fileUrl || lesson?.file_url || lesson?.file;
-//   const contentType = (lesson?.contentType || lesson?.content_type || '').toLowerCase();
-//   const isPdfType = contentType === 'pdf' || contentType === 'file';
-
-//   if (!hasPdf || !isPdfType) {
-//     return (
-//       <button
-//         disabled
-//         style={{
-//           ...getButtonStyles(),
-//           opacity: 0.5,
-//           cursor: 'not-allowed'
-//         }}
-//       >
-//         <span>📄</span>
-//         No PDF Available
-//       </button>
-//     );
-//   }
-
-//   return (
-//     <button
-//       onClick={handlePreviewClick}
-//       style={getButtonStyles()}
-//       title={`Preview PDF: ${lesson.title || 'Document'}`}
-//       aria-label={`Preview PDF document for ${lesson.title || 'lesson'}`}
-//       {...props}
-//     >
-//       <span>📄</span>
-//       Preview PDF
-//     </button>
-//   );
-// };
-
-// PdfPreviewButton.propTypes = {
-//   lesson: PropTypes.shape({
-//     id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-//     title: PropTypes.string,
-//     fileUrl: PropTypes.string,
-//     file_url: PropTypes.string,
-//     file: PropTypes.string,
-//     contentType: PropTypes.string,
-//     content_type: PropTypes.string
-//   }).isRequired,
-//   variant: PropTypes.oneOf(['default', 'primary', 'outline', 'teacher', 'student']),
-//   size: PropTypes.oneOf(['small', 'medium', 'large']),
-//   style: PropTypes.object
-// };
-
-// export default PdfPreviewButton;
-
-
-
-
-// src/components/PdfPreviewButton.jsx - UPDATED WITH DEBUGGING
-import React from 'react';
+// src/components/PdfPreviewButton.jsx - FINAL FIXED VERSION
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
+  Box,
+  CircularProgress,
+  Typography
+} from '@mui/material';
+import { Close, Download, Visibility, OpenInNew } from '@mui/icons-material';
 
-/**
- * PDF Preview Button Component
- * Opens PDF in modal with iframe (not new tab)
- */
+const PdfPreviewButton = ({ 
+  lesson, 
+  variant = 'default', 
+  size = 'medium', 
+  style = {} 
+}) => {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [iframeKey, setIframeKey] = useState(0);
+  const iframeRef = useRef(null);
+  const timeoutRef = useRef(null);
 
-const normalizeLessonForPreview = (lesson) => {
-  if (!lesson) {
-    console.log('❌ normalizeLessonForPreview: No lesson provided');
-    return null;
-  }
-  
-  console.log('📦 Original lesson data:', JSON.parse(JSON.stringify(lesson)));
-  
-  // Check all possible file URL properties
-  const fileUrl = 
-    lesson.fileUrl || 
-    lesson.file_url || 
-    lesson.file ||
-    (lesson.uploads && lesson.uploads.fileUrl) ||
-    (lesson.metadata && lesson.metadata.fileUrl) ||
-    null;
-  
-  console.log('🔍 File URL found:', fileUrl);
-  
-  // Determine content type
-  let contentType = 
-    lesson.contentType || 
-    lesson.content_type || 
-    lesson.type ||
-    (fileUrl ? (fileUrl.includes('.pdf') ? 'pdf' : 'file') : 'text');
-  
-  contentType = (contentType || '').toLowerCase();
-  console.log('🔍 Content type found:', contentType);
-  
-  const normalized = {
-    id: lesson.id || Date.now(),
-    title: lesson.title || "Untitled Lesson",
-    fileUrl: fileUrl,
-    contentType: contentType,
-    content_type: contentType,
-    file_url: fileUrl,
-    _original: { ...lesson }
+  const normalizeLesson = (lesson) => {
+    const fileUrl = 
+      lesson.fileUrl || 
+      lesson.file_url || 
+      lesson.file ||
+      (lesson.uploads && lesson.uploads.fileUrl) ||
+      null;
+    
+    const contentType = 
+      lesson.contentType || 
+      lesson.content_type || 
+      (fileUrl ? (fileUrl.includes('.pdf') ? 'pdf' : 'file') : 'text');
+    
+    return {
+      id: lesson.id,
+      title: lesson.title || 'Untitled Document',
+      fileUrl: fileUrl,
+      contentType: contentType.toLowerCase()
+    };
   };
-  
-  console.log('✨ Normalized lesson:', normalized);
-  return normalized;
-};
 
-const fixCloudinaryUrl = (url) => {
-  if (!url || typeof url !== 'string') return url;
-  
-  if (url.includes('cloudinary.com') && url.includes('/image/upload/')) {
-    if (url.includes('.pdf') || url.includes('/pdfs/')) {
-      return url.replace('/image/upload/', '/raw/upload/');
-    }
-  }
-  
-  return url;
-};
-
-const PdfPreviewButton = ({ lesson, variant = 'default', size = 'medium', style = {}, ...props }) => {
   const handlePreviewClick = (e) => {
-    e.stopPropagation();
-    console.log('🎬 ========== PDF PREVIEW CLICKED ==========');
-    
-    if (!lesson) {
-      console.error('❌ No lesson data provided');
-      alert('Lesson data not available');
-      return;
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
     }
-
-    const normalizedLesson = normalizeLessonForPreview(lesson);
     
-    if (!normalizedLesson) {
-      console.error('❌ Failed to normalize lesson data');
-      alert('Unable to process lesson data');
+    const normalized = normalizeLesson(lesson);
+    
+    if (!normalized.fileUrl) {
+      console.warn('No file URL found for lesson:', lesson.id);
+      alert('No PDF file found for this lesson');
       return;
     }
     
-    const fileUrl = normalizedLesson.fileUrl;
-    console.log('🔍 Normalized file URL:', fileUrl);
-    
-    if (!fileUrl) {
-      console.error('❌ No PDF URL available for lesson');
-      alert('PDF not available for preview');
-      return;
-    }
-
-    let viewerUrl = fileUrl;
-    
-    // Fix Cloudinary URLs
-    if (viewerUrl.includes('cloudinary.com')) {
-      viewerUrl = fixCloudinaryUrl(viewerUrl);
-    }
-    // Handle relative URLs
-    else if (viewerUrl.startsWith('/uploads/') || (viewerUrl.startsWith('/') && !viewerUrl.startsWith('http'))) {
-      const baseUrl = 'https://mathe-class-website-backend-1.onrender.com';
-      viewerUrl = baseUrl + viewerUrl;
-    }
-    // Handle Uploads folder
-    else if (viewerUrl.includes('Uploads/')) {
-      const baseUrl = 'https://mathe-class-website-backend-1.onrender.com';
-      viewerUrl = viewerUrl.replace(/^\/?Uploads\//, '');
-      viewerUrl = `${baseUrl}/api/v1/files/${encodeURIComponent(viewerUrl)}`;
-    }
-    
-    console.log('🎯 Final viewer URL:', viewerUrl);
-    
-    // Open modal
-    openPdfModal(viewerUrl, normalizedLesson.title || 'PDF Preview');
+    console.log('Opening PDF preview:', normalized.fileUrl);
+    setOpen(true);
+    setLoading(true);
+    setError(null);
+    setIframeKey(prev => prev + 1);
   };
 
-  const openPdfModal = (pdfUrl, title) => {
-    console.log('🎪 Opening PDF modal with URL:', pdfUrl);
-    
-    // Remove existing modal
-    const existingModal = document.getElementById('pdf-preview-modal');
-    if (existingModal) {
-      document.body.removeChild(existingModal);
+  const handleClose = () => {
+    setOpen(false);
+    setLoading(false);
+    setError(null);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
     }
+  };
 
-    // Create modal
-    const modal = document.createElement('div');
-    modal.id = 'pdf-preview-modal';
-    modal.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.95);
-      z-index: 99999;
-      display: flex;
-      flex-direction: column;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    `;
-    
-    // Add CSS
-    const styleEl = document.createElement('style');
-    styleEl.textContent = `
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-    `;
-    document.head.appendChild(styleEl);
-    
-    // Header
-    const header = document.createElement('div');
-    header.style.cssText = `
-      background: #2c3e50;
-      color: white;
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-shrink: 0;
-    `;
-    
-    const titleSpan = document.createElement('span');
-    titleSpan.textContent = title;
-    titleSpan.style.cssText = `
-      font-size: 18px;
-      font-weight: 600;
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      margin-right: 16px;
-    `;
-    
-    const closeBtn = document.createElement('button');
-    closeBtn.textContent = '✕ Close';
-    closeBtn.style.cssText = `
-      background: #e74c3c;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-    `;
-    closeBtn.onclick = () => {
-      document.body.removeChild(modal);
-      document.head.removeChild(styleEl);
-    };
-    
-    header.appendChild(titleSpan);
-    header.appendChild(closeBtn);
-    
-    // Iframe container
-    const iframeContainer = document.createElement('div');
-    iframeContainer.style.cssText = `
-      flex: 1;
-      padding: 20px;
-      background: #34495e;
-      position: relative;
-      overflow: hidden;
-      min-height: 0;
-    `;
-    
-    // Loading
-    const loading = document.createElement('div');
-    loading.style.cssText = `
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-    `;
-    
-    const spinner = document.createElement('div');
-    spinner.style.cssText = `
-      width: 40px;
-      height: 40px;
-      border: 4px solid rgba(255,255,255,0.1);
-      border-left-color: #3498db;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    `;
-    
-    const loadingText = document.createElement('span');
-    loadingText.textContent = 'Loading PDF...';
-    
-    loading.appendChild(spinner);
-    loading.appendChild(loadingText);
-    iframeContainer.appendChild(loading);
-    
-    // Iframe
-    const iframe = document.createElement('iframe');
-    iframe.src = pdfUrl;
-    iframe.style.cssText = `
-      width: 100%;
-      height: 100%;
-      border: none;
-      border-radius: 8px;
-      background: white;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    `;
-    iframe.title = `PDF Viewer - ${title}`;
-    iframe.allow = 'fullscreen';
-    
-    iframe.onload = () => {
-      console.log('✅ PDF iframe loaded');
-      iframe.style.opacity = '1';
-      iframeContainer.removeChild(loading);
-    };
-    
-    iframe.onerror = (e) => {
-      console.error('❌ PDF iframe error:', e);
-      loadingText.textContent = 'Failed to load PDF. Click to open in new tab.';
-      loading.style.cursor = 'pointer';
-      loading.onclick = () => {
-        window.open(pdfUrl, '_blank');
-        document.body.removeChild(modal);
-        document.head.removeChild(styleEl);
-      };
-    };
-    
-    iframeContainer.appendChild(iframe);
-    modal.appendChild(header);
-    modal.appendChild(iframeContainer);
-    document.body.appendChild(modal);
-    
-    // Escape key
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') {
-        document.body.removeChild(modal);
-        document.head.removeChild(styleEl);
-        document.removeEventListener('keydown', handleEscape);
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
     };
-    document.addEventListener('keydown', handleEscape);
+  }, []);
+
+  const handleDownload = () => {
+    const normalized = normalizeLesson(lesson);
+    if (normalized.fileUrl) {
+      const a = document.createElement('a');
+      a.href = normalized.fileUrl;
+      a.download = `${normalized.title.replace(/[^a-z0-9]/gi, '_') || 'document'}.pdf`;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  };
+
+  const handleIframeLoad = () => {
+    console.log('PDF iframe loaded successfully');
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    setLoading(false);
+  };
+
+  const handleIframeError = (e) => {
+    console.error('Iframe loading error:', e);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    setError('Failed to load the PDF document. It may be inaccessible.');
+    setLoading(false);
+  };
+
+  const handleIframeLoadStart = () => {
+    console.log('PDF loading started...');
     
-    console.log('✅ PDF modal opened');
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    timeoutRef.current = setTimeout(() => {
+      console.warn('PDF loading timeout - checking iframe state');
+      setLoading(false);
+      
+      try {
+        const iframe = iframeRef.current;
+        if (iframe && iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+          console.log('Iframe content is ready');
+        }
+      } catch (err) {
+        console.log('Cannot access iframe due to security restrictions');
+      }
+    }, 10000);
+  };
+
+  const handleOpenInNewTab = () => {
+    const normalized = normalizeLesson(lesson);
+    if (normalized.fileUrl) {
+      window.open(normalized.fileUrl, '_blank', 'noopener,noreferrer');
+    }
   };
 
   const getButtonStyles = () => {
-    const baseStyles = {
+    const base = {
       border: 'none',
-      borderRadius: '8px',
+      borderRadius: '6px',
       cursor: 'pointer',
       display: 'inline-flex',
       alignItems: 'center',
@@ -505,45 +157,41 @@ const PdfPreviewButton = ({ lesson, variant = 'default', size = 'medium', style 
       gap: '8px',
       fontFamily: 'inherit',
       fontWeight: 500,
-      transition: 'all 0.2s ease',
-      boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+      transition: 'all 0.2s',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
       '&:hover': {
-        transform: 'translateY(-2px)',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+        transform: 'translateY(-1px)',
+        boxShadow: '0 4px 8px rgba(0,0,0,0.15)'
       }
     };
 
     const variants = {
-      default: { backgroundColor: '#10b981', color: 'white' },
-      primary: { backgroundColor: '#3b82f6', color: 'white' },
-      outline: { backgroundColor: 'transparent', color: '#3b82f6', border: '2px solid #3b82f6' },
-      teacher: { backgroundColor: '#8b5cf6', color: 'white' },
-      student: { backgroundColor: '#f59e0b', color: 'white' }
+      default: { backgroundColor: '#4CAF50', color: 'white' },
+      primary: { backgroundColor: '#2196F3', color: 'white' },
+      teacher: { backgroundColor: '#9C27B0', color: 'white' }
     };
 
     const sizes = {
-      small: { padding: '6px 12px', fontSize: '13px', minHeight: '32px', minWidth: '120px' },
-      medium: { padding: '10px 20px', fontSize: '14px', minHeight: '40px', minWidth: '140px' },
-      large: { padding: '14px 28px', fontSize: '16px', minHeight: '48px', minWidth: '160px' }
+      small: { padding: '6px 12px', fontSize: '13px', minWidth: '100px' },
+      medium: { padding: '8px 16px', fontSize: '14px', minWidth: '120px' },
+      large: { padding: '12px 24px', fontSize: '16px', minWidth: '140px' }
     };
 
     return {
-      ...baseStyles,
+      ...base,
       ...(variants[variant] || variants.default),
-      ...sizes[size],
+      ...(sizes[size] || sizes.medium),
       ...style
     };
   };
 
-  const normalizedLesson = normalizeLessonForPreview(lesson);
-  const hasPdf = !!normalizedLesson?.fileUrl;
-  const contentType = normalizedLesson?.contentType || '';
-  const isPdfType = contentType === 'pdf' || contentType === 'file' || 
-                   (hasPdf && normalizedLesson.fileUrl.includes('.pdf'));
+  const normalizedLesson = normalizeLesson(lesson);
+  const hasPdf = !!normalizedLesson.fileUrl && 
+    (normalizedLesson.contentType === 'pdf' || 
+     normalizedLesson.contentType === 'file' || 
+     (normalizedLesson.fileUrl && normalizedLesson.fileUrl.includes('.pdf')));
 
-  console.log('🔍 Button state:', { hasPdf, contentType, isPdfType, fileUrl: normalizedLesson?.fileUrl });
-
-  if (!hasPdf || !isPdfType) {
+  if (!hasPdf) {
     return (
       <button
         disabled
@@ -551,26 +199,194 @@ const PdfPreviewButton = ({ lesson, variant = 'default', size = 'medium', style 
           ...getButtonStyles(),
           opacity: 0.5,
           cursor: 'not-allowed',
-          pointerEvents: 'none'
+          backgroundColor: '#cccccc',
+          color: '#666666'
         }}
-        title={!hasPdf ? "No file attached" : `File type: ${contentType}`}
+        title="No PDF available for this lesson"
       >
-        <span>📄</span>
-        {!hasPdf ? 'No PDF' : 'No Preview'}
+        <Visibility fontSize="small" />
+        No PDF
       </button>
     );
   }
 
   return (
-    <button
-      onClick={handlePreviewClick}
-      style={getButtonStyles()}
-      title={`Preview PDF: ${normalizedLesson.title || 'Document'}`}
-      {...props}
-    >
-      <span>📄</span>
-      Preview PDF
-    </button>
+    <>
+      <button
+        onClick={handlePreviewClick}
+        style={getButtonStyles()}
+        title={`Preview PDF: ${normalizedLesson.title}`}
+      >
+        <Visibility fontSize="small" />
+        Preview PDF
+      </button>
+
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            minHeight: '80vh',
+            maxHeight: '90vh',
+            '& .MuiDialogContent-root': {
+              padding: 0
+            }
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          m: 0, 
+          p: 2, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          borderBottom: '1px solid #e0e0e0'
+        }}>
+          <Box component="div" sx={{ flex: 1 }}>
+            <Typography variant="h6" noWrap>
+              📄 {normalizedLesson.title}
+            </Typography>
+          </Box>
+          <IconButton 
+            onClick={handleClose} 
+            size="small"
+            aria-label="close"
+          >
+            <Close />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent dividers sx={{ p: 0, position: 'relative', minHeight: '70vh' }}>
+          {loading && (
+            <Box sx={{ 
+              position: 'absolute', 
+              top: 0, 
+              left: 0, 
+              right: 0, 
+              bottom: 0, 
+              display: 'flex', 
+              flexDirection: 'column',
+              alignItems: 'center', 
+              justifyContent: 'center',
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              zIndex: 10 
+            }}>
+              <CircularProgress size={60} />
+              <Typography variant="body1" sx={{ mt: 2 }}>
+                Loading PDF...
+              </Typography>
+              <Typography variant="caption" color="textSecondary" sx={{ mt: 1 }}>
+                This may take a moment
+              </Typography>
+            </Box>
+          )}
+
+          {error && (
+            <Box sx={{ 
+              p: 4, 
+              textAlign: 'center', 
+              height: '100%', 
+              display: 'flex', 
+              flexDirection: 'column', 
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+              <Typography variant="h6" color="error" gutterBottom>
+                Unable to Load PDF
+              </Typography>
+              <Typography variant="body2" color="textSecondary" paragraph>
+                {error}
+              </Typography>
+              <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                <Button 
+                  variant="contained" 
+                  onClick={handleOpenInNewTab}
+                  startIcon={<OpenInNew />}
+                >
+                  Open in New Tab
+                </Button>
+                <Button 
+                  variant="outlined" 
+                  onClick={() => {
+                    setError(null);
+                    setLoading(true);
+                    setIframeKey(prev => prev + 1);
+                  }}
+                >
+                  Retry
+                </Button>
+              </Box>
+            </Box>
+          )}
+
+          {/* The fixed iframe with allow-downloads sandbox permission */}
+          <iframe
+            key={iframeKey}
+            ref={iframeRef}
+            src={normalizedLesson.fileUrl}
+            title={`PDF Preview - ${normalizedLesson.title}`}
+            style={{
+              width: '100%',
+              height: '100%',
+              minHeight: '70vh',
+              border: 'none',
+              display: loading || error ? 'none' : 'block',
+              visibility: loading || error ? 'hidden' : 'visible'
+            }}
+            onLoad={handleIframeLoad}
+            onError={handleIframeError}
+            onLoadStart={handleIframeLoadStart}
+            sandbox="allow-same-origin allow-scripts allow-popups allow-downloads"
+            allow="fullscreen"
+            referrerPolicy="no-referrer"
+            loading="eager"
+          />
+        </DialogContent>
+
+        <DialogActions sx={{ 
+          p: 2, 
+          borderTop: '1px solid #e0e0e0',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 1
+        }}>
+          <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.75rem' }}>
+            {normalizedLesson.fileUrl ? `Source: ${normalizedLesson.fileUrl.split('/').pop()}` : ''}
+          </Typography>
+          
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            <Button
+              startIcon={<Download />}
+              onClick={handleDownload}
+              variant="contained"
+              color="primary"
+              size="medium"
+            >
+              Download
+            </Button>
+            <Button 
+              onClick={handleOpenInNewTab}
+              variant="outlined"
+              size="medium"
+              startIcon={<OpenInNew />}
+            >
+              Open in Tab
+            </Button>
+            <Button 
+              onClick={handleClose} 
+              variant="outlined"
+              size="medium"
+            >
+              Close
+            </Button>
+          </Box>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 

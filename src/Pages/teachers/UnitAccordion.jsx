@@ -1,164 +1,180 @@
-// src/pages/teachers/UnitAccordion.jsx
-import React from "react";
+
+// src/pages/teachers/UnitAccordion.jsx - FIXED DOM NESTING
+import React, { useState } from 'react';
 import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
   Typography,
   Box,
-  Button,
   Chip,
+  IconButton,
+  Button,
   List,
   ListItem,
   ListItemText,
   ListItemSecondaryAction,
-  IconButton,
-} from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import VisibilityIcon from "@mui/icons-material/Visibility";
+  Divider,
+  Tooltip
+} from '@mui/material';
+import {
+  ExpandMore,
+  Edit,
+  Add,
+  Description,
+  VideoLibrary,
+  PictureAsPdf
+} from '@mui/icons-material';
+import { Link } from 'react-router-dom';
 
-import VideoIcon from "@mui/icons-material/VideoLibrary";
-import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
-import TextIcon from "@mui/icons-material/TextSnippet";
+const UnitAccordion = ({ unit, onAddLesson, onLessonUpdate, previewButton }) => {
+  const [expanded, setExpanded] = useState(false);
 
-import { useNavigate } from "react-router-dom";
+  const handleExpand = () => {
+    setExpanded(!expanded);
+  };
 
-const UnitAccordion = ({ unit, onAddLesson, onLessonUpdate }) => {
-  const navigate = useNavigate();
-
-  const getLessonIcon = (type) => {
-    switch (type) {
-      case "video":
-        return <VideoIcon color="primary" fontSize="small" />;
-      case "pdf":
-        return <PictureAsPdfIcon color="secondary" fontSize="small" />;
-      case "text":
+  const getLessonIcon = (lesson) => {
+    const contentType = lesson.content_type || lesson.contentType;
+    
+    switch (contentType) {
+      case 'pdf':
+      case 'file':
+        return <PictureAsPdf fontSize="small" color="error" />;
+      case 'video':
+        return <VideoLibrary fontSize="small" color="primary" />;
       default:
-        return <TextIcon color="action" fontSize="small" />;
+        return <Description fontSize="small" color="action" />;
     }
   };
 
-  return (
-    <Accordion sx={{ mb: 2 }}>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Typography variant="h6">{unit.title}</Typography>
+  const lessons = unit.lessons || [];
 
-          <Chip
-            label={`${unit.lessons?.length || 0} Lessons`}
-            size="small"
-            variant="outlined"
-          />
+  return (
+    <Accordion 
+      expanded={expanded} 
+      onChange={handleExpand}
+      sx={{ mb: 2, borderRadius: 1, overflow: 'hidden' }}
+    >
+      <AccordionSummary expandIcon={<ExpandMore />}>
+        <Box sx={{ width: '100%', display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ flexGrow: 1 }}>
+            <Typography variant="h6" component="div">
+              {unit.title}
+            </Typography>
+            {unit.description && (
+              <Typography variant="body2" color="textSecondary" component="div">
+                {unit.description}
+              </Typography>
+            )}
+          </Box>
+          
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Chip 
+              label={`${lessons.length} lesson${lessons.length !== 1 ? 's' : ''}`}
+              size="small"
+              color="primary"
+              variant="outlined"
+            />
+          </Box>
         </Box>
       </AccordionSummary>
-
-      <AccordionDetails>
-        {/* Add Lesson Button */}
-        <Box sx={{ textAlign: "right", mb: 2 }}>
-          <Button variant="contained" size="small" onClick={onAddLesson}>
-            Add Lesson
-          </Button>
-        </Box>
-
-        {/* LESSON LIST */}
-        {unit.lessons && unit.lessons.length > 0 ? (
-          <List dense>
-            {unit.lessons.map((lesson) => (
-              <ListItem
-                key={lesson.id}
-                sx={{
-                  borderBottom: "1px solid #eee",
-                  py: 1.5,
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    width: "100%",
-                  }}
-                >
-                  {/* ICON */}
-                  {getLessonIcon(lesson.content_type)}
-
-                  {/* TEXT CONTENT */}
-                  <ListItemText
-                    primary={
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <Typography variant="body1" fontWeight="medium">
-                          {lesson.title}
-                        </Typography>
-
-                        {/* PREVIEW BUTTON */}
-                        <Button
-                          size="small"
-                          startIcon={<VisibilityIcon />}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/lessons/${lesson.id}/preview`);
-                          }}
-                        >
-                          Preview
-                        </Button>
-
-                        {lesson.is_preview && (
-                          <Chip
-                            label="Free Preview"
-                            color="success"
-                            size="small"
-                          />
-                        )}
-                      </Box>
-                    }
-                    secondary={
-                      <Box sx={{ display: "flex", gap: 1, mt: 0.5 }}>
-                        <Chip
-                          label={`Type: ${lesson.content_type}`}
-                          size="small"
-                          variant="outlined"
-                        />
-                        <Chip
-                          label={`Order: ${lesson.order_index}`}
-                          size="small"
-                          variant="outlined"
-                        />
-                      </Box>
-                    }
-                  />
-                </Box>
-
-                {/* ACTION ICONS */}
-                <ListItemSecondaryAction>
-                  <IconButton
-                    edge="end"
-                    aria-label="edit"
-                    onClick={() => navigate(`/lessons/${lesson.id}/edit`)}
-                    size="small"
-                    sx={{ mr: 1 }}
-                  >
-                    <EditIcon />
-                  </IconButton>
-
-                  <IconButton
-                    edge="end"
-                    aria-label="delete"
-                    onClick={() => onLessonUpdate("delete", lesson)}
-                    size="small"
-                    color="error"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </ListItemSecondaryAction>
-              </ListItem>
-            ))}
-          </List>
+      
+      <AccordionDetails sx={{ p: 0 }}>
+        {lessons.length === 0 ? (
+          <Box sx={{ p: 3, textAlign: 'center' }}>
+            <Typography variant="body1" color="textSecondary" component="div">
+              No lessons in this unit
+            </Typography>
+            <Button
+              startIcon={<Add />}
+              onClick={() => onAddLesson(unit)}
+              variant="outlined"
+              sx={{ mt: 2 }}
+            >
+              Add Lesson
+            </Button>
+          </Box>
         ) : (
-          <Typography variant="body2" color="textSecondary">
-            No lessons in this unit yet.
-          </Typography>
+          <>
+            <Box sx={{ p: 2, display: 'flex', justifyContent: 'flex-end' }}>
+              <Button
+                startIcon={<Add />}
+                onClick={() => onAddLesson(unit)}
+                variant="contained"
+                size="small"
+              >
+                Add Lesson to Unit
+              </Button>
+            </Box>
+            
+            <Divider />
+            
+            <List sx={{ p: 0 }}>
+              {lessons.map((lesson, index) => (
+                <React.Fragment key={lesson.id}>
+                  <ListItem 
+                    sx={{ 
+                      p: 2,
+                      '&:hover': {
+                        backgroundColor: 'action.hover'
+                      }
+                    }}
+                  >
+                    <Box sx={{ mr: 2 }}>
+                      {getLessonIcon(lesson)}
+                    </Box>
+                    
+                    <ListItemText
+                      primary={
+                        <Box component="div">
+                          <Typography variant="subtitle1" component="div">
+                            {lesson.title}
+                          </Typography>
+                          <Typography variant="body2" color="textSecondary" component="div">
+                            {lesson.content_type || lesson.contentType || 'text'} • Order: {lesson.order_index || 0}
+                          </Typography>
+                        </Box>
+                      }
+                      secondary={
+                        <Box component="div" sx={{ mt: 0.5 }}>
+                          {lesson.is_preview && (
+                            <Chip 
+                              label="Preview" 
+                              size="small" 
+                              color="success" 
+                              variant="outlined"
+                              sx={{ mr: 1 }}
+                            />
+                          )}
+                        </Box>
+                      }
+                    />
+                    
+                    <ListItemSecondaryAction sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {/* Preview Button */}
+                      <Box sx={{ mr: 1 }}>
+                        {previewButton && previewButton(lesson)}
+                      </Box>
+                      
+                      {/* Edit Button */}
+                      <Tooltip title="Edit Lesson">
+                        <IconButton
+                          component={Link}
+                          to={`/teacher/edit-lesson/${lesson.id}`}
+                          size="small"
+                        >
+                          <Edit fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                  
+                  {index < lessons.length - 1 && <Divider />}
+                </React.Fragment>
+              ))}
+            </List>
+          </>
         )}
       </AccordionDetails>
     </Accordion>
@@ -166,6 +182,3 @@ const UnitAccordion = ({ unit, onAddLesson, onLessonUpdate }) => {
 };
 
 export default UnitAccordion;
-
-
-

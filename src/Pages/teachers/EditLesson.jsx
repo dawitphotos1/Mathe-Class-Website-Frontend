@@ -1,5 +1,4 @@
-//pages/teachers/EditLesson.jsx
-
+// pages/teachers/EditLesson.jsx - FIXED UPLOAD
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
@@ -14,6 +13,7 @@ const EditLesson = () => {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     title: "",
     content: "",
@@ -26,6 +26,7 @@ const EditLesson = () => {
 
   const [file, setFile] = useState(null);
   const [activeTab, setActiveTab] = useState("text");
+  const [existingFileUrl, setExistingFileUrl] = useState("");
 
   useEffect(() => {
     const loadLesson = async () => {
@@ -33,17 +34,34 @@ const EditLesson = () => {
         const res = await axiosInstance.get(`/lessons/${lessonId}`);
         const lesson = res.data.lesson;
 
+        console.log("📦 Lesson data loaded:", lesson);
+
+        // Initialize form with proper values
         setForm({
-          title: lesson.title,
+          title: lesson.title || "",
           content: lesson.content || "",
-          content_type: lesson.content_type,
+          content_type: lesson.content_type || "text",
           video_url: lesson.video_url || "",
-          order_index: lesson.order_index,
-          is_preview: lesson.is_preview,
-          unit_id: lesson.unit_id,
+          order_index: lesson.order_index || 0,
+          is_preview: lesson.is_preview || false,
+          unit_id: lesson.unit_id || null,
         });
 
         setActiveTab(lesson.content_type || "text");
+        
+        // Save existing file URL if it exists
+        if (lesson.file_url || lesson.fileUrl) {
+          const fileUrl = lesson.file_url || lesson.fileUrl;
+          setExistingFileUrl(fileUrl);
+          console.log("📎 Existing file URL:", fileUrl);
+          
+          // If there's an existing file and it's a PDF, ensure content_type is set
+          if (fileUrl.includes('.pdf') && (!lesson.content_type || lesson.content_type === 'text')) {
+            setForm(prev => ({ ...prev, content_type: 'pdf' }));
+            setActiveTab('pdf');
+          }
+        }
+
       } catch (error) {
         console.error("Load lesson error:", error);
         toast.error("Failed to load lesson");
@@ -53,23 +71,33 @@ const EditLesson = () => {
       }
     };
 
-    loadLesson();
+    if (lessonId) {
+      loadLesson();
+    }
   }, [lessonId, navigate]);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
+      console.log("📁 File selected:", selectedFile.name, "Type:", selectedFile.type);
       setFile(selectedFile);
-      // Also update content_type to 'pdf' if it's a PDF file
+      
+      // Update content_type based on file type
+      let contentType = "file";
       if (selectedFile.type === "application/pdf") {
-        setForm({ ...form, content_type: "pdf" });
-        setActiveTab("pdf");
+        contentType = "pdf";
+      } else if (selectedFile.type.includes("video")) {
+        contentType = "video";
       }
+      
+      setForm(prev => ({ ...prev, content_type: contentType }));
+      setActiveTab(contentType);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSaving(true);
 
     const formData = new FormData();
 
@@ -83,21 +111,37 @@ const EditLesson = () => {
     // Append file if selected
     if (file) {
       formData.append("file", file);
+      console.log("📤 Uploading file:", file.name);
     }
 
     try {
-      await axiosInstance.put(`/lessons/${lessonId}`, formData, {
+      const response = await axiosInstance.put(`/lessons/${lessonId}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      toast.success("Lesson updated successfully");
-      navigate(-1);
+      console.log("✅ Update response:", response.data);
+      toast.success("Lesson updated successfully!");
+      
+      // Navigate back after a short delay
+      setTimeout(() => {
+        navigate(-1);
+      }, 1000);
+
     } catch (error) {
-      console.error("Update error:", error.response?.data || error.message);
+      console.error("❌ Update error:", error.response?.data || error.message);
       toast.error(error.response?.data?.error || "Failed to update lesson");
+    } finally {
+      setSaving(false);
     }
+  };
+
+  const clearFile = () => {
+    setFile(null);
+    // Reset to text content type when clearing file
+    setForm(prev => ({ ...prev, content_type: 'text' }));
+    setActiveTab("text");
   };
 
   if (loading) {
@@ -138,7 +182,9 @@ const EditLesson = () => {
                   onClick={() => {
                     setActiveTab(type);
                     setForm({ ...form, content_type: type });
-                    setFile(null); // Clear file when switching tabs
+                    if (type !== "pdf") {
+                      setFile(null);
+                    }
                   }}
                 >
                   {type === "text"
@@ -193,35 +239,43 @@ const EditLesson = () => {
                   <input
                     id="file-upload"
                     type="file"
-                    accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.mp4"
+                    accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.mp4,.mp3,.zip"
                     onChange={handleFileChange}
                     hidden
                   />
-                  {file && (
+                  {(file || existingFileUrl) && (
                     <div className="file-info">
-                      <p>File: {file.name}</p>
-                      <p>Size: {(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                      <p>
+                        File: {file ? file.name : existingFileUrl.split("/").pop()}
+                      </p>
+                      {file && (
+                        <p>Size: {(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                      )}
                       <button
                         type="button"
                         className="clear-file-btn"
-                        onClick={() => setFile(null)}
+                        onClick={clearFile}
                       >
-                        Clear
+                        Clear File
                       </button>
                     </div>
                   )}
                 </div>
-                {form.file_url && !file && (
-                  <p className="current-file">
-                    Current file:{" "}
+                {existingFileUrl && !file && (
+                  <div className="current-file">
+                    <p>Current file:</p>
                     <a
-                      href={form.file_url}
+                      href={existingFileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      className="file-link"
                     >
-                      {form.file_url.split("/").pop()}
+                      {existingFileUrl.split("/").pop()}
                     </a>
-                  </p>
+                    <p className="form-help">
+                      Upload a new file to replace the current one
+                    </p>
+                  </div>
                 )}
               </div>
             )}
@@ -258,11 +312,16 @@ const EditLesson = () => {
               type="button"
               className="cancel-btn"
               onClick={() => navigate(-1)}
+              disabled={saving}
             >
               Cancel
             </button>
-            <button type="submit" className="save-btn">
-              Save Changes
+            <button 
+              type="submit" 
+              className="save-btn"
+              disabled={saving}
+            >
+              {saving ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>
