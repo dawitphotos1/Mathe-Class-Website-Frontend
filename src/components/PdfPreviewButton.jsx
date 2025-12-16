@@ -1,5 +1,4 @@
-
-// src/components/PdfPreviewButton.jsx - FINAL FIXED VERSION
+// src/components/PdfPreviewButton.jsx - FINAL WORKING VERSION
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -11,7 +10,8 @@ import {
   IconButton,
   Box,
   CircularProgress,
-  Typography
+  Typography,
+  Alert
 } from '@mui/material';
 import { Close, Download, Visibility, OpenInNew } from '@mui/icons-material';
 
@@ -24,7 +24,7 @@ const PdfPreviewButton = ({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [iframeKey, setIframeKey] = useState(0);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const iframeRef = useRef(null);
   const timeoutRef = useRef(null);
 
@@ -49,6 +49,37 @@ const PdfPreviewButton = ({
     };
   };
 
+  // FIX: Transform Cloudinary URL for preview
+  const getPreviewUrl = (originalUrl) => {
+    if (!originalUrl) return null;
+    
+    console.log('Original URL:', originalUrl);
+    
+    // Check if it's a Cloudinary URL
+    if (originalUrl.includes('cloudinary.com')) {
+      // Transform /raw/upload/ to /image/upload/ for preview
+      if (originalUrl.includes('/raw/upload/')) {
+        // Method 1: Use Google Docs Viewer (most reliable)
+        const googleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(originalUrl)}&embedded=true`;
+        console.log('Using Google Docs Viewer:', googleViewerUrl);
+        return googleViewerUrl;
+        
+        // Method 2: Transform Cloudinary URL (sometimes works)
+        // const previewUrl = originalUrl.replace('/raw/upload/', '/image/upload/fl_attachment/');
+        // console.log('Transformed Cloudinary URL:', previewUrl);
+        // return previewUrl;
+      }
+      
+      // Already an image URL? Add PDF flag
+      if (originalUrl.includes('/image/upload/')) {
+        return `${originalUrl}.pdf`;
+      }
+    }
+    
+    // Non-Cloudinary URL: use Google Docs Viewer
+    return `https://docs.google.com/gview?url=${encodeURIComponent(originalUrl)}&embedded=true`;
+  };
+
   const handlePreviewClick = (e) => {
     if (e) {
       e.preventDefault();
@@ -63,17 +94,42 @@ const PdfPreviewButton = ({
       return;
     }
     
-    console.log('Opening PDF preview:', normalized.fileUrl);
+    console.log('Opening PDF preview for:', normalized.title);
+    console.log('Original URL:', normalized.fileUrl);
+    
     setOpen(true);
     setLoading(true);
     setError(null);
-    setIframeKey(prev => prev + 1);
+    
+    // Get preview URL
+    const preview = getPreviewUrl(normalized.fileUrl);
+    console.log('Preview URL:', preview);
+    
+    if (!preview) {
+      setError('Could not generate preview URL');
+      setLoading(false);
+      return;
+    }
+    
+    setPreviewUrl(preview);
+    
+    // Set timeout to hide loading
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    timeoutRef.current = setTimeout(() => {
+      console.log('Auto-hiding loading spinner');
+      setLoading(false);
+    }, 2000); // Auto-hide after 2 seconds
   };
 
   const handleClose = () => {
     setOpen(false);
     setLoading(false);
     setError(null);
+    setPreviewUrl(null);
+    
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
@@ -101,7 +157,7 @@ const PdfPreviewButton = ({
   };
 
   const handleIframeLoad = () => {
-    console.log('PDF iframe loaded successfully');
+    console.log('✅ PDF viewer loaded successfully');
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
@@ -109,34 +165,12 @@ const PdfPreviewButton = ({
   };
 
   const handleIframeError = (e) => {
-    console.error('Iframe loading error:', e);
+    console.error('❌ Iframe loading error:', e);
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    setError('Failed to load the PDF document. It may be inaccessible.');
+    setError('Failed to load PDF viewer. Try opening in a new tab.');
     setLoading(false);
-  };
-
-  const handleIframeLoadStart = () => {
-    console.log('PDF loading started...');
-    
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    
-    timeoutRef.current = setTimeout(() => {
-      console.warn('PDF loading timeout - checking iframe state');
-      setLoading(false);
-      
-      try {
-        const iframe = iframeRef.current;
-        if (iframe && iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
-          console.log('Iframe content is ready');
-        }
-      } catch (err) {
-        console.log('Cannot access iframe due to security restrictions');
-      }
-    }, 10000);
   };
 
   const handleOpenInNewTab = () => {
@@ -275,10 +309,10 @@ const PdfPreviewButton = ({
             }}>
               <CircularProgress size={60} />
               <Typography variant="body1" sx={{ mt: 2 }}>
-                Loading PDF...
+                Loading PDF Viewer...
               </Typography>
               <Typography variant="caption" color="textSecondary" sx={{ mt: 1 }}>
-                This may take a moment
+                Using Google Docs Viewer for preview
               </Typography>
             </Box>
           )}
@@ -293,56 +327,53 @@ const PdfPreviewButton = ({
               justifyContent: 'center',
               alignItems: 'center'
             }}>
-              <Typography variant="h6" color="error" gutterBottom>
-                Unable to Load PDF
-              </Typography>
-              <Typography variant="body2" color="textSecondary" paragraph>
-                {error}
-              </Typography>
+              <Alert severity="error" sx={{ mb: 2, maxWidth: '400px' }}>
+                <Typography variant="h6" gutterBottom>
+                  Preview Failed
+                </Typography>
+                <Typography variant="body2">
+                  {error}
+                </Typography>
+              </Alert>
               <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                 <Button 
                   variant="contained" 
                   onClick={handleOpenInNewTab}
                   startIcon={<OpenInNew />}
                 >
-                  Open in New Tab
+                  Open Original in New Tab
                 </Button>
                 <Button 
                   variant="outlined" 
-                  onClick={() => {
-                    setError(null);
-                    setLoading(true);
-                    setIframeKey(prev => prev + 1);
-                  }}
+                  onClick={handlePreviewClick}
                 >
-                  Retry
+                  Try Preview Again
                 </Button>
               </Box>
             </Box>
           )}
 
-          {/* The fixed iframe with allow-downloads sandbox permission */}
-          <iframe
-            key={iframeKey}
-            ref={iframeRef}
-            src={normalizedLesson.fileUrl}
-            title={`PDF Preview - ${normalizedLesson.title}`}
-            style={{
-              width: '100%',
-              height: '100%',
-              minHeight: '70vh',
-              border: 'none',
-              display: loading || error ? 'none' : 'block',
-              visibility: loading || error ? 'hidden' : 'visible'
-            }}
-            onLoad={handleIframeLoad}
-            onError={handleIframeError}
-            onLoadStart={handleIframeLoadStart}
-            sandbox="allow-same-origin allow-scripts allow-popups allow-downloads"
-            allow="fullscreen"
-            referrerPolicy="no-referrer"
-            loading="eager"
-          />
+          {/* PDF Preview Iframe */}
+          {previewUrl && !error && (
+            <iframe
+              ref={iframeRef}
+              src={previewUrl}
+              title={`PDF Preview - ${normalizedLesson.title}`}
+              style={{
+                width: '100%',
+                height: '100%',
+                minHeight: '70vh',
+                border: 'none',
+                display: 'block'
+              }}
+              onLoad={handleIframeLoad}
+              onError={handleIframeError}
+              sandbox="allow-same-origin allow-scripts allow-popups"
+              allow="fullscreen"
+              referrerPolicy="no-referrer"
+              loading="eager"
+            />
+          )}
         </DialogContent>
 
         <DialogActions sx={{ 
@@ -354,9 +385,16 @@ const PdfPreviewButton = ({
           flexWrap: 'wrap',
           gap: 1
         }}>
-          <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.75rem' }}>
-            {normalizedLesson.fileUrl ? `Source: ${normalizedLesson.fileUrl.split('/').pop()}` : ''}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.75rem' }}>
+              Preview via Google Docs Viewer
+            </Typography>
+            {normalizedLesson.fileUrl.includes('cloudinary.com') && (
+              <Typography variant="caption" color="info.main" sx={{ fontSize: '0.7rem', ml: 1 }}>
+                (Cloudinary file)
+              </Typography>
+            )}
+          </Box>
           
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
             <Button
@@ -366,7 +404,7 @@ const PdfPreviewButton = ({
               color="primary"
               size="medium"
             >
-              Download
+              Download Original
             </Button>
             <Button 
               onClick={handleOpenInNewTab}

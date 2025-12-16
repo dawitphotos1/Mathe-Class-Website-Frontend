@@ -1,4 +1,3 @@
-
 // src/App.jsx - UPDATED VERSION with Debug Component
 import React, { Suspense, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -118,10 +117,10 @@ const RoleBasedRedirect = () => {
 const DebugWrapper = ({ children }) => {
   const [showDebug, setShowDebug] = useState(false);
   const { user } = useAuth();
-  
+
   // Only show debug for teachers/admins
   const isTeacherOrAdmin = user?.role === "teacher" || user?.role === "admin";
-  
+
   if (!isTeacherOrAdmin) {
     return children;
   }
@@ -129,94 +128,109 @@ const DebugWrapper = ({ children }) => {
   return (
     <>
       {children}
-      
+
       {/* Debug button - bottom right corner */}
       <button
         onClick={() => setShowDebug(!showDebug)}
         style={{
-          position: 'fixed',
-          bottom: '20px',
-          right: '20px',
-          backgroundColor: showDebug ? '#ff4444' : '#4CAF50',
-          color: 'white',
-          border: 'none',
-          borderRadius: '50%',
-          width: '50px',
-          height: '50px',
-          fontSize: '24px',
-          cursor: 'pointer',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
-          zIndex: 9999
+          position: "fixed",
+          bottom: "20px",
+          right: "20px",
+          backgroundColor: showDebug ? "#ff4444" : "#4CAF50",
+          color: "white",
+          border: "none",
+          borderRadius: "50%",
+          width: "50px",
+          height: "50px",
+          fontSize: "24px",
+          cursor: "pointer",
+          boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
+          zIndex: 9999,
         }}
         title="Toggle Debug Panel"
       >
-        {showDebug ? '×' : '🐛'}
+        {showDebug ? "×" : "🐛"}
       </button>
-      
+
       {/* Debug panel */}
       {showDebug && (
-        <div style={{
-          position: 'fixed',
-          bottom: '80px',
-          right: '20px',
-          width: '400px',
-          maxHeight: '500px',
-          backgroundColor: 'white',
-          border: '1px solid #ddd',
-          borderRadius: '8px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-          zIndex: 9998,
-          padding: '15px',
-          overflow: 'auto'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+        <div
+          style={{
+            position: "fixed",
+            bottom: "80px",
+            right: "20px",
+            width: "400px",
+            maxHeight: "500px",
+            backgroundColor: "white",
+            border: "1px solid #ddd",
+            borderRadius: "8px",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+            zIndex: 9998,
+            padding: "15px",
+            overflow: "auto",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "15px",
+            }}
+          >
             <h3 style={{ margin: 0 }}>Debug Panel</h3>
-            <button 
+            <button
               onClick={() => setShowDebug(false)}
               style={{
-                background: 'none',
-                border: 'none',
-                fontSize: '20px',
-                cursor: 'pointer',
-                color: '#666'
+                background: "none",
+                border: "none",
+                fontSize: "20px",
+                cursor: "pointer",
+                color: "#666",
               }}
             >
               ×
             </button>
           </div>
-          
+
           <DebugLessonData lessonId={5788} />
-          
-          <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #eee' }}>
+
+          <div
+            style={{
+              marginTop: "15px",
+              paddingTop: "15px",
+              borderTop: "1px solid #eee",
+            }}
+          >
             <h4>Quick Actions:</h4>
-            <button 
+            <button
               onClick={() => {
                 console.clear();
-                console.log('🧹 Console cleared');
+                console.log("🧹 Console cleared");
               }}
               style={{
-                backgroundColor: '#f0f0f0',
-                border: '1px solid #ddd',
-                padding: '8px 12px',
-                borderRadius: '4px',
-                marginRight: '8px',
-                cursor: 'pointer'
+                backgroundColor: "#f0f0f0",
+                border: "1px solid #ddd",
+                padding: "8px 12px",
+                borderRadius: "4px",
+                marginRight: "8px",
+                cursor: "pointer",
               }}
             >
               Clear Console
             </button>
-            
-            <button 
+
+            <button
               onClick={() => {
-                localStorage.removeItem('token');
+                localStorage.removeItem("token");
                 window.location.reload();
               }}
               style={{
-                backgroundColor: '#ffebee',
-                border: '1px solid #ffcdd2',
-                padding: '8px 12px',
-                borderRadius: '4px',
-                cursor: 'pointer'
+                backgroundColor: "#ffebee",
+                border: "1px solid #ffcdd2",
+                padding: "8px 12px",
+                borderRadius: "4px",
+                cursor: "pointer",
               }}
             >
               Logout & Refresh
@@ -238,7 +252,7 @@ function AppContent() {
       <ErrorBoundary>
         <Navbar />
 
-        <main style={{ minHeight: 'calc(100vh - 200px)' }}>
+        <main style={{ minHeight: "calc(100vh - 200px)" }}>
           <Suspense fallback={<Loading />}>
             <Routes>
               {/* PUBLIC ROUTES */}
@@ -269,7 +283,10 @@ function AppContent() {
               <Route path="/courses/:slug" element={<CourseDetail />} />
 
               {/* PUBLIC PREVIEW */}
-              <Route path="/preview/:lessonId" element={<PreviewLessonPage />} />
+              <Route
+                path="/preview/:lessonId"
+                element={<PreviewLessonPage />}
+              />
               <Route
                 path="/courses/:courseId/preview"
                 element={<PreviewLessonPage />}
@@ -279,7 +296,9 @@ function AppContent() {
               <Route
                 path="/lessons/:lessonId/preview"
                 element={
-                  <ProtectedRoute allowedRoles={["teacher", "student", "admin"]}>
+                  <ProtectedRoute
+                    allowedRoles={["teacher", "student", "admin"]}
+                  >
                     <PreviewLesson />
                   </ProtectedRoute>
                 }
@@ -300,7 +319,10 @@ function AppContent() {
               >
                 <Route index element={<AdminDashboard />} />
                 <Route path="pending-students" element={<PendingStudents />} />
-                <Route path="pending-enrollments" element={<PendingEnrollments />} />
+                <Route
+                  path="pending-enrollments"
+                  element={<PendingEnrollments />}
+                />
                 <Route path="manage-courses" element={<ManageCourses />} />
                 <Route path="manage-users" element={<ManageUsers />} />
                 <Route path="lesson-logs" element={<AdminLessonLogs />} />
@@ -318,7 +340,7 @@ function AppContent() {
                   </ProtectedRoute>
                 }
               />
-              
+
               <Route
                 path="/create-course"
                 element={
@@ -335,13 +357,13 @@ function AppContent() {
                   </ProtectedRoute>
                 }
               />
-              <Route 
-                path="/courses/:courseId/edit" 
+              <Route
+                path="/courses/:courseId/edit"
                 element={
                   <ProtectedRoute allowedRoles={["teacher", "admin"]}>
                     <EditCourse />
                   </ProtectedRoute>
-                } 
+                }
               />
               <Route
                 path="/courses/:courseId/manage-lessons"
@@ -359,69 +381,75 @@ function AppContent() {
                   </ProtectedRoute>
                 }
               />
-              <Route 
-                path="/lessons/:lessonId/edit" 
+              <Route
+                path="/lessons/:lessonId/edit"
                 element={
                   <ProtectedRoute allowedRoles={["teacher", "admin"]}>
                     <EditLesson />
                   </ProtectedRoute>
-                } 
+                }
               />
 
               {/* STUDENT */}
-              <Route 
-                path="/my-courses" 
+              <Route
+                path="/my-courses"
                 element={
-                  <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
+                  <ProtectedRoute
+                    allowedRoles={["student", "teacher", "admin"]}
+                  >
                     <MyCoursesPage />
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/courses/:courseId/view" 
+              <Route
+                path="/courses/:courseId/view"
                 element={
-                  <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
+                  <ProtectedRoute
+                    allowedRoles={["student", "teacher", "admin"]}
+                  >
                     <CourseViewer />
                   </ProtectedRoute>
-                } 
+                }
               />
               <Route
                 path="/courses/:courseId/view-lessons"
                 element={
-                  <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
+                  <ProtectedRoute
+                    allowedRoles={["student", "teacher", "admin"]}
+                  >
                     <CourseLessons />
                   </ProtectedRoute>
                 }
               />
-              <Route 
-                path="/profile" 
+              <Route
+                path="/profile"
                 element={
                   <ProtectedRoute>
                     <Profile />
                   </ProtectedRoute>
-                } 
+                }
               />
 
               {/* PAYMENTS */}
-              <Route 
-                path="/payment/:courseId" 
+              <Route
+                path="/payment/:courseId"
                 element={
                   <ProtectedRoute allowedRoles={["student"]}>
                     <PaymentPage />
                   </ProtectedRoute>
-                } 
+                }
               />
-              <Route 
-                path="/payment-success" 
+              <Route
+                path="/payment-success"
                 element={
                   <ProtectedRoute allowedRoles={["student"]}>
                     <PaymentSuccess />
                   </ProtectedRoute>
-                } 
+                }
               />
               <Route path="/payment-cancel" element={<PaymentCancel />} />
               <Route path="/cancel" element={<Cancel />} />
-              
+
               {/* UNAUTHORIZED */}
               <Route path="/unauthorized" element={<Unauthorized />} />
 
@@ -430,21 +458,29 @@ function AppContent() {
             </Routes>
           </Suspense>
         </main>
-        
+
         {/* Toast Container */}
         <FixedToastContainer />
-        
+
         {/* Footer */}
-        <footer style={{ 
-          marginTop: '3rem',
-          padding: '2rem',
-          backgroundColor: '#f8f9fa',
-          textAlign: 'center',
-          borderTop: '1px solid #dee2e6'
-        }}>
-          <p>© {new Date().getFullYear()} Math Class Platform. All rights reserved.</p>
-          <p style={{ fontSize: '0.9rem', color: '#6c757d' }}>
-            <a href="/contact" style={{ color: '#6c757d', textDecoration: 'none' }}>
+        <footer
+          style={{
+            marginTop: "3rem",
+            padding: "2rem",
+            backgroundColor: "#f8f9fa",
+            textAlign: "center",
+            borderTop: "1px solid #dee2e6",
+          }}
+        >
+          <p>
+            © {new Date().getFullYear()} Math Class Platform. All rights
+            reserved.
+          </p>
+          <p style={{ fontSize: "0.9rem", color: "#6c757d" }}>
+            <a
+              href="/contact"
+              style={{ color: "#6c757d", textDecoration: "none" }}
+            >
               Contact Support
             </a>
           </p>
