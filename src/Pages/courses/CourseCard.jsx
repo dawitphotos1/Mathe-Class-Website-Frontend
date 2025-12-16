@@ -207,8 +207,7 @@
 
 
 
-
-// src/pages/courses/CourseCard.jsx - FIXED VERSION
+// src/pages/courses/CourseCard.jsx - UPDATED VERSION
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -223,9 +222,18 @@ import {
   Typography,
   CircularProgress,
   Button,
-  Alert
+  Alert,
+  Chip
 } from "@mui/material";
-import { Close, Download, OpenInNew, PictureAsPdf } from "@mui/icons-material";
+import {
+  Close,
+  Download,
+  OpenInNew,
+  PictureAsPdf,
+  Visibility,
+  PlayCircle,
+  Article
+} from "@mui/icons-material";
 import "./CourseCard.css";
 
 const CourseCard = ({ course, onCourseDeleted }) => {
@@ -267,7 +275,7 @@ const CourseCard = ({ course, onCourseDeleted }) => {
     return () => (isMounted = false);
   }, [user, course?.id]);
 
-  // Load preview lesson - FIXED FOR STUDENT VIEW
+  // Load preview lesson - OPTIMIZED VERSION
   useEffect(() => {
     const findPreviewLesson = async () => {
       if (!course?.id) {
@@ -275,156 +283,139 @@ const CourseCard = ({ course, onCourseDeleted }) => {
         return;
       }
       
-      // If we already found a preview lesson in course data, use it
+      console.log("🔍 Looking for preview lesson for course:", course.title);
+      
+      // Strategy 1: Check if course already has preview lesson data
       if (course.preview_lesson || course.previewLesson) {
-        console.log("Found preview lesson in course data:", course.preview_lesson || course.previewLesson);
+        console.log("✅ Found preview in course data");
         setPreviewLesson(course.preview_lesson || course.previewLesson);
         return;
       }
       
-      // Try to find preview in the course structure
+      // Strategy 2: Check course.lessons array
       if (course.lessons && Array.isArray(course.lessons)) {
         const preview = course.lessons.find(lesson => 
           lesson.is_preview && (lesson.file_url || lesson.fileUrl)
         );
         if (preview) {
-          console.log("Found preview in course.lessons:", preview);
+          console.log("✅ Found preview in lessons array");
           setPreviewLesson(preview);
           return;
         }
       }
       
-      // If not found, fetch course preview data
+      // Strategy 3: Fetch preview data from API
       try {
         setCheckingPreview(true);
-        console.log("Fetching preview for course ID:", course.id);
         
-        // Try different endpoints for preview data
-        let previewData = null;
+        let previewFound = false;
         
+        // Try the dedicated preview endpoint first
         try {
-          // Try public preview endpoint first
-          const res = await axiosInstance.get(`/courses/${course.id}/preview`);
-          previewData = res.data;
-          console.log("Got preview from /preview endpoint:", previewData);
-        } catch (err) {
-          console.log("/preview endpoint failed, trying /full:", err.message);
+          console.log("🔄 Trying /courses/:id/preview-lesson endpoint");
+          const previewResponse = await axiosInstance.get(
+            `/courses/${course.id}/preview-lesson`,
+            { timeout: 5000 }
+          );
           
-          // Try full course endpoint (might require auth)
-          if (isAuthenticated) {
-            try {
-              const res = await axiosInstance.get(`/courses/${course.id}/full`);
-              previewData = res.data.course || res.data;
-              console.log("Got preview from /full endpoint:", previewData);
-            } catch (fullErr) {
-              console.log("/full endpoint failed:", fullErr.message);
-            }
+          if (previewResponse.data.success && previewResponse.data.lesson) {
+            console.log("✅ Found preview via preview-lesson endpoint");
+            setPreviewLesson(previewResponse.data.lesson);
+            previewFound = true;
           }
+        } catch (previewErr) {
+          console.log("⚠️ /preview-lesson failed:", previewErr.message);
         }
         
-        // Look for preview lesson in the fetched data
-        if (previewData) {
-          // Check various possible structures
-          const findLessonInData = (data) => {
-            // Direct preview_lesson property
-            if (data.preview_lesson && (data.preview_lesson.file_url || data.preview_lesson.fileUrl)) {
-              return data.preview_lesson;
-            }
+        // If no preview found, try to get lessons list
+        if (!previewFound) {
+          try {
+            console.log("🔄 Trying /courses/:id/lessons endpoint");
+            const lessonsResponse = await axiosInstance.get(
+              `/courses/${course.id}/lessons`,
+              { timeout: 5000 }
+            );
             
-            // Check lessons array
-            if (data.lessons && Array.isArray(data.lessons)) {
-              const previewLesson = data.lessons.find(lesson => 
-                lesson.is_preview && (lesson.file_url || lesson.fileUrl)
+            if (lessonsResponse.data.success && lessonsResponse.data.lessons) {
+              // Find a preview lesson
+              const previewLesson = lessonsResponse.data.lessons.find(
+                lesson => lesson.is_preview
               );
-              if (previewLesson) return previewLesson;
-            }
-            
-            // Check units -> lessons structure
-            if (data.units && Array.isArray(data.units)) {
-              for (const unit of data.units) {
-                if (unit.lessons && Array.isArray(unit.lessons)) {
-                  const previewLesson = unit.lessons.find(lesson => 
-                    lesson.is_preview && (lesson.file_url || lesson.fileUrl)
-                  );
-                  if (previewLesson) return previewLesson;
-                }
+              
+              if (previewLesson) {
+                console.log("✅ Found preview lesson in lessons list");
+                setPreviewLesson(previewLesson);
+              } else if (lessonsResponse.data.lessons.length > 0) {
+                // Fallback to first lesson
+                console.log("📋 Using first lesson as fallback preview");
+                setPreviewLesson(lessonsResponse.data.lessons[0]);
               }
             }
-            
-            return null;
-          };
-          
-          const foundLesson = findLessonInData(previewData);
-          if (foundLesson) {
-            console.log("Found preview lesson:", foundLesson);
-            setPreviewLesson(foundLesson);
-          } else {
-            console.log("No preview lesson found in data");
-            setPreviewLesson(null);
+          } catch (lessonsErr) {
+            console.log("⚠️ /lessons endpoint failed:", lessonsErr.message);
           }
-        } else {
-          console.log("No preview data available");
-          setPreviewLesson(null);
         }
         
       } catch (error) {
-        console.error("Error finding preview lesson:", error);
-        setPreviewLesson(null);
+        console.error("❌ Error finding preview lesson:", error);
       } finally {
         setCheckingPreview(false);
       }
     };
 
-    findPreviewLesson();
-  }, [course?.id, isAuthenticated, course]);
+    // Add a small delay to prevent too many requests
+    const timer = setTimeout(() => {
+      findPreviewLesson();
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [course?.id, course]);
 
   // Get display price
   const getDisplayPrice = () => {
     if (!course) return "0.00";
-
-    const price = course.price;
     
-    if (price === undefined || price === null) {
+    if (course.price === undefined || course.price === null) {
       return "0.00";
     }
 
-    return parseFloat(price).toFixed(2);
+    const price = parseFloat(course.price);
+    return isNaN(price) ? "0.00" : price.toFixed(2);
   };
 
   const displayPrice = getDisplayPrice();
 
-  // Handle Free Preview Click - SIMPLIFIED VERSION
+  // Handle Free Preview Click - SIMPLIFIED AND RELIABLE
   const handleFreePreview = async () => {
-    console.log("Free Preview clicked for course:", course.title);
+    console.log("🎬 Free Preview clicked for:", course.title);
     
-    if (!previewLesson) {
-      console.log("No preview lesson available");
-      toast.info("No preview content available for this course yet.");
+    // If we already have a preview lesson, use it
+    if (previewLesson && (previewLesson.file_url || previewLesson.fileUrl)) {
+      openPreviewDialog(previewLesson);
       return;
     }
     
-    console.log("Preview lesson found:", previewLesson);
-    
-    // Get the file URL from the lesson
-    const fileUrl = previewLesson.file_url || previewLesson.fileUrl;
+    // Otherwise, navigate to the preview page
+    navigate(`/courses/${course.id}/preview`);
+  };
+
+  const openPreviewDialog = (lesson) => {
+    const fileUrl = lesson.file_url || lesson.fileUrl;
     
     if (!fileUrl) {
-      console.error("No file URL in preview lesson");
-      toast.error("Preview file not found.");
+      toast.error("Preview file not available");
       return;
     }
     
-    console.log("Opening preview with file URL:", fileUrl);
-    
-    setPreviewOpen(true);
+    setPreviewLesson(lesson);
     setPreviewLoading(true);
     setPreviewError(null);
     
-    // Generate Google Docs Viewer URL for preview
+    // Use Google Docs Viewer for better compatibility
     try {
       const googleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(fileUrl)}&embedded=true`;
-      console.log("Google Docs Viewer URL:", googleViewerUrl);
       setPreviewUrl(googleViewerUrl);
+      setPreviewOpen(true);
       
       // Auto-hide loading after timeout
       setTimeout(() => {
@@ -432,7 +423,7 @@ const CourseCard = ({ course, onCourseDeleted }) => {
       }, 2000);
     } catch (error) {
       console.error("Error creating preview URL:", error);
-      setPreviewError("Failed to create preview. Please try again.");
+      setPreviewError("Failed to load preview");
       setPreviewLoading(false);
     }
   };
@@ -450,11 +441,12 @@ const CourseCard = ({ course, onCourseDeleted }) => {
       if (fileUrl) {
         const a = document.createElement('a');
         a.href = fileUrl;
-        a.download = `${previewLesson.title.replace(/[^a-z0-9]/gi, '_') || 'preview'}.pdf`;
+        a.download = `${previewLesson.title?.replace(/[^a-z0-9]/gi, '_') || 'preview'}.pdf`;
         a.target = '_blank';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+        toast.success("Download started");
       }
     }
   };
@@ -469,12 +461,12 @@ const CourseCard = ({ course, onCourseDeleted }) => {
   };
 
   const handleIframeLoad = () => {
-    console.log('✅ Preview loaded successfully');
+    console.log('✅ Preview iframe loaded');
     setPreviewLoading(false);
   };
 
   const handleIframeError = (e) => {
-    console.error('❌ Preview loading error:', e);
+    console.error('❌ Preview iframe error:', e);
     setPreviewError('Failed to load preview. Try opening in a new tab.');
     setPreviewLoading(false);
   };
@@ -521,7 +513,7 @@ const CourseCard = ({ course, onCourseDeleted }) => {
       "Algebra 1": "/images/math-logos/algebra1.jpeg",
       "Algebra 2": "/images/math-logos/algebra2.png",
       "Pre-Calculus": "/images/math-logos/Pre-calculus.jpeg",
-      Calculus: "/images/math-logos/Calculus.jpeg",
+      "Calculus": "/images/math-logos/Calculus.jpeg",
       "Geometry & Trigonometry": "/images/math-logos/geometry.jpeg",
       "Statistics & Probability": "/images/math-logos/statistic.png",
     };
@@ -529,11 +521,33 @@ const CourseCard = ({ course, onCourseDeleted }) => {
     return images[courseTitle] || "/images/default-course.jpg";
   };
 
-  // Debug: Log course data
-  useEffect(() => {
-    console.log("Course data for", course?.title, ":", course);
-    console.log("Preview lesson state:", previewLesson);
-  }, [course, previewLesson]);
+  // Get preview button text based on content type
+  const getPreviewButtonText = () => {
+    if (checkingPreview) return "Checking...";
+    if (!previewLesson) return "Free Preview";
+    
+    const contentType = previewLesson.content_type || previewLesson.contentType;
+    switch(contentType?.toLowerCase()) {
+      case 'pdf': return "📄 PDF Preview";
+      case 'video': return "🎬 Video Preview";
+      case 'text': return "📖 Text Preview";
+      default: return "👀 Free Preview";
+    }
+  };
+
+  // Get preview icon
+  const getPreviewIcon = () => {
+    if (checkingPreview) return <CircularProgress size={16} sx={{ mr: 1, color: 'inherit' }} />;
+    if (!previewLesson) return <Visibility sx={{ mr: 1, fontSize: '18px' }} />;
+    
+    const contentType = previewLesson.content_type || previewLesson.contentType;
+    switch(contentType?.toLowerCase()) {
+      case 'pdf': return <PictureAsPdf sx={{ mr: 1, fontSize: '18px' }} />;
+      case 'video': return <PlayCircle sx={{ mr: 1, fontSize: '18px' }} />;
+      case 'text': return <Article sx={{ mr: 1, fontSize: '18px' }} />;
+      default: return <Visibility sx={{ mr: 1, fontSize: '18px' }} />;
+    }
+  };
 
   return (
     <div className="course-card">
@@ -547,7 +561,34 @@ const CourseCard = ({ course, onCourseDeleted }) => {
           }}
         />
         
-        {isEnrolled && <div className="enrolled-badge">Enrolled</div>}
+        {isEnrolled && (
+          <Chip
+            label="Enrolled"
+            size="small"
+            color="success"
+            sx={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              fontWeight: 'bold'
+            }}
+          />
+        )}
+        
+        {previewLesson?.is_preview && (
+          <Chip
+            label="Preview Available"
+            size="small"
+            color="primary"
+            sx={{
+              position: 'absolute',
+              top: '10px',
+              left: '10px',
+              fontWeight: 'bold',
+              backgroundColor: '#2196f3'
+            }}
+          />
+        )}
       </div>
 
       <div className="course-content">
@@ -571,26 +612,25 @@ const CourseCard = ({ course, onCourseDeleted }) => {
           <button 
             className="preview-btn"
             onClick={handleFreePreview}
-            disabled={checkingPreview || !previewLesson}
+            disabled={checkingPreview}
           >
-            {checkingPreview ? (
-              <>
-                <CircularProgress size={16} style={{ marginRight: '8px', color: 'white' }} />
-                Checking...
-              </>
-            ) : previewLesson ? (
-              <>
-                <PictureAsPdf style={{ marginRight: '8px', fontSize: '18px' }} />
-                Free PDF Preview
-              </>
-            ) : (
-              "🎬 Free Preview"
-            )}
+            {getPreviewIcon()}
+            {getPreviewButtonText()}
           </button>
+          
           <p className="preview-note">
             {previewLesson 
-              ? "Preview course materials before enrolling" 
-              : "No PDF preview available yet"}
+              ? (() => {
+                  const contentType = previewLesson.content_type || previewLesson.contentType;
+                  switch(contentType?.toLowerCase()) {
+                    case 'pdf': return "Preview PDF materials before enrolling";
+                    case 'video': return "Watch preview video before enrolling";
+                    case 'text': return "Read preview content before enrolling";
+                    default: return "Preview course materials before enrolling";
+                  }
+                })()
+              : "Click to view course preview"
+            }
           </p>
         </div>
 
@@ -631,9 +671,8 @@ const CourseCard = ({ course, onCourseDeleted }) => {
           sx: {
             minHeight: '70vh',
             maxHeight: '85vh',
-            '& .MuiDialogContent-root': {
-              padding: 0
-            }
+            borderRadius: '12px',
+            overflow: 'hidden'
           }
         }}
       >
@@ -646,9 +685,11 @@ const CourseCard = ({ course, onCourseDeleted }) => {
           borderBottom: '1px solid #e0e0e0',
           backgroundColor: '#f5f5f5'
         }}>
-          <Box component="div" sx={{ flex: 1 }}>
+          <Box sx={{ flex: 1 }}>
             <Typography variant="h6" noWrap>
-              📄 {previewLesson?.title || 'Course Preview'}
+              {previewLesson?.content_type === 'video' ? '🎬' : '📄'} 
+              {' '}
+              {previewLesson?.title || 'Course Preview'}
             </Typography>
             <Typography variant="caption" color="textSecondary">
               {course.title} • Free Preview
@@ -716,16 +757,16 @@ const CourseCard = ({ course, onCourseDeleted }) => {
                 </Button>
                 <Button 
                   variant="outlined" 
-                  onClick={handleFreePreview}
+                  onClick={() => navigate(`/courses/${course.id}/preview`)}
                 >
-                  Try Again
+                  Go to Full Preview Page
                 </Button>
               </Box>
             </Box>
           )}
 
           {/* PDF Preview Iframe */}
-          {previewUrl && !previewError && (
+          {previewUrl && !previewError && !previewLoading && (
             <iframe
               src={previewUrl}
               title={`PDF Preview - ${previewLesson?.title || 'Course Preview'}`}
@@ -738,7 +779,7 @@ const CourseCard = ({ course, onCourseDeleted }) => {
               }}
               onLoad={handleIframeLoad}
               onError={handleIframeError}
-              sandbox="allow-same-origin allow-scripts allow-popups"
+              sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
               allow="fullscreen"
               referrerPolicy="no-referrer"
               loading="eager"
@@ -756,11 +797,20 @@ const CourseCard = ({ course, onCourseDeleted }) => {
           gap: 1,
           backgroundColor: '#f5f5f5'
         }}>
-          <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.75rem' }}>
-            {previewLesson 
-              ? `Previewing: ${previewLesson.title}` 
-              : 'Course Material Preview'}
-          </Typography>
+          <Box>
+            <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.75rem' }}>
+              {previewLesson 
+                ? `Previewing: ${previewLesson.title}` 
+                : 'Course Material Preview'}
+            </Typography>
+            {previewLesson?.content_type && (
+              <Chip 
+                label={previewLesson.content_type.toUpperCase()}
+                size="small"
+                sx={{ ml: 1 }}
+              />
+            )}
+          </Box>
           
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
             <Button
@@ -781,6 +831,13 @@ const CourseCard = ({ course, onCourseDeleted }) => {
               disabled={!previewLesson}
             >
               Open Full
+            </Button>
+            <Button 
+              onClick={() => navigate(`/courses/${course.id}/preview`)}
+              variant="text"
+              size="small"
+            >
+              Full Preview Page
             </Button>
             <Button 
               onClick={handleClosePreview} 
