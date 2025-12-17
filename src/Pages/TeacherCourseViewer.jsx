@@ -1,4 +1,3 @@
-
 // src/pages/teachers/TeacherCourseViewer.jsx - COMPLETE VERSION
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -27,7 +26,7 @@ import {
 const TeacherCourseViewer = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
-
+  
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -37,7 +36,7 @@ const TeacherCourseViewer = () => {
       try {
         setLoading(true);
         const response = await axiosInstance.get(`/courses/id/${courseId}`);
-
+        
         if (response.data.success) {
           setCourse(response.data.course);
         } else {
@@ -101,17 +100,21 @@ const TeacherCourseViewer = () => {
             <Typography variant="body1" paragraph>
               {course.description || "No description available"}
             </Typography>
-
+            
             <Grid container spacing={2} sx={{ mt: 2 }}>
               <Grid item>
-                <Chip label="Teacher View" color="primary" variant="outlined" />
+                <Chip 
+                  label="Teacher View" 
+                  color="primary" 
+                  variant="outlined" 
+                />
               </Grid>
               {course.price && (
                 <Grid item>
-                  <Chip
-                    label={`Price: $${parseFloat(course.price).toFixed(2)}`}
-                    color="secondary"
-                    variant="outlined"
+                  <Chip 
+                    label={`Price: $${parseFloat(course.price).toFixed(2)}`} 
+                    color="secondary" 
+                    variant="outlined" 
                   />
                 </Grid>
               )}
@@ -130,9 +133,7 @@ const TeacherCourseViewer = () => {
                   </Typography>
                   <Button
                     variant="contained"
-                    onClick={() =>
-                      navigate(`/courses/${courseId}/manage-lessons`)
-                    }
+                    onClick={() => navigate(`/courses/${courseId}/manage-lessons`)}
                     startIcon={<Edit />}
                     fullWidth
                     sx={{ mt: 2 }}
@@ -154,9 +155,7 @@ const TeacherCourseViewer = () => {
                   </Typography>
                   <Button
                     variant="outlined"
-                    onClick={() =>
-                      navigate(`/courses/${course.slug || courseId}`)
-                    }
+                    onClick={() => navigate(`/courses/${course.slug || courseId}`)}
                     startIcon={<Description />}
                     fullWidth
                     sx={{ mt: 2 }}

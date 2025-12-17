@@ -1,217 +1,4 @@
-// // src/pages/PreviewLessonPage.jsx
-
-// import React, { useState, useEffect } from "react";
-// import { useParams, useNavigate, useLocation } from "react-router-dom";
-// import { toast } from "react-toastify";
-// import axiosInstance from "../utils/axiosInstance";
-// import "./PreviewLessonPage.css";
-
-// const PreviewLessonPage = () => {
-//   const { lessonId } = useParams();
-//   const navigate = useNavigate();
-//   const location = useLocation();
-//   const [lesson, setLesson] = useState(null);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState("");
-
-//   useEffect(() => {
-//     fetchPreviewLesson();
-//   }, [lessonId]);
-
-//   const fetchPreviewLesson = async () => {
-//     try {
-//       setLoading(true);
-//       setError("");
-
-//       // If lesson data was passed via state, use it
-//       if (location.state?.lesson) {
-//         setLesson(location.state.lesson);
-//         setLoading(false);
-//         return;
-//       }
-
-//       // Otherwise fetch from API
-//       console.log(`Fetching lesson ${lessonId} for preview...`);
-//       const response = await axiosInstance.get(`/lessons/${lessonId}`);
-
-//       if (response.data.success) {
-//         setLesson(response.data.lesson);
-//       } else {
-//         setError(response.data.error || "Failed to load preview");
-//       }
-//     } catch (error) {
-//       console.error("Error loading preview:", error);
-//       setError("Unable to load the preview lesson. Please try again.");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const handleBackToCourses = () => {
-//     navigate("/courses");
-//   };
-
-//   const handleEnrollNow = () => {
-//     if (lesson?.course?.id) {
-//       navigate(`/payment/${lesson.course.id}`);
-//     } else {
-//       navigate("/courses");
-//     }
-//   };
-
-//   const renderLessonContent = () => {
-//     if (!lesson) return null;
-
-//     switch (lesson.content_type) {
-//       case "video":
-//         return (
-//           <div className="video-container">
-//             {lesson.video_url ? (
-//               <video controls className="lesson-video">
-//                 <source src={lesson.video_url} type="video/mp4" />
-//                 Your browser does not support the video tag.
-//               </video>
-//             ) : (
-//               <div className="no-content">
-//                 No video available for this lesson.
-//               </div>
-//             )}
-//           </div>
-//         );
-
-//       case "pdf":
-//         return (
-//           <div className="pdf-container">
-//             {lesson.file_url ? (
-//               <iframe
-//                 src={lesson.file_url}
-//                 title={lesson.title}
-//                 className="lesson-pdf"
-//               />
-//             ) : (
-//               <div className="no-content">
-//                 No PDF available for this lesson.
-//               </div>
-//             )}
-//           </div>
-//         );
-
-//       case "text":
-//       default:
-//         return (
-//           <div className="text-content">
-//             {lesson.content ? (
-//               <div dangerouslySetInnerHTML={{ __html: lesson.content }} />
-//             ) : (
-//               <div className="no-content">
-//                 No content available for this lesson.
-//               </div>
-//             )}
-//           </div>
-//         );
-//     }
-//   };
-
-//   if (loading) {
-//     return (
-//       <div className="preview-container">
-//         <div className="loading">
-//           <div className="spinner"></div>
-//           <p>Loading preview...</p>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <div className="preview-container">
-//         <div className="error-message">
-//           <h2>⚠️ Preview Unavailable</h2>
-//           <p>{error}</p>
-//           <button onClick={handleBackToCourses} className="btn-back">
-//             Back to Courses
-//           </button>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   if (!lesson) {
-//     return (
-//       <div className="preview-container">
-//         <div className="error-message">
-//           <h2>No Preview Found</h2>
-//           <p>This lesson preview is not available.</p>
-//           <button onClick={handleBackToCourses} className="btn-back">
-//             Back to Courses
-//           </button>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="preview-container">
-//       <div className="preview-header">
-//         <button onClick={handleBackToCourses} className="btn-back">
-//           ← Back to Courses
-//         </button>
-//         <h1>🎬 Free Preview</h1>
-//         <p className="preview-note">
-//           This is a preview of the course content. Enroll for full access!
-//         </p>
-//       </div>
-
-//       <div className="preview-content">
-//         <div className="lesson-header">
-//           <h2>{lesson.title}</h2>
-//           {lesson.course && (
-//             <p className="course-info">
-//               From: <strong>{lesson.course.title}</strong>
-//             </p>
-//           )}
-//           {lesson.content_type && (
-//             <span className="content-type-badge">
-//               {lesson.content_type.toUpperCase()}
-//             </span>
-//           )}
-//           {lesson.is_preview && (
-//             <span className="preview-badge">FREE PREVIEW</span>
-//           )}
-//         </div>
-
-//         <div className="lesson-content">{renderLessonContent()}</div>
-
-//         <div className="lesson-footer">
-//           <div className="preview-limitations">
-//             <h3>⚠️ Preview Limitations</h3>
-//             <ul>
-//               <li>Only one lesson is available for preview</li>
-//               <li>Full course includes all lessons and exercises</li>
-//               <li>Enroll for complete access and teacher support</li>
-//             </ul>
-//           </div>
-
-//           <div className="preview-actions">
-//             <button onClick={handleBackToCourses} className="btn-secondary">
-//               Browse More Courses
-//             </button>
-//             <button onClick={handleEnrollNow} className="btn-primary">
-//               Enroll Now for Full Access
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default PreviewLessonPage;
-
-
-
-// src/pages/PreviewLessonPage.jsx - UPDATED
+// src/pages/PreviewLessonPage.jsx - UPDATED COMPLETE VERSION
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -246,11 +33,13 @@ import {
   Error as ErrorIcon,
   Dashboard,
   MenuBook,
+  Login,
+  PersonAdd,
 } from "@mui/icons-material";
 import "./PreviewLessonPage.css";
 
 const PreviewLessonPage = () => {
-  const { lessonId, courseId: urlCourseId } = useParams(); // Renamed to urlCourseId
+  const { lessonId, courseId: urlCourseId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated } = useAuth();
@@ -268,7 +57,6 @@ const PreviewLessonPage = () => {
 
   // Get courseId from multiple possible sources
   const getCourseId = () => {
-    // Priority: 1. From course object, 2. From URL, 3. From lesson
     if (course?.id) return course.id;
     if (urlCourseId) return urlCourseId;
     if (lesson?.course_id) return lesson.course_id;
@@ -502,15 +290,94 @@ const PreviewLessonPage = () => {
       }
     } else {
       // Not enrolled, not a teacher - navigate to enrollment
-      navigate(`/payment/${courseIdToUse}`);
+      handleEnrollNow();
     }
   };
 
-  // Rest of the component remains the same...
-  // [Keep all other functions: handleOpenPdfDialog, handleDownloadPdf, etc.]
+  // Handle enrollment action
+  const handleEnrollNow = () => {
+    if (!currentCourseId) {
+      toast.error("Course information missing");
+      return;
+    }
+
+    if (!user) {
+      // For non-logged in users, redirect to login/register
+      navigate("/login", {
+        state: {
+          from: `/preview/${lessonId || urlCourseId}`,
+          redirectMessage: "Please register as a student to enroll in this course",
+          redirectTo: `/payment/${currentCourseId}`
+        }
+      });
+      return;
+    }
+
+    if (user.role !== "student") {
+      toast.info("Only students can enroll in courses. Please log in as a student.");
+      return;
+    }
+
+    // Navigate to payment page
+    navigate(`/payment/${currentCourseId}`);
+  };
+
+  // Handle login/registration for enrollment
+  const handleLoginForEnrollment = () => {
+    navigate("/login", {
+      state: {
+        from: `/preview/${lessonId || urlCourseId}`,
+        redirectMessage: "Please log in as a student to enroll in this course",
+        redirectTo: `/payment/${currentCourseId}`
+      }
+    });
+  };
+
+  const handleRegisterForEnrollment = () => {
+    navigate("/register", {
+      state: {
+        from: `/preview/${lessonId || urlCourseId}`,
+        redirectMessage: "Register as a student to enroll in this course",
+        redirectTo: `/payment/${currentCourseId}`
+      }
+    });
+  };
+
+  const handleOpenPdfDialog = () => {
+    if (lesson?.file_url || lesson?.fileUrl) {
+      const fileUrl = lesson.file_url || lesson.fileUrl;
+      // Use Google Docs Viewer for better compatibility
+      const googleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(
+        fileUrl
+      )}&embedded=true`;
+      setPreviewUrl(googleViewerUrl);
+      setPdfDialogOpen(true);
+    } else {
+      toast.warning("No PDF available for this lesson");
+    }
+  };
+
+  const handleDownloadPdf = () => {
+    if (lesson?.file_url || lesson?.fileUrl) {
+      const fileUrl = lesson.file_url || lesson.fileUrl;
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      link.download = `${lesson.title.replace(/[^a-z0-9]/gi, "_") || "preview"}.pdf`;
+      link.target = "_blank";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  const handleOpenInNewTab = () => {
+    if (lesson?.file_url || lesson?.fileUrl) {
+      const fileUrl = lesson.file_url || lesson.fileUrl;
+      window.open(fileUrl, "_blank", "noopener,noreferrer");
+    }
+  };
 
   const renderLessonContent = () => {
-    // [Keep the existing renderLessonContent function]
     if (!lesson) {
       return (
         <Box sx={{ textAlign: "center", py: 4 }}>
@@ -638,6 +505,13 @@ const PreviewLessonPage = () => {
           <Typography variant="body1" paragraph>
             This is a preview of the course content. Enroll for full access!
           </Typography>
+          {!user && (
+            <Alert severity="info" sx={{ mt: 2 }}>
+              <Typography variant="body2">
+                <strong>Note:</strong> You need to be registered as a student to enroll in this course.
+              </Typography>
+            </Alert>
+          )}
         </Paper>
       );
     } else {
@@ -661,29 +535,89 @@ const PreviewLessonPage = () => {
   // Render action buttons based on user role
   const renderActionButtons = () => {
     if (shouldShowEnrollmentMessaging()) {
-      return (
-        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-          <Button
-            variant="outlined"
-            onClick={handleBackToCourses}
-            startIcon={<School />}
-          >
-            Browse More Courses
-          </Button>
-
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => navigate(`/payment/${currentCourseId}`)}
-            sx={{ flexGrow: 1 }}
-            size="large"
-            disabled={!currentCourseId}
-          >
-            Enroll Now for Full Access
-          </Button>
-        </Box>
-      );
+      // For users who should see enrollment messaging
+      if (!user) {
+        // Non-logged in users
+        return (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <Typography variant="body1" color="textSecondary" align="center">
+              Register or log in as a student to enroll
+            </Typography>
+            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+              <Button
+                variant="outlined"
+                onClick={handleBackToCourses}
+                startIcon={<School />}
+                sx={{ flex: 1 }}
+              >
+                Browse More Courses
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleLoginForEnrollment}
+                startIcon={<Login />}
+                sx={{ flex: 1 }}
+                size="large"
+              >
+                Log In to Enroll
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={handleRegisterForEnrollment}
+                startIcon={<PersonAdd />}
+                sx={{ flex: 1 }}
+                size="large"
+              >
+                Register as Student
+              </Button>
+            </Box>
+          </Box>
+        );
+      } else if (user.role === "student" && !isUserEnrolled) {
+        // Logged in student (not enrolled)
+        return (
+          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+            <Button
+              variant="outlined"
+              onClick={handleBackToCourses}
+              startIcon={<School />}
+            >
+              Browse More Courses
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleEnrollNow}
+              sx={{ flexGrow: 1 }}
+              size="large"
+            >
+              Enroll Now for Full Access
+            </Button>
+          </Box>
+        );
+      } else if (user.role !== "student") {
+        // Users who are not students (teachers/admins)
+        return (
+          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+            <Button
+              variant="outlined"
+              onClick={handleBackToCourses}
+              startIcon={<School />}
+            >
+              Browse More Courses
+            </Button>
+            <Alert severity="info" sx={{ width: "100%" }}>
+              <Typography>
+                <strong>Teacher/Admin Access:</strong> You can access course management features.
+              </Typography>
+            </Alert>
+          </Box>
+        );
+      }
     } else {
+      // Users who should NOT see enrollment messaging
       let buttonText = "View Course";
       let buttonIcon = <MenuBook />;
       
@@ -715,7 +649,7 @@ const PreviewLessonPage = () => {
             sx={{ flexGrow: 1 }}
             size="large"
             startIcon={buttonIcon}
-            disabled={!currentCourseId || enrollmentChecking}
+            disabled={enrollmentChecking}
           >
             {enrollmentChecking ? "Checking Access..." : buttonText}
           </Button>
@@ -724,8 +658,151 @@ const PreviewLessonPage = () => {
     }
   };
 
-  // Rest of the component remains the same...
-  // [Keep renderUserStatus, renderPdfDialog, and all other functions]
+  // Render user status badge
+  const renderUserStatus = () => {
+    if (!user) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+          <Chip 
+            label="Guest User" 
+            color="default" 
+            size="small" 
+            variant="outlined"
+          />
+        </Box>
+      );
+    }
+    
+    let statusText = "";
+    let color = "default";
+    
+    if (isUserEnrolled) {
+      statusText = "Enrolled Student";
+      color = "success";
+    } else if (isCourseOwner) {
+      statusText = "Course Instructor";
+      color = "primary";
+    } else if (isUserTeacher) {
+      statusText = "Teacher/Admin";
+      color = "secondary";
+    } else if (user.role === "student") {
+      statusText = "Student (Not Enrolled)";
+      color = "info";
+    }
+    
+    if (statusText) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+          <Chip 
+            label={statusText} 
+            color={color} 
+            size="small" 
+            variant="outlined"
+          />
+        </Box>
+      );
+    }
+    
+    return null;
+  };
+
+  // PDF Preview Dialog
+  const renderPdfDialog = () => (
+    <Dialog
+      open={pdfDialogOpen}
+      onClose={() => setPdfDialogOpen(false)}
+      maxWidth="lg"
+      fullWidth
+      PaperProps={{
+        sx: {
+          minHeight: "70vh",
+          maxHeight: "85vh",
+        },
+      }}
+    >
+      <DialogTitle
+        sx={{
+          m: 0,
+          p: 2,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          borderBottom: "1px solid #e0e0e0",
+          backgroundColor: "#f5f5f5",
+        }}
+      >
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h6" noWrap>
+            📄 {lesson?.title || "PDF Preview"}
+          </Typography>
+          <Typography variant="caption" color="textSecondary">
+            {course?.title || "Course Preview"} • {shouldShowEnrollmentMessaging() ? "Free Preview" : "Full Access"}
+          </Typography>
+        </Box>
+        <IconButton
+          onClick={() => setPdfDialogOpen(false)}
+          size="small"
+          aria-label="close"
+        >
+          <Close />
+        </IconButton>
+      </DialogTitle>
+
+      <DialogContent dividers sx={{ p: 0, position: "relative", height: "60vh" }}>
+        {previewUrl && (
+          <iframe
+            src={previewUrl}
+            title={`PDF Preview - ${lesson?.title || "Course Material"}`}
+            style={{
+              width: "100%",
+              height: "100%",
+              border: "none",
+            }}
+            sandbox="allow-same-origin allow-scripts allow-popups"
+            allow="fullscreen"
+            referrerPolicy="no-referrer"
+          />
+        )}
+      </DialogContent>
+
+      <Box
+        sx={{
+          p: 2,
+          borderTop: "1px solid #e0e0e0",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 1,
+          backgroundColor: "#f5f5f5",
+        }}
+      >
+        <Typography variant="caption" color="textSecondary">
+          {shouldShowEnrollmentMessaging() 
+            ? "Preview powered by Google Docs Viewer"
+            : "Full access material"}
+        </Typography>
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <Button
+            startIcon={<Download />}
+            onClick={handleDownloadPdf}
+            variant="contained"
+            color="primary"
+            size="small"
+          >
+            Download
+          </Button>
+          <Button
+            onClick={() => setPdfDialogOpen(false)}
+            variant="outlined"
+            size="small"
+          >
+            Close
+          </Button>
+        </Box>
+      </Box>
+    </Dialog>
+  );
 
   if (loading) {
     return (
@@ -762,6 +839,7 @@ const PreviewLessonPage = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* Back Button */}
       <Button
         startIcon={<ArrowBack />}
         onClick={handleBackToCourses}
@@ -770,25 +848,50 @@ const PreviewLessonPage = () => {
         Back to Courses
       </Button>
 
-      {renderHeader()}
+      {/* User Status Badge */}
+      {renderUserStatus()}
 
-      {course && (
-        <Card sx={{ mb: 2 }}>
-          <CardContent>
-            <Typography variant="h5" gutterBottom>
-              {course.title}
-            </Typography>
-            {course.teacher && (
-              <Typography variant="body2" color="textSecondary">
-                Instructor: <strong>{course.teacher.name}</strong>
+      {/* Header */}
+      <Box sx={{ mb: 4 }}>
+        {renderHeader()}
+
+        {course && (
+          <Card sx={{ mb: 2 }}>
+            <CardContent>
+              <Typography variant="h5" gutterBottom>
+                {course.title}
               </Typography>
-            )}
-          </CardContent>
-        </Card>
-      )}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box>
+                  {course.teacher && (
+                    <Typography variant="body2" color="textSecondary">
+                      Instructor: <strong>{course.teacher.name}</strong>
+                    </Typography>
+                  )}
+                  <Typography variant="body2" color="textSecondary">
+                    Price: <strong>${parseFloat(course.price || 0).toFixed(2)}</strong>
+                  </Typography>
+                </Box>
+                {!shouldShowEnrollmentMessaging() && !isUserEnrolled && (
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                    onClick={() => navigate(`/courses/${course.slug}`)}
+                  >
+                    View Course Details
+                  </Button>
+                )}
+              </Box>
+            </CardContent>
+          </Card>
+        )}
+      </Box>
 
+      {/* Preview Content */}
       <Box sx={{ mb: 4 }}>{renderLessonContent()}</Box>
 
+      {/* Conditional Messaging */}
       {shouldShowEnrollmentMessaging() ? (
         <Paper sx={{ p: 4, backgroundColor: "#fff8e1", mb: 4 }}>
           <Typography variant="h6" gutterBottom sx={{ color: "#e65100" }}>
@@ -805,6 +908,13 @@ const PreviewLessonPage = () => {
             <Typography variant="body2" paragraph>
               • Enroll for complete access and teacher support
             </Typography>
+            {!user && (
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                <Typography variant="body2">
+                  <strong>Important:</strong> You need to register as a student and make payment to get full access to this course.
+                </Typography>
+              </Alert>
+            )}
           </Box>
 
           {renderActionButtons()}
@@ -845,6 +955,9 @@ const PreviewLessonPage = () => {
           </Typography>
         </Paper>
       )}
+
+      {/* PDF Dialog */}
+      {renderPdfDialog()}
     </Container>
   );
 };
