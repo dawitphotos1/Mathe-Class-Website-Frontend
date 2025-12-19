@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "../../utils/axiosInstance"; // <-- use your axiosInstance
+import axiosInstance from '../../utils/axiosInstance'; // <-- use your axiosInstance
 import "./StudentCourses.css"; // (optional) add styles as needed
 
 const StudentCourses = () => {

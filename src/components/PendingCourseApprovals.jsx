@@ -1,6 +1,6 @@
 //components/PendingCourseApprovals.jsx
 import React, { useState, useEffect } from "react";
-import axios from "../utils/axiosInstance";
+import axios from '../utils/axiosInstance';
 import { toast } from "react-toastify";
 
 const PendingCourseApprovals = () => {

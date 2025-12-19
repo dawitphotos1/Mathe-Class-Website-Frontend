@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import axios from "../utils/axiosInstance"; // ✅ Updated import
+import axios from '../utils/axiosInstance'; // ✅ Updated import
 
 const CourseUnitsPage = () => {
   const { courseId } = useParams(); // Get course ID from URL

@@ -2,7 +2,7 @@
 // src/pages/courses/CourseList.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "../../utils/axiosInstance";
+import axiosInstance from '../../utils/axiosInstance';
 import CourseCurriculum from "../../components/CourseCurriculum";
 import "./CourseList.css";
 

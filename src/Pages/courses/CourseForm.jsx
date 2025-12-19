@@ -1,7 +1,7 @@
 
 // src/Pages/courses/CourseForm.jsx
 import React, { useState } from "react";
-import axiosInstance from "../../api/axiosInstance"; // Adjust path as needed
+import axiosInstance from '../../utils/axiosInstance'; // Adjust path as needed
 
 const CourseForm = () => {
   const [formData, setFormData] = useState({

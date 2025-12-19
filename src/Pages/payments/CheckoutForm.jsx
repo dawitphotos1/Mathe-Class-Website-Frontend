@@ -1,7 +1,7 @@
 
 // /Pages/payments/CheckoutForm.jsx
 import React, { useState } from "react";
-import axiosInstance from "../../utils/axiosInstance";
+import axiosInstance from '../../utils/axiosInstance';
 import "./CheckoutForm.css";
 
 

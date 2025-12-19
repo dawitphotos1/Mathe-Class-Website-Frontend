@@ -8,7 +8,7 @@ import {
   CardContent,
   Alert,
 } from "@mui/material";
-import axiosInstance from "../../utils/axiosInstance";
+import axiosInstance from '../../utils/axiosInstance';
 
 const FileDebug = ({ lessonId }) => {
   const [debugInfo, setDebugInfo] = useState(null);

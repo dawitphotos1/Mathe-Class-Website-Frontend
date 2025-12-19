@@ -1,7 +1,7 @@
 
 // src/Pages/StartCoursePage.jsx
 import React, { useEffect, useState } from "react";
-import axios from "../utils/axiosInstance";
+import axios from '../utils/axiosInstance';
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "./StartCoursePage.css";

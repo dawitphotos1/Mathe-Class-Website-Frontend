@@ -26,7 +26,7 @@ import {
   BugReport,
 } from "@mui/icons-material";
 import { useParams, useNavigate } from "react-router-dom";
-import axiosInstance from "../../utils/axiosInstance";
+import axiosInstance from '../../utils/axiosInstance';
 import UnitAccordion from "./UnitAccordion";
 import LessonForm from "./LessonForm";
 import PdfPreviewButton from "../../components/PdfPreviewButton";

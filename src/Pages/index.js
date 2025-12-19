@@ -1,123 +1,75 @@
-// // src/pages/index.js - COMPLETE VERSION
-// // Export all page components from one place
+// src/pages/index.js - CORRECT VERSION BASED ON YOUR FILES
+// Export all page components that actually exist in your project
 
-// // Public pages
-// export { default as Home } from "./Home";
-// export { default as AboutPage } from "./AboutPage";
-// export { default as ContactPage } from "./ContactPage";
-// export { default as Register } from "./auth/Register";
-// export { default as Login } from "./auth/Login";
-// export { default as ForgotPassword } from "./auth/ForgotPassword";
-// export { default as ResetPassword } from "./auth/ResetPassword";
-// export { default as ConfirmAccount } from "./ConfirmAccount";
-// export { default as NotFound } from "./NotFound";
-// export { default as Unauthorized } from "./Unauthorized";
-
-// // Course pages
-// export { default as Courses } from "./courses/Courses";
-// export { default as CourseDetail } from "./courses/CourseDetail";
-// export { default as CourseViewer } from "./courses/CourseViewer";
-// export { default as CourseLessons } from "./CourseLessons";
-// export { default as MyCoursesPage } from "./courses/MyCourses";
-// export { default as PreviewLessonPage } from "./PreviewLessonPage";
-// export { default as PreviewLesson } from "./PreviewLesson";
-
-// // Payment pages
-// export { default as PaymentPage } from "./PaymentPage";
-// export { default as PaymentSuccess } from "./payments/PaymentSuccess";
-// export { default as PaymentCancel } from "./payments/PaymentCancel";
-// export { default as Cancel } from "./payments/Cancel";
-
-// // Admin pages
-// export { default as AdminDashboard } from "./AdminDashboard";
-// export { default as ManageCourses } from "./AdminManageCourses";
-// export { default as ManageUsers } from "./AdminManageUsers";
-// export { default as AdminLessonLogs } from "./AdminLessonLogs";
-
-// // Teacher pages
-// export { default as TeacherDashboard } from "./teachers/TeacherDashboard";
-// export { default as MyTeachingCourses } from "./teachers/MyTeachingCourses";
-// export { default as TeacherCourseViewer } from "./teachers/TeacherCourseViewer";
-// export { default as CreateCourse } from "./CreateCourse";
-// export { default as CreateCourseWithUnits } from "./CreateCourseWithUnits";
-// export { default as EditCourse } from "./teachers/EditCourse";
-// export { default as EditLesson } from "./teachers/EditLesson";
-// export { default as CreateLessonPage } from "./teachers/CreateLessonPage";
-
-// // User pages
-// export { default as Profile } from "./users/Profile";
-
-// // File manager
-// export { default as FileManager } from "./FileManager";
-
-// // ✅ CRITICAL: Add your lessons components
-// export { default as StudentLessons } from "./StudentLessons"; // Formerly ManageLessons.jsx
-// export { default as TeacherManageLessons } from "./teachers/TeacherManageLessons"; // Formerly teachers/ManageLessons.jsx
-
-// // Dashboard components
-// export { default as StudentDashboard } from "./dashboard/StudentDashboard";
-// export { default as TeacherDashboard } from "./teachers/TeacherDashboard";
-
-
-
-
-
-// src/pages/index.js - COMPLETE VERSION
-// Export all page components from one place
-
-// Public pages
+// ==================== PUBLIC PAGES ====================
 export { default as Home } from './Home';
-export { default as AboutPage } from './AboutPage';
-export { default as ContactPage } from './ContactPage';
 export { default as Register } from './auth/Register';
 export { default as Login } from './auth/Login';
-export { default as ForgotPassword } from './auth/ForgotPassword';
-export { default as ResetPassword } from './auth/ResetPassword';
 export { default as ConfirmAccount } from './ConfirmAccount';
 export { default as NotFound } from './NotFound';
 export { default as Unauthorized } from './Unauthorized';
 
-// Course pages
+// ==================== COURSE PAGES ====================
 export { default as Courses } from './courses/Courses';
-export { default as CourseDetail } from './courses/CourseDetail';
+export { default as CourseDetail } from './courses/CourseDetail'; // fix added
 export { default as CourseViewer } from './courses/CourseViewer';
-export { default as CourseLessons } from './CourseLessons';
 export { default as MyCoursesPage } from './courses/MyCourses';
-export { default as PreviewLessonPage } from './PreviewLessonPage';
-export { default as PreviewLesson } from './PreviewLesson';
+export { default as CourseLessons } from './CourseLessons';
+export { default as CoursePreviewPage } from './CoursePreviewPage';
 
-// Payment pages
+// ==================== PAYMENT PAGES ====================
 export { default as PaymentPage } from './PaymentPage';
 export { default as PaymentSuccess } from './payments/PaymentSuccess';
 export { default as PaymentCancel } from './payments/PaymentCancel';
-export { default as Cancel } from './payments/Cancel';
+export { default as Cancel } from './payments/Cancel'; // fix added
 
-// Admin pages
+// ==================== ADMIN PAGES ====================
 export { default as AdminDashboard } from './AdminDashboard';
 export { default as ManageCourses } from './AdminManageCourses';
 export { default as ManageUsers } from './AdminManageUsers';
 export { default as AdminLessonLogs } from './AdminLessonLogs';
+export { default as FileManager } from './FileManager';
 
-// Teacher pages
-export { default as TeacherDashboard } from './teachers/TeacherDashboard';
+// ==================== TEACHER PAGES ====================
+// IMPORTANT: Your teacher dashboard is MyTeachingCourses.jsx, not TeacherDashboard.jsx
 export { default as MyTeachingCourses } from './teachers/MyTeachingCourses';
-export { default as TeacherCourseViewer } from './teachers/TeacherCourseViewer';
-export { default as CreateCourse } from './CreateCourse';
-export { default as CreateCourseWithUnits } from './CreateCourseWithUnits';
+
+// Teacher Course Management
+export { default as TeacherCourseViewer } from './TeacherCourseViewer'; // In root, not teachers folder
+export { default as CourseContent } from './teachers/CourseContent';
 export { default as EditCourse } from './teachers/EditCourse';
 export { default as EditLesson } from './teachers/EditLesson';
 export { default as CreateLessonPage } from './teachers/CreateLessonPage';
+export { default as TeacherManageLessons } from './teachers/ManageLessons'; // Renamed for clarity
+export { default as LessonForm } from './teachers/LessonForm';
+export { default as LessonList } from './teachers/LessonList';
+export { default as UnitAccordion } from './teachers/UnitAccordion';
 
-// User pages
+// Course Creation
+export { default as CreateCourse } from './CreateCourse';
+export { default as CreateCourseWithUnits } from './CreateCourseWithUnits';
+export { default as CreateLesson } from './CreateLesson';
+
+// Advanced course creation (if you have it)
+export { default as CreateCourseAdvanced } from './teachers/CreateCourseAdvanced';
+export { default as CreateCourseForm } from './teachers/CreateCourseForm';
+
+// ==================== STUDENT PAGES ====================
+export { default as StudentLessons } from './StudentLessons';
+export { default as StudentDashboard } from './dashboard/StudentDashboard';
+
+// ==================== USER PAGES ====================
 export { default as Profile } from './users/Profile';
 
-// File manager
-export { default as FileManager } from './FileManager';
+// ==================== OTHER PAGES ====================
+export { default as ClassPage } from './ClassPage';
+export { default as CourseLessonManager } from './CourseLessonManager';
+export { default as CreateCourseWrapper } from './CreateCourseWrapper';
+export { default as Dashboard } from './Dashboard';
+export { default as PreviewLesson } from './PreviewLesson';
+export { default as PreviewLessonPage } from './PreviewLessonPage';
+export { default as StartCoursePage } from './StartCoursePage';
 
-// ✅ CRITICAL: Add your lessons components
-export { default as StudentLessons } from './StudentLessons'; // Formerly ManageLessons.jsx
-export { default as TeacherManageLessons } from './teachers/TeacherManageLessons'; // Formerly teachers/ManageLessons.jsx
-
-// Dashboard components
-export { default as StudentDashboard } from './dashboard/StudentDashboard';
-export { default as TeacherDashboard } from './teachers/TeacherDashboard';
+// ==================== ALIASES FOR BACKWARD COMPATIBILITY ====================
+// If you want to use "TeacherDashboard" as an alias for MyTeachingCourses
+// export { default as TeacherDashboard } from './teachers/MyTeachingCourses';

@@ -12,7 +12,7 @@ import {
   TableContainer,
   CircularProgress,
 } from "@mui/material";
-import axiosInstance from "../utils/axiosInstance";
+import axiosInstance from '../utils/axiosInstance';
 
 const ManageEnrollments = () => {
   const [enrollments, setEnrollments] = useState([]);

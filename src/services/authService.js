@@ -1,5 +1,5 @@
 // src/services/authService.js
-import axiosInstance from "../utils/axiosInstance";
+import axiosInstance from '../utils/axiosInstance';
 
 // 🔑 Login
 export const login = async ({ email, password }) => {

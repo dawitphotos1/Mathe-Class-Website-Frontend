@@ -1,23 +1,7 @@
-// // src/pages/teachers/ManageLessons.jsx
-// import React from "react";
-// import { useParams } from "react-router-dom";
-// import ManageLessons from "../ManageLessons"; // Import from the correct location
-
-// const TeachersManageLessons = () => {
-//   const { courseId } = useParams();
-
-//   return <ManageLessons />;
-// };
-
-// export default TeachersManageLessons;
-
-
-
-
 // src/pages/teachers/ManageLessons.jsx - COMPLETE FIXED VERSION
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
-import axios from "../../utils/axiosInstance";
+import axios from '../../utils/axiosInstance';
 import { toast } from "react-toastify";
 import {
   Box,

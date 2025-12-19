@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useSwipeable } from "react-swipeable";
 import { useNavigate } from "react-router-dom";
-import axios from "../utils/axiosInstance"; // ✅ UPDATED
+import axios from '../utils/axiosInstance'; // ✅ UPDATED
 import "./MyCourseCard.css";
 
 const CourseModal = ({ course, onClose }) => {

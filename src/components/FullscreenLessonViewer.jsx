@@ -23,7 +23,7 @@ import {
   GetApp as GetAppIcon,
   OpenInNew as OpenInNewIcon,
 } from "@mui/icons-material";
-import axiosInstance from "../utils/axiosInstance";
+import axiosInstance from '../utils/axiosInstance';
 import "../pages/teachers/MyTeachingCourses.css";
 
 const Transition = React.forwardRef(function Transition(props, ref) {

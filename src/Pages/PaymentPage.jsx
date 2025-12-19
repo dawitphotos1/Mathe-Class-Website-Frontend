@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
 import { toast } from "react-toastify";
-import axios from "../utils/axiosInstance";
+import axios from '../utils/axiosInstance';
 import "./PaymentPage.css";
 
 /* =========================================================

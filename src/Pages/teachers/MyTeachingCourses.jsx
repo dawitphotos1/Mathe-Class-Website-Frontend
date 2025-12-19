@@ -42,7 +42,7 @@ import {
   BugReport as BugIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../context/ThemeContext";
-import axiosInstance from "../../utils/axiosInstance";
+import axiosInstance from '../../utils/axiosInstance';
 import PdfPreviewButton from "../../components/PdfPreviewButton";
 import "./MyTeachingCourses.css";
 

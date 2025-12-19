@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import axios from "../../utils/axiosInstance";
+import axios from '../../utils/axiosInstance';
 import "./Auth.css";
 
 const ResetPassword = () => {

@@ -1,5 +1,5 @@
 //service/courseService.js
-import axiosInstance from "../utils/axiosInstance";
+import axiosInstance from '../utils/axiosInstance';
 
 const courseService = {
   // ✅ Create a new course

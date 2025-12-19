@@ -1,5 +1,5 @@
 // src/services/lessonService.js
-import axiosInstance from "../utils/axiosInstance";
+import axiosInstance from '../utils/axiosInstance';
 
 const lessonService = {
   // CREATE LESSON

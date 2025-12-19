@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import axiosInstance from "../utils/axiosInstance";
+import axiosInstance from '../utils/axiosInstance';
 import { toast } from "react-toastify";
 import "./CourseLessonManager.css";
 

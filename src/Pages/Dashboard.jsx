@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import axiosInstance from "../utils/axiosInstance"; // ✅ centralized axios
+import axiosInstance from '../utils/axiosInstance'; // ✅ centralized axios
 import "./Dashboard.css";
 
 const Dashboard = ({ onLogout }) => {

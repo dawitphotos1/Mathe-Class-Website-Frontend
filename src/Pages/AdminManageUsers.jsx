@@ -3,7 +3,7 @@
 // src/Pages/AdminManageUsers.jsx
 
 import React, { useEffect, useState, useCallback } from "react";
-import axiosInstance from "../utils/axiosInstance";
+import axiosInstance from '../utils/axiosInstance';
 import { toast } from "react-toastify";
 import { useTheme } from "../context/ThemeContext";
 

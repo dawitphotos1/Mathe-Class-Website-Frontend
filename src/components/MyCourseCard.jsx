@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "../utils/axiosInstance"; // ✅ updated
+import axios from '../utils/axiosInstance'; // ✅ updated
 import { motion } from "framer-motion";
 import { FaEye } from "react-icons/fa";
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";

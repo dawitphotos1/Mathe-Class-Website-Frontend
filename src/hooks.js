@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import axiosRetry from "axios-retry";
-import axiosInstance from "../utils/axiosInstance"; // Adjust path if needed
+import axiosInstance from 'utils/axiosInstance'; // Adjust path if needed
 
 // Optional: configure retry on your instance or remove if already configured there
 axiosRetry(axiosInstance, { retries: 0 });

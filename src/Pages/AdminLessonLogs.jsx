@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState, useCallback } from "react";
-import axiosInstance from "../utils/axiosInstance";
+import axiosInstance from '../utils/axiosInstance';
 import { useTheme } from "../context/ThemeContext";
 import { toast } from "react-toastify";
 

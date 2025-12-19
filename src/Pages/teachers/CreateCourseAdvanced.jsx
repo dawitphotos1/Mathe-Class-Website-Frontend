@@ -1,6 +1,6 @@
 // src/pages/teachers/CreateCourseAdvanced.jsx
 import React, { useState } from "react";
-import axiosInstance from "../../utils/axiosInstance";
+import axiosInstance from '../../utils/axiosInstance';
 import { toast } from "react-toastify";
 import Loading from "../../components/Loading";
 

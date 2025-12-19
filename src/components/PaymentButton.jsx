@@ -1,7 +1,7 @@
 // src/components/payments/PaymentButton.jsx
 
 import React, { useState } from "react";
-import axiosInstance from "../utils/axiosInstance"; // ✅ adjust path if needed
+import axiosInstance from '../utils/axiosInstance'; // ✅ adjust path if needed
 
 const PaymentButton = ({ course, onPaymentError, onPaymentSuccess }) => {
   const [loading, setLoading] = useState(false);

@@ -27,7 +27,7 @@ import {
   AssignmentTurnedIn,
   School,
 } from "@mui/icons-material";
-import axiosInstance from "../utils/axiosInstance";
+import axiosInstance from '../utils/axiosInstance';
 
 const PendingEnrollments = () => {
   const [enrollments, setEnrollments] = useState({
