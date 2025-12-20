@@ -1,37 +1,130 @@
+// import { useEffect, useState } from "react";
+// import axiosInstance from '../utils/axiosInstance';
+// import { toast } from "react-toastify";
+
+// export const useLessonForm = (courseId) => {
+//   const [formData, setFormData] = useState({
+//     title: "",
+//     contentType: "document",
+//     fileUrl: "",
+//     isUnitHeader: false,
+//     isPreview: false,
+//     unitId: "",
+//     orderIndex: 0,
+//   });
+
+//   const [units, setUnits] = useState([]);
+//   const [uploading, setUploading] = useState(false);
+//   const [uploadProgress, setUploadProgress] = useState(null);
+//   const [previewFile, setPreviewFile] = useState(null);
+//   const [loading, setLoading] = useState(false);
+
+//   useEffect(() => {
+//     const fetchUnits = async () => {
+//       try {
+//         const res = await axios.get(`/courses/${courseId}/lessons`);
+//         const unitHeaders = res.data.filter((l) => l.isUnitHeader);
+//         setUnits(unitHeaders.map(({ id, title }) => ({ id, title })));
+//       } catch {
+//         toast.error("Failed to load units");
+//       }
+//     };
+//     fetchUnits();
+//   }, [courseId]);
+
+//   const handleChange = (e) => {
+//     const { name, value, type, checked } = e.target;
+//     setFormData((prev) => ({
+//       ...prev,
+//       [name]: type === "checkbox" ? checked : value,
+//     }));
+//   };
+
+//   const handleFileUpload = async (file) => {
+//     if (!file) return;
+
+//     const form = new FormData();
+//     form.append("file", file);
+//     setUploading(true);
+//     setUploadProgress(0);
+//     setPreviewFile(URL.createObjectURL(file));
+
+//     try {
+//       const res = await axios.post("/upload", form, {
+//         onUploadProgress: (event) => {
+//           const percent = Math.round((event.loaded * 100) / event.total);
+//           setUploadProgress(percent);
+//         },
+//       });
+//       setFormData((prev) => ({ ...prev, fileUrl: res.data.url }));
+//       toast.success("File uploaded successfully");
+//     } catch {
+//       toast.error("Upload failed");
+//     } finally {
+//       setUploading(false);
+//       setUploadProgress(null);
+//     }
+//   };
+
+//   return {
+//     formData,
+//     setFormData,
+//     units,
+//     uploading,
+//     uploadProgress,
+//     previewFile,
+//     loading,
+//     setLoading,
+//     handleChange,
+//     handleFileUpload,
+//   };
+// };
+
+
+
+
+
+
+
+// components/useLessonForm.jsx
 import { useEffect, useState } from "react";
-import axiosInstance from '../utils/axiosInstance';
+import axiosInstance from "../utils/axiosInstance";
+import { prepareFormData, validateFiles } from "../utils/uploadUtils";
 import { toast } from "react-toastify";
 
 export const useLessonForm = (courseId) => {
   const [formData, setFormData] = useState({
     title: "",
-    contentType: "document",
-    fileUrl: "",
-    isUnitHeader: false,
-    isPreview: false,
-    unitId: "",
-    orderIndex: 0,
+    content_type: "text",
+    content: "",
+    video_url: "",
+    is_preview: false,
+    is_unit_header: false,
+    unit_id: "",
+    order_index: 0,
   });
 
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [units, setUnits] = useState([]);
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(null);
-  const [previewFile, setPreviewFile] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  // Fetch units for this course
   useEffect(() => {
     const fetchUnits = async () => {
       try {
-        const res = await axios.get(`/courses/${courseId}/lessons`);
-        const unitHeaders = res.data.filter((l) => l.isUnitHeader);
-        setUnits(unitHeaders.map(({ id, title }) => ({ id, title })));
+        const res = await axiosInstance.get(`/courses/${courseId}/units`);
+        setUnits(res.data.units || []);
       } catch {
         toast.error("Failed to load units");
       }
     };
-    fetchUnits();
+
+    if (courseId) fetchUnits();
   }, [courseId]);
 
+  // Handle form input changes
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -40,42 +133,113 @@ export const useLessonForm = (courseId) => {
     }));
   };
 
-  const handleFileUpload = async (file) => {
-    if (!file) return;
+  // Handle multiple file selection
+  const handleFileChange = (files) => {
+    const fileArray = Array.from(files);
+    if (!fileArray.length) return;
 
-    const form = new FormData();
-    form.append("file", file);
+    const { validFiles, errors } = validateFiles(fileArray);
+
+    if (errors.length) {
+      toast.warning(`Some files rejected: ${errors.join(", ")}`);
+    }
+
+    if (validFiles.length) {
+      setSelectedFiles((prev) => [...prev, ...validFiles]);
+
+      // Auto-detect content type
+      const hasPdf = validFiles.some((f) => f.type === "application/pdf");
+      const hasVideo = validFiles.some((f) => f.type.startsWith("video/"));
+
+      if (hasPdf) {
+        setFormData((prev) => ({ ...prev, content_type: "pdf" }));
+      } else if (hasVideo) {
+        setFormData((prev) => ({ ...prev, content_type: "video" }));
+      } else if (validFiles.length > 1) {
+        setFormData((prev) => ({ ...prev, content_type: "mixed" }));
+      }
+    }
+  };
+
+  // Remove selected file
+  const removeFile = (index) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Submit lesson with multiple files
+  const handleSubmit = async (onSuccess) => {
+    if (!formData.title.trim()) {
+      toast.error("Title is required");
+      return;
+    }
+
     setUploading(true);
     setUploadProgress(0);
-    setPreviewFile(URL.createObjectURL(file));
 
     try {
-      const res = await axios.post("/upload", form, {
-        onUploadProgress: (event) => {
-          const percent = Math.round((event.loaded * 100) / event.total);
-          setUploadProgress(percent);
+      const submitData = prepareFormData(
+        {
+          ...formData,
+          course_id: courseId,
         },
+        selectedFiles
+      );
+
+      const response = await axiosInstance.post(
+        `/courses/${courseId}/lessons`,
+        submitData,
+        {
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const percent = Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total
+              );
+              setUploadProgress(percent);
+            }
+          },
+        }
+      );
+
+      if (response.data?.success && onSuccess) {
+        onSuccess(response.data.lesson);
+      }
+
+      // Reset form
+      setSelectedFiles([]);
+      setFormData({
+        title: "",
+        content_type: "text",
+        content: "",
+        video_url: "",
+        is_preview: false,
+        is_unit_header: false,
+        unit_id: "",
+        order_index: 0,
       });
-      setFormData((prev) => ({ ...prev, fileUrl: res.data.url }));
-      toast.success("File uploaded successfully");
-    } catch {
-      toast.error("Upload failed");
+
+      toast.success("Lesson created successfully!");
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error(error.response?.data?.error || "Failed to create lesson");
     } finally {
       setUploading(false);
-      setUploadProgress(null);
+      setUploadProgress(0);
     }
   };
 
   return {
     formData,
     setFormData,
+    selectedFiles,
+    handleFileChange,
+    removeFile,
     units,
     uploading,
     uploadProgress,
-    previewFile,
     loading,
     setLoading,
     handleChange,
-    handleFileUpload,
+    handleSubmit,
+    clearFiles: () => setSelectedFiles([]),
   };
 };

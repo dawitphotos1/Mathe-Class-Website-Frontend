@@ -413,7 +413,6 @@
 
 
 
-
 // src/pages/CreateCourse.jsx
 import React, { useState } from "react";
 import axiosInstance from "../utils/axiosInstance";
@@ -438,14 +437,33 @@ const CreateCourse = () => {
 
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
+  const [introVideoFile, setIntroVideoFile] = useState(null);
   const [attachmentFiles, setAttachmentFiles] = useState([]);
 
-  // Auto-generate slug from title
+  const [useCustomSlug, setUseCustomSlug] = useState(false);
+
+  // Available slugs (predefined)
+  const availableSlugs = [
+    "algebra-1-beginners",
+    "algebra-2-advanced",
+    "pre-calculus-foundations",
+    "calculus-essentials",
+    "geometry-trigonometry-basics",
+    "statistics-probability-intro",
+    "linear-algebra-fundamentals",
+    "differential-equations-intro",
+    "discrete-mathematics-basics",
+    "number-theory-concepts",
+    "math-test-prep",
+    "advanced-math-concepts",
+  ];
+
+  /** Handle title change and auto-generate slug if not custom */
   const handleTitleChange = (e) => {
     const title = e.target.value;
     setFormData((prev) => ({ ...prev, title }));
 
-    if (title && !formData.slug) {
+    if (!useCustomSlug && title) {
       const generatedSlug = title
         .toLowerCase()
         .replace(/\s+/g, "-")
@@ -453,44 +471,49 @@ const CreateCourse = () => {
         .replace(/\-\-+/g, "-")
         .replace(/^-+/, "")
         .replace(/-+$/, "");
-
       setFormData((prev) => ({ ...prev, slug: generatedSlug }));
     }
   };
 
-  // Thumbnail handling
-  const handleThumbnailChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setThumbnailFile(file);
-    setThumbnailPreview(URL.createObjectURL(file));
+  /** Handle slug selection from dropdown */
+  const handleSlugSelect = (e) => {
+    setFormData((prev) => ({ ...prev, slug: e.target.value }));
+    setUseCustomSlug(false);
   };
 
-  // Multiple attachments
-  const handleAttachmentChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (!files.length) return;
+  /** Handle custom slug input */
+  const handleCustomSlugChange = (e) => {
+    const customSlug = e.target.value
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^\w\-]+/g, "")
+      .replace(/\-\-+/g, "-")
+      .replace(/^-+/, "")
+      .replace(/-+$/, "");
+    setFormData((prev) => ({ ...prev, slug: customSlug }));
+  };
 
-    const { validFiles, errors } = validateFiles(files);
-
-    if (errors.length) {
-      toast.warning(`Some files rejected: ${errors.join(", ")}`);
+  /** Toggle between predefined and custom slug */
+  const toggleSlugInput = () => {
+    setUseCustomSlug(!useCustomSlug);
+    if (!useCustomSlug) {
+      setFormData((prev) => ({ ...prev, slug: "" }));
+    } else if (formData.title) {
+      // Restore auto-generated slug
+      const generatedSlug = formData.title
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^\w\-]+/g, "")
+        .replace(/\-\-+/g, "-")
+        .replace(/^-+/, "")
+        .replace(/-+$/, "");
+      setFormData((prev) => ({ ...prev, slug: generatedSlug }));
     }
-
-    if (validFiles.length) {
-      setAttachmentFiles((prev) => [...prev, ...validFiles]);
-    }
   };
 
-  const removeAttachment = (index) => {
-    setAttachmentFiles((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  // Generate a unique slug
+  /** Generate unique slug */
   const generateUniqueSlug = () => {
     if (!formData.title) return;
-
     const baseSlug = formData.title
       .toLowerCase()
       .replace(/\s+/g, "-")
@@ -498,16 +521,41 @@ const CreateCourse = () => {
       .replace(/\-\-+/g, "-")
       .replace(/^-+/, "")
       .replace(/-+$/, "");
-
-    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-    setFormData((prev) => ({
-      ...prev,
-      slug: `${baseSlug}-${randomSuffix}`,
-    }));
-
+    const uniqueSlug = `${baseSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
+    setFormData((prev) => ({ ...prev, slug: uniqueSlug }));
     toast.info("Generated unique slug!");
   };
 
+  /** Thumbnail change */
+  const handleThumbnailChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setThumbnailFile(file);
+    setThumbnailPreview(URL.createObjectURL(file));
+  };
+
+  /** Intro video change */
+  const handleIntroVideoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setIntroVideoFile(file);
+  };
+
+  /** Multiple attachments */
+  const handleAttachmentChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    const { validFiles, errors } = validateFiles(files);
+    if (errors.length) toast.warning(`Some files rejected: ${errors.join(", ")}`);
+    if (validFiles.length) setAttachmentFiles((prev) => [...prev, ...validFiles]);
+  };
+
+  const removeAttachment = (index) => {
+    setAttachmentFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  /** Submit form */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -520,33 +568,21 @@ const CreateCourse = () => {
     setUploadProgress(0);
 
     try {
-      // Prepare FormData (attachments included)
       const submitData = prepareFormData(formData, attachmentFiles);
 
-      if (thumbnailFile) {
-        submitData.append("thumbnail", thumbnailFile);
-      }
+      if (thumbnailFile) submitData.append("thumbnail", thumbnailFile);
+      if (introVideoFile) submitData.append("introVideo", introVideoFile);
 
-      const response = await axiosInstance.post(
-        "/courses/create",
-        submitData,
-        {
-          onUploadProgress: (event) => {
-            if (event.total) {
-              const percent = Math.round(
-                (event.loaded * 100) / event.total
-              );
-              setUploadProgress(percent);
-            }
-          },
-        }
-      );
+      const response = await axiosInstance.post("/courses/create", submitData, {
+        onUploadProgress: (event) => {
+          if (event.total) setUploadProgress(Math.round((event.loaded * 100) / event.total));
+        },
+      });
 
       toast.success("Course created successfully!");
       navigate("/teacher/dashboard");
     } catch (err) {
-      console.error("Create course error:", err);
-
+      console.error("Error creating course:", err);
       if (err.response?.data?.error?.includes("slug")) {
         toast.error("Slug already exists. Generating a new one...");
         generateUniqueSlug();
@@ -585,22 +621,26 @@ const CreateCourse = () => {
           {/* Slug */}
           <label>Slug *</label>
           <div className="slug-section">
-            <input
-              type="text"
-              value={formData.slug}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, slug: e.target.value }))
-              }
-              disabled={loading}
-              required
-            />
-            <button
-              type="button"
-              onClick={generateUniqueSlug}
-              disabled={loading || !formData.title}
-              className="generate-slug-btn"
-            >
+            {!useCustomSlug ? (
+              <select value={formData.slug} onChange={handleSlugSelect} disabled={loading}>
+                <option value="">-- Select Available Slug --</option>
+                {availableSlugs.map((slug) => (
+                  <option key={slug} value={slug}>{slug}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="text"
+                value={formData.slug}
+                onChange={handleCustomSlugChange}
+                disabled={loading}
+              />
+            )}
+            <button type="button" onClick={generateUniqueSlug} disabled={loading || !formData.title} className="generate-slug-btn">
               🔄 Generate Unique
+            </button>
+            <button type="button" onClick={toggleSlugInput} disabled={loading} className="toggle-slug-btn">
+              {useCustomSlug ? "← Use Available Slugs" : "Use Custom Slug →"}
             </button>
           </div>
 
@@ -608,12 +648,7 @@ const CreateCourse = () => {
           <label>Description</label>
           <textarea
             value={formData.description}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                description: e.target.value,
-              }))
-            }
+            onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
             disabled={loading}
             rows="4"
           />
@@ -623,9 +658,7 @@ const CreateCourse = () => {
           <input
             type="number"
             value={formData.price}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, price: e.target.value }))
-            }
+            onChange={(e) => setFormData((prev) => ({ ...prev, price: e.target.value }))}
             min="0"
             step="0.01"
             disabled={loading}
@@ -635,9 +668,7 @@ const CreateCourse = () => {
           <label>Category</label>
           <select
             value={formData.category}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, category: e.target.value }))
-            }
+            onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
             disabled={loading}
           >
             <option value="">-- Select Category --</option>
@@ -645,49 +676,28 @@ const CreateCourse = () => {
             <option value="Algebra 2">Algebra 2</option>
             <option value="Pre-Calculus">Pre-Calculus</option>
             <option value="Calculus">Calculus</option>
-            <option value="Geometry & Trigonometry">
-              Geometry & Trigonometry
-            </option>
-            <option value="Statistics & Probability">
-              Statistics & Probability
-            </option>
+            <option value="Geometry & Trigonometry">Geometry & Trigonometry</option>
+            <option value="Statistics & Probability">Statistics & Probability</option>
           </select>
 
           {/* Thumbnail */}
           <label>Thumbnail Image</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleThumbnailChange}
-            disabled={loading}
-          />
-          {thumbnailPreview && (
-            <div className="file-preview">
-              <img src={thumbnailPreview} alt="Thumbnail" width="200" />
-            </div>
-          )}
+          <input type="file" accept="image/*" onChange={handleThumbnailChange} disabled={loading} />
+          {thumbnailPreview && <div className="file-preview"><img src={thumbnailPreview} alt="Thumbnail" width="200" /></div>}
+
+          {/* Intro Video */}
+          <label>Intro Video (Optional)</label>
+          <input type="file" accept="video/*" onChange={handleIntroVideoChange} disabled={loading} />
 
           {/* Attachments */}
           <label>Attachments (Multiple Files)</label>
-          <input
-            type="file"
-            multiple
-            onChange={handleAttachmentChange}
-            disabled={loading}
-          />
-
+          <input type="file" multiple onChange={handleAttachmentChange} disabled={loading} />
           {attachmentFiles.length > 0 && (
             <ul className="file-list">
-              {attachmentFiles.map((file, index) => (
-                <li key={index}>
+              {attachmentFiles.map((file, idx) => (
+                <li key={idx}>
                   {file.name} ({formatFileSize(file.size)})
-                  <button
-                    type="button"
-                    onClick={() => removeAttachment(index)}
-                    disabled={loading}
-                  >
-                    ✕
-                  </button>
+                  <button type="button" onClick={() => removeAttachment(idx)} disabled={loading}>✕</button>
                 </li>
               ))}
             </ul>
@@ -695,17 +705,8 @@ const CreateCourse = () => {
 
           {/* Actions */}
           <div className="form-actions">
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              disabled={loading}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading || !formData.title || !formData.slug}
-            >
+            <button type="button" onClick={() => navigate(-1)} disabled={loading}>Cancel</button>
+            <button type="submit" disabled={loading || !formData.title || !formData.slug}>
               {loading ? "Creating..." : "Create Course"}
             </button>
           </div>

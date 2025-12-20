@@ -145,8 +145,10 @@
 
 
 
-// src/pages/teachers/LessonForm.jsx - UPDATED FOR MULTIPLE FILES
-import React, { useState } from 'react';
+
+// src/pages/teachers/LessonForm.jsx
+
+import React, { useState } from "react";
 import {
   Box,
   TextField,
@@ -167,125 +169,174 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   IconButton,
-  Chip,
-} from '@mui/material';
-import { CloudUpload, Save, Cancel, Delete, InsertDriveFile } from '@mui/icons-material';
-import axiosInstance from '../../utils/axiosInstance';
+} from "@mui/material";
+import {
+  CloudUpload,
+  Save,
+  Cancel,
+  Delete,
+  InsertDriveFile,
+} from "@mui/icons-material";
+
+import axiosInstance from "../../utils/axiosInstance";
+import { prepareFormData, validateFiles } from "../../utils/uploadUtils";
 
 const LessonForm = ({ courseId, unitId, onSuccess, onCancel }) => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [error, setError] = useState("");
+
   const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    contentType: 'text',
-    orderIndex: '',
-    videoUrl: '',
-    isPreview: false,
+    title: "",
+    content: "",
+    content_type: "text",
+    order_index: "",
+    video_url: "",
+    is_preview: false,
   });
 
-  // ✅ CHANGED: from selectedFile to selectedFiles array
   const [selectedFiles, setSelectedFiles] = useState([]);
+
+  /* ------------------------- handlers ------------------------- */
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
-  // ✅ CHANGED: Handle multiple files
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
 
-    // Add new files to existing ones
-    setSelectedFiles(prev => [...prev, ...files]);
+    const { validFiles, errors } = validateFiles(files);
 
-    // Auto-detect content type if first file
-    if (selectedFiles.length === 0 && files.length > 0) {
-      const firstFile = files[0];
-      if (firstFile.type === "application/pdf") {
-        setFormData(prev => ({ ...prev, contentType: "pdf" }));
-      } else if (firstFile.type.startsWith("video/")) {
-        setFormData(prev => ({ ...prev, contentType: "video" }));
-      }
+    if (errors.length) {
+      setError(`Some files rejected: ${errors.join(", ")}`);
+    }
+
+    if (!validFiles.length) return;
+
+    setSelectedFiles((prev) => [...prev, ...validFiles]);
+
+    const hasPdf = validFiles.some(
+      (f) => f.type === "application/pdf"
+    );
+    const hasVideo = validFiles.some((f) =>
+      f.type.startsWith("video/")
+    );
+
+    if (hasPdf) {
+      setFormData((p) => ({ ...p, content_type: "pdf" }));
+    } else if (hasVideo) {
+      setFormData((p) => ({ ...p, content_type: "video" }));
+    } else if (validFiles.length > 1) {
+      setFormData((p) => ({ ...p, content_type: "mixed" }));
     }
   };
 
-  // ✅ NEW: Remove a file from the list
   const removeFile = (index) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setUploadProgress(0);
+
+    if (!formData.title.trim()) {
+      setError("Lesson title is required");
+      setLoading(false);
+      return;
+    }
 
     try {
-      const submitData = new FormData();
-
-      // Append form fields
-      Object.keys(formData).forEach((key) => {
-        submitData.append(key, formData[key]);
-      });
-
-      submitData.append("courseId", courseId);
-      if (unitId) submitData.append("unitId", unitId);
-      
-      // ✅ CHANGED: Append multiple files as "attachments" field
-      selectedFiles.forEach((file, index) => {
-        submitData.append("attachments", file); // Important: use "attachments" not "file"
-      });
-
-      console.log(`Uploading ${selectedFiles.length} files...`);
+      const submitData = prepareFormData(
+        {
+          ...formData,
+          course_id: courseId,
+          unit_id: unitId || null,
+        },
+        selectedFiles
+      );
 
       const response = await axiosInstance.post(
         `/courses/${courseId}/lessons`,
         submitData,
-        { 
-          headers: { 
-            "Content-Type": "multipart/form-data",
-          } 
+        {
+          onUploadProgress: (progressEvent) => {
+            if (!progressEvent.total) return;
+            const percent = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            setUploadProgress(percent);
+          },
         }
       );
 
-      if (!response.data.success) throw new Error(response.data.error);
+      if (!response.data?.success) {
+        throw new Error(response.data?.error || "Lesson creation failed");
+      }
 
       onSuccess(response.data.lesson);
-
+      setSelectedFiles([]);
     } catch (err) {
-      console.error("Upload error:", err);
-      setError(err.response?.data?.error || err.message || "Upload failed");
+      console.error("❌ Upload error:", err);
+      setError(err.response?.data?.error || err.message);
     } finally {
       setLoading(false);
+      setUploadProgress(0);
     }
   };
 
+  /* ------------------------- render ------------------------- */
+
   return (
-    <Card sx={{ maxWidth: 800, margin: "auto", mt: 3 }}>
+    <Card sx={{ maxWidth: 800, mx: "auto", mt: 3 }}>
       <CardContent>
         <Typography variant="h5" gutterBottom>
           Create New Lesson
         </Typography>
 
-        {error && <Alert severity="error">{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+
+        {uploadProgress > 0 && uploadProgress < 100 && (
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="body2">
+              Uploading: {uploadProgress}%
+            </Typography>
+            <CircularProgress
+              variant="determinate"
+              value={uploadProgress}
+            />
+          </Box>
+        )}
 
         <form onSubmit={handleSubmit}>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            <TextField 
-              required 
-              label="Lesson Title" 
-              name="title" 
-              value={formData.title} 
-              onChange={handleInputChange} 
+            <TextField
+              required
+              label="Lesson Title"
+              name="title"
+              value={formData.title}
+              onChange={handleInputChange}
             />
 
             <FormControl fullWidth>
               <InputLabel>Content Type</InputLabel>
-              <Select name="contentType" value={formData.contentType} onChange={handleInputChange}>
+              <Select
+                name="content_type"
+                value={formData.content_type}
+                label="Content Type"
+                onChange={handleInputChange}
+              >
                 <MenuItem value="text">Text</MenuItem>
                 <MenuItem value="pdf">PDF</MenuItem>
                 <MenuItem value="video">Video</MenuItem>
@@ -293,38 +344,43 @@ const LessonForm = ({ courseId, unitId, onSuccess, onCancel }) => {
               </Select>
             </FormControl>
 
-            {/* ✅ UPDATED: File upload for multiple files */}
+            {/* File upload */}
             <Box>
-              <Button 
-                component="label" 
-                variant="outlined" 
-                startIcon={<CloudUpload />} 
+              <Button
+                component="label"
+                variant="outlined"
+                startIcon={<CloudUpload />}
                 fullWidth
               >
-                {selectedFiles.length > 0 
-                  ? `${selectedFiles.length} File${selectedFiles.length > 1 ? 's' : ''} Selected` 
+                {selectedFiles.length
+                  ? `${selectedFiles.length} file(s) selected`
                   : "Choose Files"}
-                <input 
-                  type="file" 
-                  hidden 
-                  onChange={handleFileChange} 
+                <input
+                  type="file"
+                  hidden
+                  multiple
                   accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,image/*,video/*"
-                  multiple // ✅ ADD THIS: Allows multiple selection
+                  onChange={handleFileChange}
                 />
               </Button>
-              
-              {/* File list */}
+
               {selectedFiles.length > 0 && (
-                <List dense sx={{ mt: 2, maxHeight: 200, overflow: 'auto' }}>
+                <List dense sx={{ mt: 2, maxHeight: 200, overflow: "auto" }}>
                   {selectedFiles.map((file, index) => (
                     <ListItem key={index} divider>
                       <InsertDriveFile sx={{ mr: 1 }} />
                       <ListItemText
                         primary={file.name}
-                        secondary={`${(file.size / 1024).toFixed(1)} KB`}
+                        secondary={`${(file.size / 1024).toFixed(
+                          1
+                        )} KB`}
                       />
                       <ListItemSecondaryAction>
-                        <IconButton edge="end" onClick={() => removeFile(index)} size="small">
+                        <IconButton
+                          edge="end"
+                          size="small"
+                          onClick={() => removeFile(index)}
+                        >
                           <Delete />
                         </IconButton>
                       </ListItemSecondaryAction>
@@ -332,67 +388,56 @@ const LessonForm = ({ courseId, unitId, onSuccess, onCancel }) => {
                   ))}
                 </List>
               )}
-              
-              <Typography variant="caption" color="textSecondary" sx={{ mt: 1 }}>
-                Select multiple files (PDFs, Documents, Images, Videos)
-              </Typography>
             </Box>
 
-            <TextField 
-              label="Video URL" 
-              name="videoUrl" 
-              value={formData.videoUrl} 
-              onChange={handleInputChange} 
-              fullWidth 
-              placeholder="Optional: Direct video link"
+            <TextField
+              label="Video URL"
+              name="video_url"
+              value={formData.video_url}
+              onChange={handleInputChange}
             />
 
-            <TextField 
-              label="Lesson Content" 
-              name="content" 
-              multiline 
-              rows={4} 
-              value={formData.content} 
-              onChange={handleInputChange} 
-              placeholder="Enter lesson description or text content"
+            <TextField
+              label="Lesson Content"
+              name="content"
+              multiline
+              rows={4}
+              value={formData.content}
+              onChange={handleInputChange}
             />
 
-            <TextField 
-              label="Order Index" 
-              name="orderIndex" 
-              type="number" 
-              value={formData.orderIndex} 
-              onChange={handleInputChange} 
-              helperText="Order in which lesson appears"
+            <TextField
+              label="Order Index"
+              name="order_index"
+              type="number"
+              value={formData.order_index}
+              onChange={handleInputChange}
             />
 
-            <FormControlLabel 
+            <FormControlLabel
               control={
-                <Checkbox 
-                  name="isPreview" 
-                  checked={formData.isPreview} 
-                  onChange={handleInputChange} 
+                <Checkbox
+                  name="is_preview"
+                  checked={formData.is_preview}
+                  onChange={handleInputChange}
                 />
-              } 
-              label="Make this lesson available as preview" 
+              }
+              label="Make Preview"
             />
 
             <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
-              <Button 
-                onClick={onCancel} 
-                startIcon={<Cancel />} 
-                disabled={loading}
-              >
+              <Button onClick={onCancel} startIcon={<Cancel />}>
                 Cancel
               </Button>
-
-              <Button 
-                type="submit" 
-                variant="contained" 
-                startIcon={loading ? <CircularProgress size={16} /> : <Save />} 
-                disabled={loading || !formData.title}
+              <Button
+                type="submit"
+                variant="contained"
+                startIcon={
+                  loading ? <CircularProgress size={16} /> : <Save />
+                }
+                disabled={loading}
               >
-                {loading ? "Creating..." : "Create Lesson"}
+                {loading ? "Saving..." : "Create Lesson"}
               </Button>
             </Box>
           </Box>
