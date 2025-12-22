@@ -5,6 +5,8 @@
 export { default as Home } from './Home';
 export { default as Register } from './auth/Register';
 export { default as Login } from './auth/Login';
+export { default as ForgotPassword } from './auth/ForgotPassword';  // ADD THIS
+export { default as ResetPassword } from './auth/ResetPassword';    // AND THIS
 export { default as ConfirmAccount } from './ConfirmAccount';
 export { default as NotFound } from './NotFound';
 export { default as Unauthorized } from './Unauthorized';
