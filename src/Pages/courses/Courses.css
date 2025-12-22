@@ -319,7 +319,7 @@
 }
 
 .course-teacher::before {
-  content: '👨‍🏫';
+  content: '👨🏫';
   font-size: 1.1rem;
 }
 
@@ -357,7 +357,7 @@
 }
 
 .badge.teacher::before {
-  content: '👨‍🏫';
+  content: '👨🏫';
 }
 
 /* ------------------ COURSE ACTIONS ------------------ */

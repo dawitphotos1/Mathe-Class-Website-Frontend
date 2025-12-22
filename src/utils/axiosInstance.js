@@ -1,69 +1,48 @@
-// //utils/axiosInstance.js
-
-// import axios from 'axios';
-
-// const axiosInstance = axios.create({
-//   baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api/v1',
-//   headers: {
-//     'Content-Type': 'application/json',
-//   },
-//   withCredentials: true,
-// });
-
-// axiosInstance.interceptors.request.use((config) => {
-//   const token = localStorage.getItem('token') || localStorage.getItem('authToken');
-//   if (token) {
-//     config.headers.Authorization = `Bearer ${token}`;
-//   }
-//   return config;
-// });
-
-// export default axiosInstance;
-
-
-
-
-
-// src/utils/axiosInstance.js
+// src/utils/axiosInstance.js - FIXED VERSION
 import axios from 'axios';
 
-// Determine the backend URL
+// Determine the backend URL - WITH /api/v1 included
 const getBackendUrl = () => {
-  // Priority order for backend URL
+  // Priority 1: Environment variable (should include /api/v1)
   if (process.env.REACT_APP_API_URL) {
-    return process.env.REACT_APP_API_URL;
+    const url = process.env.REACT_APP_API_URL.trim();
+    // Ensure it ends with /api/v1
+    return url.endsWith('/api/v1') ? url : `${url.replace(/\/+$/, '')}/api/v1`;
   }
   
+  // Priority 2: Alternative environment variable
   if (process.env.REACT_APP_BACKEND_URL) {
-    return process.env.REACT_APP_BACKEND_URL;
+    const url = process.env.REACT_APP_BACKEND_URL.trim();
+    return url.endsWith('/api/v1') ? url : `${url.replace(/\/+$/, '')}/api/v1`;
   }
   
-  // For production
+  // Priority 3: Production URL (with /api/v1)
   if (process.env.NODE_ENV === 'production') {
-    return 'https://mathe-class-website-backend-1.onrender.com';
+    return 'https://mathe-class-website-backend-1.onrender.com/api/v1';
   }
   
-  // Default to localhost for development
-  return 'http://localhost:5000';
+  // Priority 4: Development default (with /api/v1)
+  return 'http://localhost:5000/api/v1';
 };
 
 const BACKEND_URL = getBackendUrl();
-console.log(`🌐 Backend URL configured: ${BACKEND_URL}`);
+console.log(`🌐 Backend Base URL: ${BACKEND_URL}`);
+console.log(`🌐 Environment: ${process.env.NODE_ENV}`);
+console.log(`🌐 REACT_APP_API_URL: ${process.env.REACT_APP_API_URL || 'Not set'}`);
 
-// Create axios instance
+// Create axios instance - baseURL now includes /api/v1
 const axiosInstance = axios.create({
-  baseURL: `${BACKEND_URL}/api/v1`,
+  baseURL: BACKEND_URL,
   headers: {
     'Content-Type': 'application/json',
   },
   withCredentials: true,
-  timeout: 30000, // 30 seconds timeout
+  timeout: 30000,
 });
 
 // Request interceptor - add auth token
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Try multiple possible token storage keys
     const token = localStorage.getItem('token') || 
                   localStorage.getItem('authToken') || 
                   localStorage.getItem('jwtToken') ||
@@ -73,88 +52,80 @@ axiosInstance.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    // Log request for debugging (only in development)
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`➡️ ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
-    }
+    const fullUrl = config.url.startsWith('http') 
+      ? config.url 
+      : `${config.baseURL}${config.url}`;
+    console.log(`🌐 Request: ${config.method?.toUpperCase()} ${fullUrl}`);
     
     return config;
   },
   (error) => {
-    console.error('❌ Request error:', error);
+    console.error('❌ Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
 
-// Response interceptor - handle errors globally
+// Response interceptor
 axiosInstance.interceptors.response.use(
   (response) => {
-    // Log successful responses in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`✅ ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`);
-    }
+    console.log(`✅ ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`);
     return response;
   },
   (error) => {
-    // Handle common errors
     if (error.response) {
-      // Server responded with error status
       const { status, data } = error.response;
+      const url = error.config?.url;
+      const method = error.config?.method?.toUpperCase();
       
-      console.error(`❌ API Error ${status}:`, {
-        url: error.config?.url,
-        method: error.config?.method,
-        error: data?.error || data?.message || 'Unknown error',
-      });
+      console.error(`❌ API Error ${status} ${method} ${url}:`, data?.error || data?.message || 'Unknown error');
       
-      switch (status) {
-        case 401:
-          // Unauthorized - clear token
-          localStorage.removeItem('token');
-          localStorage.removeItem('authToken');
-          sessionStorage.removeItem('token');
-          
-          // Only redirect if not already on login page
-          if (!window.location.pathname.includes('/login')) {
-            const currentPath = window.location.pathname + window.location.search;
-            window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
-          }
-          break;
-          
-        case 403:
-          // Forbidden
-          console.warn('⚠️ Access forbidden');
-          break;
-          
-        case 404:
-          // Not found
-          console.warn('🔍 Resource not found');
-          break;
-          
-        case 500:
-          // Server error
-          console.error('🔥 Server error occurred');
-          break;
-          
-        default:
-          console.error(`⚠️ API Error ${status}`);
+      if (status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('authToken');
+        sessionStorage.removeItem('token');
+        
+        if (!window.location.pathname.includes('/login') && 
+            !window.location.pathname.includes('/register')) {
+          const currentPath = window.location.pathname + window.location.search;
+          window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+        }
       }
     } else if (error.request) {
-      // Request was made but no response
-      console.error('📡 No response received - network error or server down');
-      
-      // Check if backend is reachable
-      if (error.code === 'ECONNREFUSED') {
-        console.error('❌ Cannot connect to backend server. Please check if backend is running.');
-      }
+      console.error('📡 No response received - server might be down or network issue');
     } else {
-      // Something else happened
       console.error('🚫 Request setup error:', error.message);
     }
     
     return Promise.reject(error);
   }
 );
+
+// Helper function to test backend connectivity
+export const testBackendConnection = async () => {
+  console.log('🔍 Testing backend connectivity...');
+  console.log(`🌐 Base URL: ${BACKEND_URL}`);
+  
+  try {
+    const response = await axiosInstance.get('/courses');
+    
+    if (response.data) {
+      console.log('✅ Backend connection successful!');
+      console.log(`📊 Found ${Array.isArray(response.data) ? response.data.length : response.data.courses?.length || 0} courses`);
+      return { 
+        success: true, 
+        baseUrl: BACKEND_URL,
+        data: response.data 
+      };
+    }
+  } catch (error) {
+    console.error('❌ Backend test failed:', error.message);
+    return { 
+      success: false, 
+      error: error.message,
+      baseUrl: BACKEND_URL 
+    };
+  }
+};
 
 // Helper functions
 export const setAuthToken = (token) => {
@@ -178,42 +149,15 @@ export const getAuthToken = () => {
   return localStorage.getItem('token') || localStorage.getItem('authToken');
 };
 
-// Test backend connection
-export const testBackendConnection = async () => {
-  try {
-    console.log('🔄 Testing backend connection...');
-    const response = await axiosInstance.get('/health');
-    console.log('✅ Backend connection successful:', response.data);
-    return { 
-      success: true, 
-      data: response.data,
-      backendUrl: BACKEND_URL 
-    };
-  } catch (error) {
-    console.error('❌ Backend connection failed:', error.message);
-    return { 
-      success: false, 
-      error: error.message,
-      backendUrl: BACKEND_URL 
-    };
-  }
-};
+// Run a quick test on module load in development
+if (process.env.NODE_ENV === 'development') {
+  setTimeout(() => {
+    testBackendConnection().then(result => {
+      if (!result.success) {
+        console.warn('⚠️ Backend connection test failed on startup');
+      }
+    });
+  }, 1000);
+}
 
-// Upload file helper
-export const uploadFile = async (url, file, onProgress = null) => {
-  const formData = new FormData();
-  formData.append('file', file);
-  
-  return axiosInstance.post(url, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-    onUploadProgress: onProgress ? (progressEvent) => {
-      const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-      onProgress(percentCompleted);
-    } : undefined,
-  });
-};
-
-// Default export
 export default axiosInstance;
