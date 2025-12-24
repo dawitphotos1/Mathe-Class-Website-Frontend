@@ -1,100 +1,578 @@
-   .manage-lessons {
-  max-width: 900px;
+/* src/pages/teachers/ManageLessons.css - UPDATED WITH FIXED TABLE HEADER */
+.manage-lessons-container {
+  max-width: 1400px;
   margin: 2rem auto;
   padding: 1rem;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  min-height: 100vh;
 }
 
-.manage-lessons h2 {
-  text-align: center;
+/* Header Styles */
+.manage-lessons-header {
+  background: white;
+  padding: 1.5rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   margin-bottom: 2rem;
-}
-
-.create-btn {
-  display: inline-block;
-  margin-bottom: 1rem;
-  padding: 0.6rem 1rem;
-  background-color: #3498db;
-  color: white;
-  text-decoration: none;
-  border-radius: 6px;
-}
-
-.lesson-list {
-  list-style: none;
-  padding: 0;
-}
-
-.lesson-item,
-.unit-header {
-  padding: 1rem;
-  background: #f9f9f9;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  position: relative;
-}
-
-.unit-header {
-  background-color: #ecf0f1;
-  font-weight: bold;
-  font-size: 1.1rem;
-}
-
-.badge {
-  margin-left: 0.5rem;
-  background-color: #2ecc71;
-  color: white;
-  padding: 0.2rem 0.6rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-}
-
-.actions {
-  margin-top: 0.5rem;
   display: flex;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  border-left: 5px solid #1976d2;
+}
+
+.manage-lessons-header h2 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
 }
 
-.edit-btn,
-.delete-btn,
-.preview-btn {
-  padding: 0.4rem 0.8rem;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+.course-info {
   font-size: 0.9rem;
+  color: #666;
+  margin-top: 0.5rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.create-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.5rem;
+  background: linear-gradient(135deg, #1976d2, #1565c0);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(25, 118, 210, 0.2);
+}
+
+.create-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.3);
+}
+
+.debug-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.5rem;
+  background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.debug-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(156, 39, 176, 0.3);
+}
+
+/* Loading State */
+.loading-state {
+  text-align: center;
+  padding: 4rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.loading-spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #1976d2;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-state p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 2px dashed #ddd;
+}
+
+.empty-state p {
+  color: #666;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+.create-first-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 2rem;
+  background: linear-gradient(135deg, #1976d2, #1565c0);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.create-first-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.3);
+}
+
+/* Lessons Table Container */
+.lessons-table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  margin-bottom: 2rem;
+  border: 1px solid #e0e0e0;
+}
+
+/* ✅ UPDATED: Table Header Styles - Fixed background */
+.lessons-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* ✅ CRITICAL FIX: Force table header background */
+.lessons-table thead {
+  background: linear-gradient(135deg, #1976d2, #1565c0) !important;
+}
+
+.lessons-table thead tr {
+  background: inherit !important;
+}
+
+.lessons-table thead th {
+  background: inherit !important;
+  color: white !important;
+  padding: 1rem !important;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-bottom: none !important;
+  position: relative;
+  z-index: 1;
+}
+
+/* Fix for Material-UI inline styles */
+.MuiTableHead-root {
+  background: linear-gradient(135deg, #1976d2, #1565c0) !important;
+}
+
+.MuiTableCell-head {
+  color: white !important;
+  font-weight: 600 !important;
+  background: inherit !important;
+  border-bottom: none !important;
+}
+
+/* Rounded corners for first and last header cells */
+.lessons-table thead th:first-child {
+  border-top-left-radius: 12px;
+}
+
+.lessons-table thead th:last-child {
+  border-top-right-radius: 12px;
+}
+
+/* Table body styles */
+.lessons-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+}
+
+.lessons-table tr:last-child td {
+  border-bottom: none;
+}
+
+.lessons-table tbody tr:hover {
+  background-color: #f5f9ff !important;
+}
+
+/* Alternate row colors for better readability */
+.lessons-table tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+.lessons-table tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+/* ✅ UPDATED: Column widths */
+.lessons-table th:nth-child(1),
+.lessons-table td:nth-child(1) {
+  width: 300px;
+  min-width: 300px;
+}
+
+.lessons-table th:nth-child(2),
+.lessons-table td:nth-child(2) {
+  width: 150px;
+  min-width: 150px;
+}
+
+.lessons-table th:nth-child(3),
+.lessons-table td:nth-child(3) {
+  width: 150px;
+  min-width: 150px;
+}
+
+.lessons-table th:nth-child(4),
+.lessons-table td:nth-child(4) {
+  width: 100px;
+  min-width: 100px;
+  text-align: center;
+}
+
+.lessons-table th:nth-child(5),
+.lessons-table td:nth-child(5) {
+  width: 150px;
+  min-width: 150px;
+}
+
+/* Lesson Title Cell */
+.lesson-title-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lesson-title {
+  font-weight: 600;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.expand-button {
+  color: #1976d2;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.expand-button:hover {
+  background-color: rgba(25, 118, 210, 0.1);
+}
+
+.lesson-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.lesson-id {
+  font-size: 0.75rem;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+.preview-badge {
+  display: inline-block;
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-left: 0.5rem;
+}
+
+/* Content Type Cell */
+.content-type-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.content-type-badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: #e3f2fd;
+  color: #1976d2;
+  border: 1px solid #bbdefb;
+  display: inline-block;
+}
+
+/* Attachments Cell */
+.attachments-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.attachments-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffcc80;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 100px;
+  justify-content: center;
+}
+
+.attachments-btn:hover:not(:disabled) {
+  background: #ffe0b2;
+  transform: translateY(-1px);
+}
+
+.attachments-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f5f5f5;
+  color: #999;
+  border-color: #ddd;
+}
+
+/* Preview Cell */
+.preview-cell {
+  text-align: center;
+}
+
+.preview-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #bbdefb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.preview-btn:hover:not(:disabled) {
+  background: #bbdefb;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(21, 101, 192, 0.2);
+}
+
+.preview-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f5f5f5;
+  color: #999;
+  border-color: #ddd;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Actions Cell */
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-start;
+}
+
+.edit-btn,
+.delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1rem;
 }
 
 .edit-btn {
-  background-color: #f1c40f;
-  color: #2c3e50;
-}
-
-.delete-btn {
-  background-color: #e74c3c;
-  color: white;
-}
-
-.preview-btn {
-  background-color: #8e44ad;
-  color: white;
+  background: #e8f5e9;
+  color: #2e7d32;
 }
 
 .edit-btn:hover {
-  background-color: #f39c12;
+  background: #c8e6c9;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(46, 125, 50, 0.2);
+}
+
+.delete-btn {
+  background: #ffebee;
+  color: #c62828;
 }
 
 .delete-btn:hover {
-  background-color: #c0392b;
+  background: #ffcdd2;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(198, 40, 40, 0.2);
 }
 
-.preview-btn:hover {
-  background-color: #732d91;
+/* ✅ UPDATED: Expanded Details Row */
+.expanded-details-row {
+  background-color: #f8fafc !important;
 }
 
-/* 🔍 Modal for text preview */
-.modal-overlay {
+.expanded-content {
+  padding: 1.5rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.expanded-section {
+  margin-bottom: 1.5rem;
+}
+
+.expanded-title {
+  font-weight: 600;
+  color: #1976d2;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.detail-item {
+  background: white;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.detail-label {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.detail-value {
+  font-size: 0.9rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.attachments-list {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  margin-top: 0.5rem;
+}
+
+.attachments-list ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.attachments-list li {
+  margin-bottom: 0.25rem;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.debug-lesson-btn {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: #f3e5f5;
+  color: #7b1fa2;
+  border: 1px solid #ce93d8;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.debug-lesson-btn:hover {
+  background: #e1bee7;
+}
+
+/* Debug Info Panel */
+.debug-panel {
+  background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  margin-top: 2rem;
+  border: 1px solid #ce93d8;
+}
+
+.debug-title {
+  font-weight: 600;
+  color: #7b1fa2;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.debug-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.debug-stat {
+  background: white;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #ce93d8;
+}
+
+.debug-stat-label {
+  font-size: 0.8rem;
+  color: #7b1fa2;
+  margin-bottom: 0.25rem;
+}
+
+.debug-stat-value {
+  font-size: 1rem;
+  color: #4a148c;
+  font-weight: 600;
+}
+
+/* Dialog/Modal Styles */
+.dialog-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -105,29 +583,134 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(4px);
 }
 
-.modal-content {
+.dialog-content {
   background: white;
-  padding: 1rem;
-  max-width: 700px;
-  max-height: 80vh;
-  overflow-y: auto;
-  border-radius: 8px;
-  box-shadow: 0 0 10px #333;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
   position: relative;
 }
 
-.close-btn {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background: transparent;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
+.dialog-header {
+  background: linear-gradient(135deg, #1976d2, #1565c0);
+  color: white;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.text-preview {
-  margin-top: 1.5rem;
+.dialog-title {
+  margin: 0;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: background 0.2s;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.dialog-body {
+  padding: 1.5rem;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* ✅ NEW: Emergency override styles */
+/* These will override Material-UI inline styles */
+[class*="MuiTableHead"] {
+  background: linear-gradient(135deg, #1976d2, #1565c0) !important;
+}
+
+[class*="MuiTableCell-head"] {
+  color: white !important;
+  font-weight: 600 !important;
+  background: inherit !important;
+}
+
+/* Force white text on all header cells */
+th[class*="MuiTableCell"] {
+  color: white !important;
+}
+
+/* Responsive Styles */
+@media (max-width: 1024px) {
+  .manage-lessons-container {
+    padding: 0.5rem;
+  }
+  
+  .lessons-table-container {
+    overflow-x: auto;
+  }
+  
+  .lessons-table {
+    min-width: 800px;
+  }
+}
+
+@media (max-width: 768px) {
+  .manage-lessons-header {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    text-align: center;
+  }
+  
+  .header-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .create-btn,
+  .debug-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .debug-info {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .manage-lessons-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .lesson-title-cell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .actions-cell {
+    justify-content: center;
+  }
 }

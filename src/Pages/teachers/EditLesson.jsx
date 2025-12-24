@@ -312,10 +312,9 @@
 
 
 
-
-// src/pages/teachers/EditLesson.jsx - ADD COURSEID PARAM HANDLING
+// src/pages/teachers/EditLesson.jsx - UPDATED WITH BETTER ROUTE HANDLING
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
 import { prepareFormData, validateFiles } from "../../utils/uploadUtils";
 import { toast } from "react-toastify";
@@ -325,12 +324,14 @@ import "./EditLesson.css";
 import { AiOutlineUpload, AiOutlineDelete } from "react-icons/ai";
 
 const EditLesson = () => {
-  const { lessonId, courseId } = useParams(); // ✅ Now also gets courseId
+  const { lessonId, courseId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [actualCourseId, setActualCourseId] = useState(null);
 
   const [form, setForm] = useState({
     title: "",
@@ -346,28 +347,52 @@ const EditLesson = () => {
   const [existingAttachments, setExistingAttachments] = useState([]);
   const [activeTab, setActiveTab] = useState("text");
 
-  // ✅ Add console logging for debugging
+  // ✅ DEBUG: Log all route parameters
   useEffect(() => {
-    console.log("✏️ EditLesson component loaded:", {
-      lessonId,
-      courseId,
-      path: `/teacher/courses/${courseId}/lessons/${lessonId}/edit`
+    console.log("🚨 EditLesson Component Mounted:", {
+      params: { lessonId, courseId },
+      location: {
+        pathname: location.pathname,
+        search: location.search,
+        state: location.state
+      }
     });
-  }, [lessonId, courseId]);
+  }, [lessonId, courseId, location]);
 
-  /* ---------------- load lesson ---------------- */
-
+  // Load the lesson and determine courseId
   useEffect(() => {
-    const loadLesson = async () => {
+    const loadLessonAndCourse = async () => {
       try {
+        setLoading(true);
+        
+        // If courseId is not provided in params, try to get it from the lesson
+        let targetCourseId = courseId;
+        
+        if (!targetCourseId && location.state?.courseId) {
+          targetCourseId = location.state.courseId;
+        }
+        
+        if (!targetCourseId && location.state?.course?.id) {
+          targetCourseId = location.state.course.id;
+        }
+
+        // Load the lesson
+        console.log(`📥 Loading lesson ${lessonId} for course ${targetCourseId}`);
         const res = await axiosInstance.get(`/lessons/${lessonId}`);
         const lesson = res.data.lesson;
 
-        console.log("📥 Lesson loaded:", {
-          title: lesson.title,
-          contentType: lesson.content_type,
-          hasFile: !!lesson.file_url || !!lesson.fileUrl,
-          courseIdFromLesson: lesson.course_id
+        // If still no courseId, try to get it from the lesson data
+        if (!targetCourseId && lesson.course_id) {
+          targetCourseId = lesson.course_id;
+          console.log(`🔍 Found courseId from lesson data: ${targetCourseId}`);
+        }
+        
+        setActualCourseId(targetCourseId);
+
+        console.log("✅ Lesson loaded successfully:", {
+          lessonTitle: lesson.title,
+          lessonCourseId: lesson.course_id,
+          resolvedCourseId: targetCourseId
         });
 
         setForm({
@@ -395,17 +420,20 @@ const EditLesson = () => {
         }
       } catch (err) {
         console.error("❌ Failed to load lesson:", err);
-        toast.error("Failed to load lesson");
+        toast.error("Failed to load lesson. Please check the lesson ID.");
         navigate(-1);
       } finally {
         setLoading(false);
       }
     };
 
-    loadLesson();
-  }, [lessonId, navigate]);
-
-  /* ---------------- file handling ---------------- */
+    if (lessonId) {
+      loadLessonAndCourse();
+    } else {
+      toast.error("No lesson ID provided");
+      navigate(-1);
+    }
+  }, [lessonId, courseId, navigate, location.state]);
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
@@ -422,9 +450,7 @@ const EditLesson = () => {
     setSelectedFiles((prev) => [...prev, ...validFiles]);
 
     const hasPdf = validFiles.some((f) => f.type === "application/pdf");
-    const hasVideo = validFiles.some((f) =>
-      f.type.startsWith("video/")
-    );
+    const hasVideo = validFiles.some((f) => f.type.startsWith("video/"));
 
     if (hasPdf) {
       setForm((p) => ({ ...p, content_type: "pdf" }));
@@ -454,8 +480,6 @@ const EditLesson = () => {
     }
   };
 
-  /* ---------------- submit ---------------- */
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -466,7 +490,7 @@ const EditLesson = () => {
 
       console.log("💾 Saving lesson update:", {
         lessonId,
-        courseId,
+        courseId: actualCourseId,
         contentType: form.content_type
       });
 
@@ -476,9 +500,7 @@ const EditLesson = () => {
         {
           onUploadProgress: (evt) => {
             if (!evt.total) return;
-            setUploadProgress(
-              Math.round((evt.loaded * 100) / evt.total)
-            );
+            setUploadProgress(Math.round((evt.loaded * 100) / evt.total));
           },
         }
       );
@@ -489,9 +511,9 @@ const EditLesson = () => {
 
       toast.success("Lesson updated successfully!");
       
-      // ✅ Navigate back to the course or manage lessons page
-      if (courseId) {
-        setTimeout(() => navigate(`/courses/${courseId}/manage-lessons`), 1000);
+      // Navigate back to appropriate page
+      if (actualCourseId) {
+        setTimeout(() => navigate(`/courses/${actualCourseId}/manage-lessons`), 1000);
       } else {
         setTimeout(() => navigate(-1), 1000);
       }
@@ -504,12 +526,17 @@ const EditLesson = () => {
     }
   };
 
-  /* ---------------- render ---------------- */
-
   if (loading) {
     return (
       <div className="edit-lesson-page">
-        <p className="loading-text">Loading lesson...</p>
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p className="loading-text">Loading lesson...</p>
+          <p className="loading-details">
+            Lesson ID: {lessonId}<br />
+            Course ID: {actualCourseId || "Not found"}
+          </p>
+        </div>
       </div>
     );
   }
@@ -517,22 +544,17 @@ const EditLesson = () => {
   return (
     <div className="edit-lesson-page">
       <div className="edit-lesson-card">
-        <h2>Edit Lesson</h2>
-        
-        {/* ✅ Show course context if available */}
-        {courseId && (
-          <div className="course-context" style={{ 
-            marginBottom: "1rem", 
-            padding: "0.5rem", 
-            background: "#f0f8ff",
-            borderRadius: "4px"
-          }}>
-            <p style={{ margin: 0, fontSize: "0.9rem" }}>
-              <strong>Course ID:</strong> {courseId}
-            </p>
+        <div className="edit-lesson-header">
+          <h2>✏️ Edit Lesson</h2>
+          <div className="route-info">
+            <small>
+              Route: {location.pathname}<br />
+              Lesson ID: {lessonId}<br />
+              Course ID: {actualCourseId || "Not provided"}
+            </small>
           </div>
-        )}
-
+        </div>
+        
         {uploadProgress > 0 && uploadProgress < 100 && (
           <div className="upload-progress">
             <p>Uploading: {uploadProgress}%</p>
@@ -544,9 +566,7 @@ const EditLesson = () => {
           <label>Title *</label>
           <input
             value={form.title}
-            onChange={(e) =>
-              setForm({ ...form, title: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
             required
             placeholder="Lesson title"
           />
@@ -638,16 +658,12 @@ const EditLesson = () => {
                     rel="noreferrer"
                     className="attachment-link"
                   >
-                    📎 {a.name ||
-                      a.fileName ||
-                      a.filePath?.split("/").pop()}
+                    📎 {a.name || a.fileName || a.filePath?.split("/").pop()}
                   </a>
                   {a.id !== "legacy" && (
                     <button
                       type="button"
-                      onClick={() =>
-                        removeExistingAttachment(a.id)
-                      }
+                      onClick={() => removeExistingAttachment(a.id)}
                       className="delete-attachment-btn"
                     >
                       Delete

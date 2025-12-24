@@ -1,3 +1,4 @@
+/* src/pages/teachers/EditLesson.css - UPDATED WITH ALL STYLES */
 /* ===== Page Container ===== */
 .edit-lesson-page {
   min-height: 100vh;
@@ -8,9 +9,47 @@
   align-items: flex-start;
 }
 
+/* ===== Loading Styles ===== */
+.loading-container {
+  text-align: center;
+  padding: 3rem;
+  width: 100%;
+  max-width: 720px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.loading-spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 2s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 .loading-text {
   font-size: 1.2rem;
   color: #555;
+  margin-bottom: 0.5rem;
+}
+
+.loading-details {
+  font-size: 0.9rem;
+  color: #888;
+  background: #f9f9f9;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+  font-family: monospace;
+  line-height: 1.4;
 }
 
 /* ===== Card Container ===== */
@@ -26,11 +65,38 @@
   gap: 1.5rem;
 }
 
-.edit-lesson-card h2 {
-  text-align: center;
-  color: #333;
+.edit-lesson-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 1rem;
+}
+
+.edit-lesson-header h2 {
+  text-align: left;
+  color: #333;
+  margin: 0;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.route-info {
+  background: #f0f8ff;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  border-left: 3px solid #1976d2;
+  max-width: 300px;
+}
+
+.route-info small {
+  color: #555;
+  font-family: monospace;
+  font-size: 0.8rem;
+  line-height: 1.3;
 }
 
 /* ===== Form Styles ===== */
@@ -44,6 +110,7 @@
   font-weight: 500;
   color: #444;
   margin-bottom: 0.3rem;
+  display: block;
 }
 
 .edit-lesson-form input,
@@ -55,6 +122,8 @@
   border-radius: 8px;
   outline: none;
   transition: all 0.2s ease-in-out;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .edit-lesson-form input:focus,
@@ -66,24 +135,39 @@
 
 .edit-lesson-form textarea {
   min-height: 120px;
+  resize: vertical;
 }
 
 /* ===== React Quill Editor ===== */
+.quill-editor-container {
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
 .ql-container {
   min-height: 200px;
-  border-radius: 8px;
-  border: 1.5px solid #ccc;
+  border-radius: 0 0 8px 8px !important;
+  border: 1.5px solid #ccc !important;
+}
+
+.ql-toolbar {
+  border-radius: 8px 8px 0 0 !important;
+  border: 1.5px solid #ccc !important;
+  border-bottom: none !important;
 }
 
 /* ===== Tabs ===== */
 .tab-header {
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
-.tab-btn {
+.tab-header button {
   flex: 1;
+  min-width: 100px;
   padding: 0.5rem 1rem;
   border: 1.5px solid #ccc;
   border-radius: 8px;
@@ -91,39 +175,45 @@
   cursor: pointer;
   font-weight: 500;
   transition: all 0.2s;
+  font-size: 0.9rem;
 }
 
-.tab-btn:hover {
+.tab-header button:hover {
   background-color: #e0e0e0;
 }
 
-.tab-btn.active {
+.tab-header button.active {
   border-color: #4caf50;
   background: linear-gradient(90deg, #4caf50, #43a047);
   color: #fff;
+  transform: translateY(-1px);
 }
 
 /* ===== File Upload ===== */
 .file-upload-wrapper {
   display: flex;
   align-items: center;
+  margin-bottom: 0.5rem;
 }
 
 .file-upload-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.2rem;
   background-color: #f0f4f8;
   border: 1.5px dashed #aaa;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
+  font-weight: 500;
+  color: #555;
 }
 
 .file-upload-btn:hover {
   background-color: #e0e7ef;
   border-color: #4caf50;
+  color: #4caf50;
 }
 
 .upload-icon {
@@ -131,7 +221,115 @@
   color: #4caf50;
 }
 
+.helper-text {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0.3rem 0 1rem 0;
+  font-style: italic;
+}
+
+/* ===== File Items ===== */
+.file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  border: 1px solid #e9ecef;
+}
+
+.file-name {
+  flex: 1;
+  font-weight: 500;
+  color: #333;
+}
+
+.file-size {
+  color: #666;
+  font-size: 0.85rem;
+  margin: 0 1rem;
+}
+
+.remove-btn {
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.remove-btn:hover {
+  background: #ff5252;
+}
+
+/* ===== Attachment Items ===== */
+.attachment-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  background: #e8f4fd;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  border: 1px solid #cce5ff;
+}
+
+.attachment-link {
+  flex: 1;
+  color: #0066cc;
+  text-decoration: none;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.attachment-link:hover {
+  color: #0052a3;
+  text-decoration: underline;
+}
+
+.delete-attachment-btn {
+  background: #ffc107;
+  color: #333;
+  border: none;
+  border-radius: 4px;
+  padding: 0.3rem 0.8rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.2s;
+}
+
+.delete-attachment-btn:hover {
+  background: #e0a800;
+}
+
 /* ===== Checkbox ===== */
+.checkbox-group {
+  margin: 1rem 0;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: #555;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
 .preview-checkbox {
   display: flex;
   align-items: center;
@@ -140,7 +338,90 @@
   color: #555;
 }
 
-/* ===== Buttons ===== */
+/* ===== Upload Progress ===== */
+.upload-progress {
+  background: #e8f5e9;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #c8e6c9;
+}
+
+.upload-progress p {
+  margin: 0 0 0.5rem 0;
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.upload-progress progress {
+  width: 100%;
+  height: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.upload-progress progress::-webkit-progress-bar {
+  background-color: #f5f5f5;
+  border-radius: 10px;
+}
+
+.upload-progress progress::-webkit-progress-value {
+  background: linear-gradient(90deg, #4caf50, #2e7d32);
+  border-radius: 10px;
+}
+
+/* ===== Video Input ===== */
+.video-input {
+  margin-bottom: 1rem;
+}
+
+.video-input label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* ===== Course Context ===== */
+.course-context {
+  background: #f0f8ff;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #1976d2;
+}
+
+.course-context p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+/* ===== Form Actions ===== */
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+}
+
+.cancel-btn {
+  padding: 0.7rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #555;
+  background: #f5f5f5;
+  border: 1.5px solid #ddd;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+.cancel-btn:hover {
+  background: #e0e0e0;
+  transform: translateY(-1px);
+}
+
 .save-btn {
   padding: 0.7rem 1.5rem;
   font-size: 1rem;
@@ -151,6 +432,7 @@
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s ease;
+  flex: 2;
 }
 
 .save-btn:hover {
@@ -158,12 +440,68 @@
   box-shadow: 0 6px 15px rgba(76, 175, 80, 0.4);
 }
 
+.save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
+  .edit-lesson-page {
+    padding: 1rem;
+  }
+  
   .edit-lesson-card {
     padding: 1.5rem;
   }
+  
+  .edit-lesson-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .route-info {
+    max-width: 100%;
+  }
+  
   .tab-header {
     flex-direction: column;
+  }
+  
+  .tab-header button {
+    width: 100%;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  .cancel-btn,
+  .save-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .edit-lesson-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .file-item,
+  .attachment-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .file-size {
+    margin: 0;
+  }
+  
+  .remove-btn,
+  .delete-attachment-btn {
+    align-self: flex-end;
   }
 }

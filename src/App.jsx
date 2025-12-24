@@ -213,8 +213,7 @@
 
 // export default App;
 
-
-// src/App.jsx - UPDATED WITH CORRECT IMPORT PATH
+// src/App.jsx - UPDATED WITH ALL TEACHER EDIT ROUTES
 import React, { Suspense, useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -228,7 +227,7 @@ import CSSDebug from "./components/CSSDebug";
 import Contact from "./components/Contact";
 import "react-toastify/dist/ReactToastify.css";
 
-// ✅ IMPORT ALL PAGES FROM INDEX (assuming your index exports EditLesson)
+// ✅ IMPORT ALL PAGES FROM INDEX
 import * as Pages from "./pages";
 
 /* Lazy load all pages using the Pages index */
@@ -256,8 +255,10 @@ const CreateCourse = lazyPage(Pages.CreateCourse);
 const CreateCourseWithUnits = lazyPage(Pages.CreateCourseWithUnits);
 const CourseLessons = lazyPage(Pages.CourseLessons);
 const EditCourse = lazyPage(Pages.EditCourse);
-// ✅ IMPORT FROM CORRECT PATH - if EditLesson is not in pages/index.js
+
+// ✅ IMPORT EDIT LESSON FROM TEACHERS FOLDER
 const EditLesson = React.lazy(() => import("./pages/teachers/EditLesson"));
+
 const CreateLessonPage = lazyPage(Pages.CreateLessonPage);
 const MyTeachingCourses = lazyPage(Pages.MyTeachingCourses);
 const TeacherCourseViewer = lazyPage(Pages.TeacherCourseViewer);
@@ -370,74 +371,8 @@ const DebugWrapper = ({ children }) => {
   );
 };
 
-// ✅ ADD THIS FUNCTION TO HANDLE EXTENSION ERRORS
-const setupErrorHandling = () => {
-  const originalErrorHandler = window.onerror;
-  const originalUnhandledRejectionHandler = window.onunhandledrejection;
-
-  // Handle JavaScript errors
-  window.onerror = function(message, source, lineno, colno, error) {
-    if (typeof message === 'string') {
-      if (message.includes('Cannot read properties of undefined') && 
-          message.includes('features')) {
-        console.warn('🔧 Ignoring extension error:', message.substring(0, 100));
-        return true;
-      }
-      
-      if (message.includes('chrome-extension://') || 
-          message.includes('moz-extension://')) {
-        console.warn('🔧 Ignoring browser extension error');
-        return true;
-      }
-    }
-
-    if (originalErrorHandler) {
-      return originalErrorHandler(message, source, lineno, colno, error);
-    }
-
-    if (process.env.NODE_ENV === 'development') {
-      console.error('🛑 Unhandled error:', { message, source, lineno, colno, error });
-    }
-
-    return false;
-  };
-
-  // Handle promise rejections
-  window.onunhandledrejection = function(event) {
-    const error = event.reason;
-    
-    if (error && typeof error.message === 'string') {
-      if (error.message.includes('features') || 
-          error.message.includes('chrome-extension://')) {
-        console.warn('🔧 Ignoring extension promise rejection');
-        event.preventDefault();
-        return;
-      }
-    }
-
-    if (originalUnhandledRejectionHandler) {
-      originalUnhandledRejectionHandler.call(window, event);
-    }
-
-    if (process.env.NODE_ENV === 'development') {
-      console.error('🛑 Unhandled promise rejection:', error);
-    }
-  };
-
-  return () => {
-    window.onerror = originalErrorHandler;
-    window.onunhandledrejection = originalUnhandledRejectionHandler;
-  };
-};
-
 function AppContent() {
   const { loading, checked } = useAuth();
-  
-  // ✅ Setup error handling on component mount
-  useEffect(() => {
-    const cleanup = setupErrorHandling();
-    return cleanup;
-  }, []);
 
   if (loading || !checked) return <Loading />;
 
@@ -463,7 +398,7 @@ function AppContent() {
               <Route path="/courses/:slug" element={<CourseViewer />} />
               <Route path="/courses/id/:id" element={<CourseViewer />} />
 
-              {/* ✅ FIXED PREVIEW ROUTES */}
+              {/* PREVIEW */}
               <Route path="/preview/:lessonId" element={<PreviewLessonPage />} />
               <Route path="/courses/:courseId/preview" element={<PreviewLessonPage />} />
               <Route path="/lessons/:lessonId/preview" element={
@@ -484,23 +419,38 @@ function AppContent() {
                 <Route path="file-manager" element={<FileManager />} />
               </Route>
 
-              {/* ✅ FIXED TEACHER ROUTES */}
+              {/* ✅ FIXED: TEACHER DASHBOARD AND EDIT ROUTES */}
               <Route path="/teacher-dashboard" element={<ProtectedRoute allowedRoles={["teacher"]}><DebugWrapper><MyTeachingCourses /></DebugWrapper></ProtectedRoute>} />
               <Route path="/teacher/courses/:courseId/view" element={<ProtectedRoute allowedRoles={["teacher","admin"]}><TeacherCourseViewer /></ProtectedRoute>} />
               
-              {/* ✅ FIXED: TEACHER LESSON EDIT ROUTE - Using your EditLesson component */}
+              {/* ✅ CRITICAL: ALL POSSIBLE EDIT LESSON ROUTES */}
+              
+              // Route 1: From Teacher Dashboard → Manage Lessons
               <Route path="/teacher/courses/:courseId/lessons/:lessonId/edit" 
                 element={<ProtectedRoute allowedRoles={["teacher","admin"]}><EditLesson /></ProtectedRoute>} />
               
+              // Route 2: From Course Management
+              <Route path="/courses/:courseId/lessons/:lessonId/edit" 
+                element={<ProtectedRoute allowedRoles={["teacher","admin"]}><EditLesson /></ProtectedRoute>} />
+              
+              // Route 3: Direct lesson edit (legacy)
+              <Route path="/lessons/:lessonId/edit" 
+                element={<ProtectedRoute allowedRoles={["teacher","admin"]}><EditLesson /></ProtectedRoute>} />
+              
+              // Route 4: From preview page
+              <Route path="/preview/:lessonId/edit" 
+                element={<ProtectedRoute allowedRoles={["teacher","admin"]}><EditLesson /></ProtectedRoute>} />
+              
+              // Route 5: From teacher specific path
+              <Route path="/teacher/lessons/:lessonId/edit" 
+                element={<ProtectedRoute allowedRoles={["teacher","admin"]}><EditLesson /></ProtectedRoute>} />
+
+              {/* OTHER TEACHER ROUTES */}
               <Route path="/create-course" element={<ProtectedRoute allowedRoles={["teacher","admin"]}><CreateCourse /></ProtectedRoute>} />
               <Route path="/create-course-advanced" element={<ProtectedRoute allowedRoles={["teacher","admin"]}><CreateCourseWithUnits /></ProtectedRoute>} />
               <Route path="/courses/:courseId/edit" element={<ProtectedRoute allowedRoles={["teacher","admin"]}><EditCourse /></ProtectedRoute>} />
               <Route path="/courses/:courseId/manage-lessons" element={<ProtectedRoute allowedRoles={["teacher","admin"]}><TeacherManageLessons /></ProtectedRoute>} />
               <Route path="/courses/:courseId/lessons/new" element={<ProtectedRoute allowedRoles={["teacher","admin"]}><CreateLessonPage /></ProtectedRoute>} />
-              
-              {/* Legacy edit route (backward compatibility) */}
-              <Route path="/lessons/:lessonId/edit" 
-                element={<ProtectedRoute allowedRoles={["teacher","admin"]}><EditLesson /></ProtectedRoute>} />
 
               {/* STUDENT */}
               <Route path="/my-courses" element={<ProtectedRoute allowedRoles={["student","teacher","admin"]}><MyCoursesPage /></ProtectedRoute>} />
