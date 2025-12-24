@@ -656,6 +656,10 @@ th[class*="MuiTableCell"] {
   color: white !important;
 }
 
+
+
+
+
 /* Responsive Styles */
 @media (max-width: 1024px) {
   .manage-lessons-container {
