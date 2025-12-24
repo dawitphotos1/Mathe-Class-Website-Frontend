@@ -1,0 +1,60 @@
+/* src/components/PdfViewer.css */
+.pdf-viewer-container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.pdf-viewer-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.pdf-viewer-title {
+  flex-grow: 1;
+}
+
+.pdf-viewer-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.pdf-viewer-frame {
+  width: 100%;
+  height: 70vh;
+  min-height: 500px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+}
+
+.pdf-viewer-error {
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 8px;
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+}
+
+.pdf-viewer-loading {
+  text-align: center;
+  padding: 3rem;
+}
+
+.pdf-viewer-help {
+  margin-top: 1rem;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  color: #6c757d;
+  text-align: center;
+}
