@@ -1,109 +1,78 @@
-
-// src/services/lessonService.js
-import axiosInstance from "../utils/axiosInstance";
+// services/lessonService.js - UPDATED
+import axiosInstance from '../utils/axiosInstance';
+import uploadService from './uploadService';
 
 const lessonService = {
-  // CREATE LESSON with multiple files
+  // Create lesson with multiple files
   createLesson: async (courseId, lessonData) => {
-    const form = new FormData();
-
-    // Append standard fields
-    Object.keys(lessonData).forEach((key) => {
-      const value = lessonData[key];
-      if (value === "" || value === null || value === undefined) return;
-
-      switch (key) {
-        case "contentType":
-          form.append("content_type", value);
-          break;
-        case "orderIndex":
-          form.append("order_index", value);
-          break;
-        case "videoUrl":
-          form.append("video_url", value);
-          break;
-        case "isPreview":
-          form.append("is_preview", value);
-          break;
-        case "files":
-          // Handled separately
-          break;
-        default:
-          form.append(key, value);
-      }
-    });
-
-    if (lessonData.unitId) form.append("unit_id", lessonData.unitId);
-
-    // Append multiple files
-    if (lessonData.files && Array.isArray(lessonData.files)) {
-      lessonData.files.forEach((file) => {
-        form.append("attachments[]", file);
-      });
-      console.log("📤 Appending files:", lessonData.files.map(f => f.name));
-    }
-
-    // No need to manually set Content-Type; axios handles it
-    const res = await axiosInstance.post(`/courses/${courseId}/lessons`, form);
-    return res.data;
+    return await uploadService.createLessonWithFiles(courseId, lessonData);
   },
-
-  // UPDATE LESSON with multiple files
+  
+  // Update lesson with multiple files
   updateLesson: async (lessonId, lessonData) => {
-    const form = new FormData();
-
-    // Append fields
-    Object.keys(lessonData).forEach((key) => {
-      const value = lessonData[key];
-      if (value === "" || value === null || value === undefined) return;
-      form.append(key, value);
-    });
-
-    // Append multiple files
-    if (lessonData.files && Array.isArray(lessonData.files)) {
-      lessonData.files.forEach((file) => {
-        form.append("attachments[]", file);
-      });
-      console.log("📤 Appending files:", lessonData.files.map(f => f.name));
-    }
-
-    const res = await axiosInstance.put(`/lessons/${lessonId}`, form);
-    return res.data;
+    return await uploadService.uploadLessonFiles(lessonId, lessonData);
   },
-
-  // DELETE ATTACHMENT
-  deleteAttachment: async (attachmentId) => {
-    const res = await axiosInstance.delete(`/lessons/attachments/${attachmentId}`);
-    return res.data;
+  
+  // Get lesson with all files
+  getLesson: async (lessonId) => {
+    return await uploadService.getLessonWithFiles(lessonId);
   },
-
-  // Get attachments for a lesson
-  getLessonAttachments: async (lessonId) => {
-    try {
-      const res = await axiosInstance.get(`/lessons/${lessonId}/attachments`);
-      return res.data;
-    } catch (error) {
-      console.log("No attachments endpoint, returning empty array");
-      return { attachments: [] };
-    }
+  
+  // Get preview lesson for course
+  getPreviewLesson: async (courseId) => {
+    return await uploadService.getPreviewLesson(courseId);
   },
-
-  // Get all lessons for a course
-  getLessonsByCourse: async (courseId) => {
-    const res = await axiosInstance.get(`/courses/${courseId}/lessons`);
-    return res.data;
-  },
-
-  // Get all lessons for a unit
-  getLessonsByUnit: async (unitId) => {
-    const res = await axiosInstance.get(`/units/${unitId}/lessons`);
-    return res.data;
-  },
-
-  // DELETE LESSON
+  
+  // Delete lesson
   deleteLesson: async (lessonId) => {
-    const res = await axiosInstance.delete(`/lessons/${lessonId}`);
-    return res.data;
+    try {
+      const response = await axiosInstance.delete(`/lessons/${lessonId}`);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Delete lesson error:', error);
+      throw error;
+    }
+  },
+  
+  // Get lessons by course
+  getLessonsByCourse: async (courseId) => {
+    try {
+      const response = await axiosInstance.get(`/lessons/course/${courseId}/all`);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Get lessons by course error:', error);
+      throw error;
+    }
+  },
+  
+  // Get lessons by unit
+  getLessonsByUnit: async (unitId) => {
+    try {
+      const response = await axiosInstance.get(`/lessons/unit/${unitId}/all`);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Get lessons by unit error:', error);
+      throw error;
+    }
+  },
+  
+  // Mark/unmark lesson as preview
+  markAsPreview: async (lessonId, action = 'mark') => {
+    try {
+      const response = await axiosInstance.put(
+        `/lessons/${lessonId}/mark-preview`,
+        { action }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('❌ Mark as preview error:', error);
+      throw error;
+    }
+  },
+  
+  // Delete specific file from lesson
+  deleteFile: async (lessonId, fileType, fileIndex) => {
+    return await uploadService.deleteLessonFile(lessonId, fileType, fileIndex);
   },
 };
 

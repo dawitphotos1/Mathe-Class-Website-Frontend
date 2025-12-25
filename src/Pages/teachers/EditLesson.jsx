@@ -1,110 +1,252 @@
-
-// src/pages/teachers/EditLesson.jsx - UPDATED WITH BETTER ROUTE HANDLING
+// src/pages/teachers/EditLesson.jsx - COMPLETE & UPDATED
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
-import { prepareFormData, validateFiles } from "../../utils/uploadUtils";
+import { useFileUpload } from "../../hooks/useFileUpload";
 import { toast } from "react-toastify";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import {
+  Box,
+  Container,
+  Paper,
+  Typography,
+  TextField,
+  Button,
+  FormControlLabel,
+  Checkbox,
+  Alert,
+  LinearProgress,
+  Grid,
+  Card,
+  CardContent,
+  IconButton,
+  Chip,
+  Tabs,
+  Tab,
+  Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Stepper,
+  Step,
+  StepLabel,
+  InputLabel,
+  Select,
+  MenuItem,
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+} from "@mui/material";
+import {
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+  Delete as DeleteIcon,
+  Add as AddIcon,
+  Upload as UploadIcon,
+  PictureAsPdf as PdfIcon,
+  VideoLibrary as VideoIcon,
+  InsertDriveFile as FileIcon,
+  Image as ImageIcon,
+  Download as DownloadIcon,
+  Visibility as ViewIcon,
+  Close as CloseIcon,
+  CloudUpload as CloudUploadIcon,
+  Folder as FolderIcon,
+  Description as DescriptionIcon,
+} from "@mui/icons-material";
 import "./EditLesson.css";
-import { AiOutlineUpload, AiOutlineDelete } from "react-icons/ai";
 
 const EditLesson = () => {
   const { lessonId, courseId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
 
+  // States
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [actualCourseId, setActualCourseId] = useState(null);
+  const [deleteDialog, setDeleteDialog] = useState(false);
+  const [activeContentTab, setActiveContentTab] = useState("text");
+  const [activeFileTab, setActiveFileTab] = useState("documents");
+  const [units, setUnits] = useState([]);
+  const [fileToView, setFileToView] = useState(null);
 
+  // Lesson data
   const [form, setForm] = useState({
     title: "",
     content: "",
     content_type: "text",
-    video_url: "",
     order_index: 0,
     is_preview: false,
     unit_id: null,
   });
 
-  const [selectedFiles, setSelectedFiles] = useState([]);
+  // File states
+  const [existingFiles, setExistingFiles] = useState([]);
+  const [existingVideos, setExistingVideos] = useState([]);
   const [existingAttachments, setExistingAttachments] = useState([]);
-  const [activeTab, setActiveTab] = useState("text");
 
-  // ✅ DEBUG: Log all route parameters
+  // File upload hooks for different types
+  const {
+    files: newFiles,
+    addFiles: addNewFiles,
+    removeFile: removeNewFile,
+    clearFiles: clearNewFiles,
+    uploading: uploadingFiles,
+    progress: filesProgress,
+  } = useFileUpload({
+    endpoint: `/lessons/${lessonId}`,
+    fileType: 'files',
+    maxFiles: 10,
+    allowedTypes: ['application/pdf', 'application/msword', 
+                  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                  'text/plain', 'image/*'],
+  });
+
+  const {
+    files: newVideos,
+    addFiles: addNewVideos,
+    removeFile: removeNewVideo,
+    clearFiles: clearNewVideos,
+    uploading: uploadingVideos,
+    progress: videosProgress,
+  } = useFileUpload({
+    endpoint: `/lessons/${lessonId}`,
+    fileType: 'videos',
+    maxFiles: 5,
+    allowedTypes: ['video/*'],
+  });
+
+  const {
+    files: newAttachments,
+    addFiles: addNewAttachments,
+    removeFile: removeNewAttachment,
+    clearFiles: clearNewAttachments,
+    uploading: uploadingAttachments,
+    progress: attachmentsProgress,
+  } = useFileUpload({
+    endpoint: `/lessons/${lessonId}`,
+    fileType: 'attachments',
+    maxFiles: 20,
+  });
+
+  // Debug logging
   useEffect(() => {
-    console.log("🚨 EditLesson Component Mounted:", {
-      params: { lessonId, courseId },
-      location: {
-        pathname: location.pathname,
-        search: location.search,
-        state: location.state
-      }
+    console.log("🚀 EditLesson Component Mounted:", {
+      lessonId,
+      courseId,
+      pathname: location.pathname,
+      state: location.state,
     });
   }, [lessonId, courseId, location]);
 
-  // Load the lesson and determine courseId
+  // Load lesson data
   useEffect(() => {
-    const loadLessonAndCourse = async () => {
+    const loadLessonData = async () => {
       try {
         setLoading(true);
         
-        // If courseId is not provided in params, try to get it from the lesson
-        let targetCourseId = courseId;
-        
-        if (!targetCourseId && location.state?.courseId) {
-          targetCourseId = location.state.courseId;
-        }
-        
-        if (!targetCourseId && location.state?.course?.id) {
-          targetCourseId = location.state.course.id;
-        }
+        // Determine course ID from multiple sources
+        let targetCourseId = courseId || 
+                            location.state?.courseId || 
+                            location.state?.course?.id;
 
-        // Load the lesson
-        console.log(`📥 Loading lesson ${lessonId} for course ${targetCourseId}`);
-        const res = await axiosInstance.get(`/lessons/${lessonId}`);
-        const lesson = res.data.lesson;
+        // Load lesson details
+        console.log(`📥 Loading lesson ${lessonId}`);
+        const lessonRes = await axiosInstance.get(`/lessons/${lessonId}`);
+        const lesson = lessonRes.data.lesson;
 
-        // If still no courseId, try to get it from the lesson data
-        if (!targetCourseId && lesson.course_id) {
+        // Get course ID from lesson if not provided
+        if (!targetCourseId && lesson.courseId) {
+          targetCourseId = lesson.courseId;
+        } else if (!targetCourseId && lesson.course_id) {
           targetCourseId = lesson.course_id;
-          console.log(`🔍 Found courseId from lesson data: ${targetCourseId}`);
         }
         
         setActualCourseId(targetCourseId);
 
-        console.log("✅ Lesson loaded successfully:", {
-          lessonTitle: lesson.title,
-          lessonCourseId: lesson.course_id,
-          resolvedCourseId: targetCourseId
-        });
+        // Load units for this course
+        if (targetCourseId) {
+          try {
+            const unitsRes = await axiosInstance.get(`/courses/${targetCourseId}/units`);
+            if (unitsRes.data.success) {
+              setUnits(unitsRes.data.units || []);
+            }
+          } catch (unitsError) {
+            console.log("No units found or error loading units");
+          }
+        }
 
+        // Set form data
         setForm({
           title: lesson.title || "",
           content: lesson.content || "",
-          content_type: lesson.content_type || "text",
-          video_url: lesson.video_url || "",
-          order_index: lesson.order_index || 0,
-          is_preview: lesson.is_preview || false,
-          unit_id: lesson.unit_id || null,
+          content_type: lesson.contentType || "text",
+          order_index: lesson.orderIndex || 0,
+          is_preview: lesson.isPreview || false,
+          unit_id: lesson.unitId || null,
         });
 
-        setActiveTab(lesson.content_type || "text");
+        setActiveContentTab(lesson.contentType || "text");
 
-        if (Array.isArray(lesson.attachments)) {
-          setExistingAttachments(lesson.attachments);
-        } else if (lesson.file_url || lesson.fileUrl) {
-          setExistingAttachments([
-            {
-              id: "legacy",
-              url: lesson.file_url || lesson.fileUrl,
-              name: (lesson.file_url || lesson.fileUrl).split("/").pop(),
-            },
-          ]);
+        // Process and set existing files
+        if (lesson.fileUrls && Array.isArray(lesson.fileUrls)) {
+          const fileObjects = lesson.fileUrls.map((url, index) => ({
+            id: `file-${Date.now()}-${index}`,
+            url,
+            name: decodeURIComponent(url.split("/").pop().split("?")[0]),
+            type: url.includes(".pdf") ? "application/pdf" : 
+                  url.match(/\.(doc|docx)$/) ? "application/msword" :
+                  url.match(/\.(jpg|jpeg|png|gif)$/) ? "image/*" : 
+                  "application/octet-stream",
+            size: null,
+            index,
+          }));
+          setExistingFiles(fileObjects);
         }
+
+        if (lesson.videoUrls && Array.isArray(lesson.videoUrls)) {
+          const videoObjects = lesson.videoUrls.map((url, index) => ({
+            id: `video-${Date.now()}-${index}`,
+            url,
+            name: decodeURIComponent(url.split("/").pop().split("?")[0]),
+            type: "video/mp4",
+            size: null,
+            index,
+          }));
+          setExistingVideos(videoObjects);
+        }
+
+        if (lesson.attachments && Array.isArray(lesson.attachments)) {
+          const attachmentObjects = lesson.attachments.map((att, index) => ({
+            id: att.id || `attachment-${Date.now()}-${index}`,
+            url: att.filePath,
+            name: att.fileName || decodeURIComponent(att.filePath?.split("/").pop().split("?")[0] || `attachment-${index}`),
+            type: att.fileType || "application/octet-stream",
+            size: att.fileSize,
+            createdAt: att.createdAt,
+            index,
+          }));
+          setExistingAttachments(attachmentObjects);
+        }
+
+        console.log("✅ Lesson loaded successfully:", {
+          title: lesson.title,
+          files: lesson.fileUrls?.length || 0,
+          videos: lesson.videoUrls?.length || 0,
+          attachments: lesson.attachments?.length || 0,
+        });
+
       } catch (err) {
         console.error("❌ Failed to load lesson:", err);
         toast.error("Failed to load lesson. Please check the lesson ID.");
@@ -115,285 +257,754 @@ const EditLesson = () => {
     };
 
     if (lessonId) {
-      loadLessonAndCourse();
-    } else {
-      toast.error("No lesson ID provided");
-      navigate(-1);
+      loadLessonData();
     }
   }, [lessonId, courseId, navigate, location.state]);
 
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
+  // Handle form changes
+  const handleFormChange = (field, value) => {
+    setForm(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+    
+    if (field === "content_type") {
+      setActiveContentTab(value);
+    }
+  };
+
+  // Handle file upload for different types
+  const handleFileUpload = (event, fileType) => {
+    const files = Array.from(event.target.files);
     if (!files.length) return;
 
-    const { validFiles, errors } = validateFiles(files);
-
-    if (errors.length) {
-      toast.warning(`Some files rejected: ${errors.join(", ")}`);
+    switch (fileType) {
+      case 'files':
+        addNewFiles(files);
+        break;
+      case 'videos':
+        addNewVideos(files);
+        break;
+      case 'attachments':
+        addNewAttachments(files);
+        break;
+      default:
+        console.warn(`Unknown file type: ${fileType}`);
     }
-
-    if (!validFiles.length) return;
-
-    setSelectedFiles((prev) => [...prev, ...validFiles]);
-
-    const hasPdf = validFiles.some((f) => f.type === "application/pdf");
-    const hasVideo = validFiles.some((f) => f.type.startsWith("video/"));
-
-    if (hasPdf) {
-      setForm((p) => ({ ...p, content_type: "pdf" }));
-      setActiveTab("pdf");
-    } else if (hasVideo) {
-      setForm((p) => ({ ...p, content_type: "video" }));
-      setActiveTab("video");
-    } else if (validFiles.length > 1) {
-      setForm((p) => ({ ...p, content_type: "mixed" }));
-      setActiveTab("mixed");
-    }
+    
+    // Reset input
+    event.target.value = '';
   };
 
-  const removeFile = (index) => {
-    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const removeExistingAttachment = async (attachmentId) => {
+  // Delete existing file
+  const handleDeleteExistingFile = async (fileId, fileType, index) => {
     try {
-      await axiosInstance.delete(`/lessons/attachments/${attachmentId}`);
-      setExistingAttachments((prev) =>
-        prev.filter((a) => a.id !== attachmentId)
-      );
-      toast.success("Attachment deleted");
-    } catch {
-      toast.error("Failed to delete attachment");
+      console.log(`Deleting ${fileType} at index ${index}, id: ${fileId}`);
+      
+      // Call API to delete file from server
+      if (fileType === 'file') {
+        await axiosInstance.delete(`/lessons/${lessonId}/files/file/${index}`);
+        setExistingFiles(prev => prev.filter((_, i) => i !== index));
+      } else if (fileType === 'video') {
+        await axiosInstance.delete(`/lessons/${lessonId}/files/video/${index}`);
+        setExistingVideos(prev => prev.filter((_, i) => i !== index));
+      } else if (fileType === 'attachment') {
+        await axiosInstance.delete(`/attachments/${fileId}`);
+        setExistingAttachments(prev => prev.filter(att => att.id !== fileId));
+      }
+      
+      toast.success("File deleted successfully");
+    } catch (err) {
+      console.error("Failed to delete file:", err);
+      toast.error("Failed to delete file");
     }
   };
 
+  // Download file
+  const handleDownload = (url, filename) => {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename || decodeURIComponent(url.split("/").pop().split("?")[0]);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Download started");
+  };
+
+  // View file in new tab
+  const handleView = (url) => {
+    window.open(url, "_blank");
+  };
+
+  // Preview PDF in modal
+  const handlePreviewPdf = (url, name) => {
+    setFileToView({ url, name, type: 'pdf' });
+  };
+
+  // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaving(true);
-    setUploadProgress(0);
+    
+    if (!form.title.trim()) {
+      toast.error("Lesson title is required");
+      return;
+    }
 
     try {
-      const data = prepareFormData(form, selectedFiles);
+      setSaving(true);
 
-      console.log("💾 Saving lesson update:", {
+      // Prepare form data
+      const formData = new FormData();
+      
+      // Add lesson data
+      Object.keys(form).forEach(key => {
+        if (form[key] !== null && form[key] !== undefined && form[key] !== "") {
+          formData.append(key, form[key]);
+        }
+      });
+      
+      // Add new files
+      newFiles.forEach(file => {
+        formData.append("files", file);
+      });
+      
+      newVideos.forEach(video => {
+        formData.append("videos", video);
+      });
+      
+      newAttachments.forEach(attachment => {
+        formData.append("attachments", attachment);
+      });
+
+      console.log("💾 Updating lesson:", {
         lessonId,
-        courseId: actualCourseId,
-        contentType: form.content_type
+        title: form.title,
+        newFiles: newFiles.length,
+        newVideos: newVideos.length,
+        newAttachments: newAttachments.length,
       });
 
       const response = await axiosInstance.put(
         `/lessons/${lessonId}`,
-        data,
+        formData,
         {
-          onUploadProgress: (evt) => {
-            if (!evt.total) return;
-            setUploadProgress(Math.round((evt.loaded * 100) / evt.total));
+          headers: {
+            'Content-Type': 'multipart/form-data',
           },
         }
       );
 
-      if (!response.data?.success) {
-        throw new Error(response.data?.error);
-      }
-
-      toast.success("Lesson updated successfully!");
-      
-      // Navigate back to appropriate page
-      if (actualCourseId) {
-        setTimeout(() => navigate(`/courses/${actualCourseId}/manage-lessons`), 1000);
+      if (response.data.success) {
+        toast.success("✅ Lesson updated successfully!");
+        
+        // Clear uploaded files
+        clearNewFiles();
+        clearNewVideos();
+        clearNewAttachments();
+        
+        // Navigate back
+        setTimeout(() => {
+          if (actualCourseId) {
+            navigate(`/courses/${actualCourseId}/manage-lessons`);
+          } else {
+            navigate(-1);
+          }
+        }, 1000);
       } else {
-        setTimeout(() => navigate(-1), 1000);
+        throw new Error(response.data.error || "Update failed");
       }
     } catch (err) {
       console.error("❌ Update failed:", err);
-      toast.error(err.response?.data?.error || "Update failed");
+      toast.error(err.response?.data?.error || "Failed to update lesson");
     } finally {
       setSaving(false);
-      setUploadProgress(0);
     }
   };
 
+  // Delete entire lesson
+  const handleDeleteLesson = async () => {
+    try {
+      await axiosInstance.delete(`/lessons/${lessonId}`);
+      toast.success("✅ Lesson deleted successfully");
+      setDeleteDialog(false);
+      
+      if (actualCourseId) {
+        navigate(`/courses/${actualCourseId}/manage-lessons`);
+      } else {
+        navigate("/courses");
+      }
+    } catch (err) {
+      toast.error("Failed to delete lesson");
+    }
+  };
+
+  // Helper functions
+  const getFileIcon = (fileName, fileType) => {
+    const name = (fileName || "").toLowerCase();
+    const type = (fileType || "").toLowerCase();
+
+    if (name.endsWith(".pdf") || type.includes("pdf")) {
+      return <PdfIcon color="error" />;
+    }
+    if (type.startsWith("video/") || name.match(/\.(mp4|mov|avi|webm|wmv)$/)) {
+      return <VideoIcon color="secondary" />;
+    }
+    if (type.startsWith("image/") || name.match(/\.(jpg|jpeg|png|gif|webp|svg)$/)) {
+      return <ImageIcon color="primary" />;
+    }
+    if (name.match(/\.(doc|docx)$/)) return <DescriptionIcon color="info" />;
+    if (name.match(/\.(ppt|pptx)$/)) return <DescriptionIcon color="warning" />;
+    if (name.match(/\.(xls|xlsx)$/)) return <DescriptionIcon color="success" />;
+    if (name.match(/\.(zip|rar|7z)$/)) return <FolderIcon color="action" />;
+    return <FileIcon />;
+  };
+
+  const formatFileSize = (bytes) => {
+    if (!bytes) return "Unknown size";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  const getFileTypeName = (fileName, fileType) => {
+    const name = (fileName || "").toLowerCase();
+    if (name.endsWith(".pdf")) return "PDF Document";
+    if (name.endsWith(".doc") || name.endsWith(".docx")) return "Word Document";
+    if (name.endsWith(".ppt") || name.endsWith(".pptx")) return "Presentation";
+    if (name.endsWith(".xls") || name.endsWith(".xlsx")) return "Spreadsheet";
+    if (name.match(/\.(jpg|jpeg|png|gif|webp|svg)$/)) return "Image";
+    if (name.match(/\.(mp4|mov|avi|webm|wmv)$/)) return "Video";
+    if (name.match(/\.(zip|rar|7z)$/)) return "Archive";
+    return fileType || "File";
+  };
+
+  // Calculate totals
+  const totalNewFiles = newFiles.length + newVideos.length + newAttachments.length;
+  const totalExistingFiles = existingFiles.length + existingVideos.length + existingAttachments.length;
+
   if (loading) {
     return (
-      <div className="edit-lesson-page">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p className="loading-text">Loading lesson...</p>
-          <p className="loading-details">
-            Lesson ID: {lessonId}<br />
-            Course ID: {actualCourseId || "Not found"}
-          </p>
-        </div>
-      </div>
+      <Container maxWidth="lg" sx={{ py: 8, textAlign: "center" }}>
+        <CircularProgress size={60} sx={{ mb: 3 }} />
+        <Typography variant="h6">Loading lesson...</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          Lesson ID: {lessonId}<br />
+          Course ID: {actualCourseId || "Loading..."}
+        </Typography>
+      </Container>
     );
   }
 
   return (
-    <div className="edit-lesson-page">
-      <div className="edit-lesson-card">
-        <div className="edit-lesson-header">
-          <h2>✏️ Edit Lesson</h2>
-          <div className="route-info">
-            <small>
-              Route: {location.pathname}<br />
-              Lesson ID: {lessonId}<br />
-              Course ID: {actualCourseId || "Not provided"}
-            </small>
-          </div>
-        </div>
-        
-        {uploadProgress > 0 && uploadProgress < 100 && (
-          <div className="upload-progress">
-            <p>Uploading: {uploadProgress}%</p>
-            <progress value={uploadProgress} max="100" />
-          </div>
-        )}
-
-        <form className="edit-lesson-form" onSubmit={handleSubmit}>
-          <label>Title *</label>
-          <input
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            required
-            placeholder="Lesson title"
-          />
-
-          <div className="tab-header">
-            {["text", "video", "pdf", "mixed"].map((t) => (
-              <button
-                key={t}
-                type="button"
-                className={activeTab === t ? "active" : ""}
-                onClick={() => {
-                  setActiveTab(t);
-                  setForm({ ...form, content_type: t });
-                }}
-              >
-                {t.toUpperCase()}
-              </button>
-            ))}
-          </div>
-
-          {activeTab === "text" && (
-            <div className="quill-editor-container">
-              <ReactQuill
-                value={form.content}
-                onChange={(v) => setForm({ ...form, content: v })}
-                theme="snow"
-                placeholder="Enter lesson content here..."
-              />
-            </div>
-          )}
-
-          {activeTab === "video" && (
-            <div className="video-input">
-              <label>Video URL</label>
-              <input
-                placeholder="https://example.com/video.mp4 or YouTube embed URL"
-                value={form.video_url}
-                onChange={(e) =>
-                  setForm({ ...form, video_url: e.target.value })
-                }
-              />
-              <small className="helper-text">
-                Enter a direct video URL or embed link
-              </small>
-            </div>
-          )}
-
-          {(activeTab === "pdf" || activeTab === "mixed") && (
-            <>
-              <label className="file-upload-btn">
-                <AiOutlineUpload />
-                {selectedFiles.length
-                  ? `${selectedFiles.length} file(s) selected`
-                  : "Choose files"}
-                <input
-                  type="file"
-                  hidden
-                  multiple
-                  onChange={handleFileChange}
-                  accept=".pdf,.doc,.docx,.txt,.mp4,.mov,.avi"
-                />
-              </label>
-
-              <small className="helper-text">
-                Accepted: PDF, Word docs, text files, videos (MP4, MOV, AVI)
-              </small>
-
-              {selectedFiles.map((f, i) => (
-                <div key={i} className="file-item">
-                  <span className="file-name">{f.name}</span>
-                  <span className="file-size">
-                    ({(f.size / 1024 / 1024).toFixed(2)} MB)
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => removeFile(i)}
-                    className="remove-btn"
-                  >
-                    <AiOutlineDelete />
-                  </button>
-                </div>
-              ))}
-
-              {existingAttachments.map((a) => (
-                <div key={a.id} className="attachment-item">
-                  <a
-                    href={a.url || a.fileUrl || a.filePath}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="attachment-link"
-                  >
-                    📎 {a.name || a.fileName || a.filePath?.split("/").pop()}
-                  </a>
-                  {a.id !== "legacy" && (
-                    <button
-                      type="button"
-                      onClick={() => removeExistingAttachment(a.id)}
-                      className="delete-attachment-btn"
-                    >
-                      Delete
-                    </button>
-                  )}
-                </div>
-              ))}
-            </>
-          )}
-
-          <div className="checkbox-group">
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={form.is_preview}
-                onChange={(e) =>
-                  setForm({ ...form, is_preview: e.target.checked })
-                }
-              />
-              <span>Mark as preview lesson (free for students to view)</span>
-            </label>
-          </div>
-
-          <div className="form-actions">
-            <button
-              type="button"
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* Header */}
+      <Paper sx={{ p: 3, mb: 3, borderRadius: 2, boxShadow: 3 }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+          <Typography variant="h4" component="h1" fontWeight="bold" color="primary">
+            ✏️ Edit Lesson
+          </Typography>
+          
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={() => setDeleteDialog(true)}
+            >
+              Delete
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<CancelIcon />}
               onClick={() => navigate(-1)}
-              disabled={saving}
-              className="cancel-btn"
             >
               Cancel
-            </button>
-            <button 
-              type="submit" 
-              disabled={saving}
-              className="save-btn"
-            >
-              {saving ? "Saving..." : "Save Changes"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+            </Button>
+          </Box>
+        </Box>
+
+        <Typography variant="body2" color="text.secondary">
+          Lesson ID: <strong>{lessonId}</strong> • Course ID: <strong>{actualCourseId || "Not specified"}</strong>
+        </Typography>
+      </Paper>
+
+      {/* Upload Progress Indicators */}
+      {(uploadingFiles || uploadingVideos || uploadingAttachments) && (
+        <Paper sx={{ p: 2, mb: 3 }}>
+          <Typography variant="subtitle1" gutterBottom>
+            Uploading Files...
+          </Typography>
+          {uploadingFiles && (
+            <Box sx={{ mb: 1 }}>
+              <Typography variant="caption">Documents: {filesProgress}%</Typography>
+              <LinearProgress variant="determinate" value={filesProgress} sx={{ height: 8, borderRadius: 4 }} />
+            </Box>
+          )}
+          {uploadingVideos && (
+            <Box sx={{ mb: 1 }}>
+              <Typography variant="caption">Videos: {videosProgress}%</Typography>
+              <LinearProgress variant="determinate" value={videosProgress} sx={{ height: 8, borderRadius: 4 }} />
+            </Box>
+          )}
+          {uploadingAttachments && (
+            <Box sx={{ mb: 1 }}>
+              <Typography variant="caption">Attachments: {attachmentsProgress}%</Typography>
+              <LinearProgress variant="determinate" value={attachmentsProgress} sx={{ height: 8, borderRadius: 4 }} />
+            </Box>
+          )}
+        </Paper>
+      )}
+
+      {/* Main Form */}
+      <form onSubmit={handleSubmit}>
+        <Grid container spacing={3}>
+          {/* Left Column - Lesson Details */}
+          <Grid item xs={12} md={8}>
+            {/* Lesson Details Card */}
+            <Card sx={{ mb: 3, borderRadius: 2, boxShadow: 2 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom color="primary">
+                  Lesson Details
+                </Typography>
+                
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Lesson Title *"
+                      value={form.title}
+                      onChange={(e) => handleFormChange("title", e.target.value)}
+                      required
+                      disabled={saving}
+                      variant="outlined"
+                      size="medium"
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Order Index"
+                      type="number"
+                      value={form.order_index}
+                      onChange={(e) => handleFormChange("order_index", parseInt(e.target.value) || 0)}
+                      disabled={saving}
+                      variant="outlined"
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} sm={6}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={form.is_preview}
+                          onChange={(e) => handleFormChange("is_preview", e.target.checked)}
+                          disabled={saving}
+                          color="primary"
+                        />
+                      }
+                      label={
+                        <Typography variant="body2">
+                          Mark as Preview Lesson
+                          <Typography variant="caption" display="block" color="text.secondary">
+                            (Free for students to view)
+                          </Typography>
+                        </Typography>
+                      }
+                    />
+                  </Grid>
+                  
+                  {units.length > 0 && (
+                    <Grid item xs={12}>
+                      <InputLabel>Unit</InputLabel>
+                      <Select
+                        fullWidth
+                        value={form.unit_id || ''}
+                        onChange={(e) => handleFormChange("unit_id", e.target.value)}
+                        disabled={saving}
+                        variant="outlined"
+                      >
+                        <MenuItem value="">No Unit</MenuItem>
+                        {units.map(unit => (
+                          <MenuItem key={unit.id} value={unit.id}>
+                            {unit.title} (Order: {unit.order_index})
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </Grid>
+                  )}
+                </Grid>
+              </CardContent>
+            </Card>
+
+            {/* Content Type Card */}
+            <Card sx={{ mb: 3, borderRadius: 2, boxShadow: 2 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom color="primary">
+                  Content Type
+                </Typography>
+                
+                <Tabs 
+                  value={activeContentTab} 
+                  onChange={(e, newValue) => {
+                    setActiveContentTab(newValue);
+                    handleFormChange("content_type", newValue);
+                  }}
+                  sx={{ mb: 3 }}
+                  variant="fullWidth"
+                >
+                  <Tab label="Text" value="text" icon={<DescriptionIcon />} iconPosition="start" />
+                  <Tab label="Video" value="video" icon={<VideoIcon />} iconPosition="start" />
+                  <Tab label="PDF" value="pdf" icon={<PdfIcon />} iconPosition="start" />
+                  <Tab label="Mixed" value="mixed" icon={<FolderIcon />} iconPosition="start" />
+                </Tabs>
+                
+                {activeContentTab === "text" && (
+                  <Box className="quill-editor-container">
+                    <ReactQuill
+                      value={form.content}
+                      onChange={(value) => handleFormChange("content", value)}
+                      theme="snow"
+                      placeholder="Enter lesson content here..."
+                      modules={{
+                        toolbar: [
+                          [{ 'header': [1, 2, 3, false] }],
+                          ['bold', 'italic', 'underline', 'strike'],
+                          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                          ['link', 'image'],
+                          ['clean']
+                        ],
+                      }}
+                    />
+                  </Box>
+                )}
+                
+                {activeContentTab === "video" && (
+                  <Box>
+                    <TextField
+                      fullWidth
+                      label="Video URL or Embed Code"
+                      value={form.content}
+                      onChange={(e) => handleFormChange("content", e.target.value)}
+                      placeholder="Enter YouTube URL, Vimeo URL, or direct video link"
+                      multiline
+                      rows={3}
+                      disabled={saving}
+                      variant="outlined"
+                      helperText="Supports YouTube, Vimeo, or direct MP4 links"
+                    />
+                  </Box>
+                )}
+                
+                {(activeContentTab === "pdf" || activeContentTab === "mixed") && (
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    <Typography variant="body2">
+                      Upload your files in the "File Management" section below. 
+                      {activeContentTab === "pdf" ? " PDF files will be displayed here." : " All file types will be available for students."}
+                    </Typography>
+                  </Alert>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Right Column - File Management */}
+          <Grid item xs={12} md={4}>
+            <Card sx={{ borderRadius: 2, boxShadow: 2, height: "100%" }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom color="primary">
+                  📁 File Management
+                </Typography>
+                
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  {totalNewFiles} new files, {totalExistingFiles} existing files
+                </Typography>
+
+                {/* File Type Tabs */}
+                <Tabs 
+                  value={activeFileTab} 
+                  onChange={(e, newValue) => setActiveFileTab(newValue)}
+                  sx={{ mb: 2 }}
+                  variant="fullWidth"
+                >
+                  <Tab label="Documents" value="documents" />
+                  <Tab label="Videos" value="videos" />
+                  <Tab label="Attachments" value="attachments" />
+                </Tabs>
+
+                {/* File Upload Section */}
+                <Box sx={{ mb: 3 }}>
+                  <Button
+                    variant="contained"
+                    component="label"
+                    startIcon={<CloudUploadIcon />}
+                    fullWidth
+                    disabled={saving}
+                    sx={{ mb: 2 }}
+                  >
+                    Upload {activeFileTab === 'documents' ? 'Documents' : 
+                           activeFileTab === 'videos' ? 'Videos' : 'Attachments'}
+                    <input
+                      type="file"
+                      hidden
+                      multiple
+                      accept={
+                        activeFileTab === 'documents' ? ".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png" :
+                        activeFileTab === 'videos' ? "video/*" : "*/*"
+                      }
+                      onChange={(e) => handleFileUpload(e, 
+                        activeFileTab === 'documents' ? 'files' :
+                        activeFileTab === 'videos' ? 'videos' : 'attachments'
+                      )}
+                    />
+                  </Button>
+                  
+                  <Typography variant="caption" color="text.secondary" display="block" textAlign="center">
+                    {activeFileTab === 'documents' ? 'PDF, Word, Images, Text' :
+                     activeFileTab === 'videos' ? 'MP4, MOV, AVI, WebM' :
+                     'Any file type'}
+                  </Typography>
+                </Box>
+
+                {/* File Lists */}
+                <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
+                  {/* New Files */}
+                  {((activeFileTab === 'documents' && newFiles.length > 0) ||
+                    (activeFileTab === 'videos' && newVideos.length > 0) ||
+                    (activeFileTab === 'attachments' && newAttachments.length > 0)) && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" color="primary" gutterBottom>
+                        New Files to Upload
+                      </Typography>
+                      <List dense>
+                        {(activeFileTab === 'documents' ? newFiles :
+                          activeFileTab === 'videos' ? newVideos : newAttachments).map((file, index) => (
+                          <ListItem
+                            key={index}
+                            secondaryAction={
+                              <IconButton
+                                edge="end"
+                                size="small"
+                                onClick={() => {
+                                  if (activeFileTab === 'documents') removeNewFile(index);
+                                  else if (activeFileTab === 'videos') removeNewVideo(index);
+                                  else removeNewAttachment(index);
+                                }}
+                                disabled={saving}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            }
+                            sx={{ py: 0.5 }}
+                          >
+                            <ListItemIcon sx={{ minWidth: 40 }}>
+                              {getFileIcon(file.name, file.type)}
+                            </ListItemIcon>
+                            <ListItemText
+                              primary={
+                                <Typography variant="body2" noWrap>
+                                  {file.name}
+                                </Typography>
+                              }
+                              secondary={
+                                <Typography variant="caption" color="text.secondary">
+                                  {formatFileSize(file.size)}
+                                </Typography>
+                              }
+                            />
+                          </ListItem>
+                        ))}
+                      </List>
+                    </Box>
+                  )}
+
+                  {/* Existing Files */}
+                  {((activeFileTab === 'documents' && existingFiles.length > 0) ||
+                    (activeFileTab === 'videos' && existingVideos.length > 0) ||
+                    (activeFileTab === 'attachments' && existingAttachments.length > 0)) && (
+                    <Box>
+                      <Typography variant="subtitle2" color="primary" gutterBottom>
+                        Existing Files
+                      </Typography>
+                      <List dense>
+                        {(activeFileTab === 'documents' ? existingFiles :
+                          activeFileTab === 'videos' ? existingVideos : existingAttachments).map((file, index) => (
+                          <ListItem
+                            key={file.id}
+                            secondaryAction={
+                              <Box>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleDownload(file.url, file.name)}
+                                  sx={{ mr: 0.5 }}
+                                >
+                                  <DownloadIcon fontSize="small" />
+                                </IconButton>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleDeleteExistingFile(
+                                    file.id,
+                                    activeFileTab === 'documents' ? 'file' :
+                                    activeFileTab === 'videos' ? 'video' : 'attachment',
+                                    index
+                                  )}
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </Box>
+                            }
+                            sx={{ py: 0.5 }}
+                          >
+                            <ListItemIcon sx={{ minWidth: 40 }}>
+                              {getFileIcon(file.name, file.type)}
+                            </ListItemIcon>
+                            <ListItemText
+                              primary={
+                                <Typography variant="body2" noWrap>
+                                  {file.name}
+                                </Typography>
+                              }
+                              secondary={
+                                <Typography variant="caption" color="text.secondary">
+                                  {getFileTypeName(file.name, file.type)}
+                                  {file.size && ` • ${formatFileSize(file.size)}`}
+                                </Typography>
+                              }
+                            />
+                          </ListItem>
+                        ))}
+                      </List>
+                    </Box>
+                  )}
+
+                  {/* No Files Message */}
+                  {((activeFileTab === 'documents' && newFiles.length === 0 && existingFiles.length === 0) ||
+                    (activeFileTab === 'videos' && newVideos.length === 0 && existingVideos.length === 0) ||
+                    (activeFileTab === 'attachments' && newAttachments.length === 0 && existingAttachments.length === 0)) && (
+                    <Box sx={{ textAlign: 'center', py: 4 }}>
+                      <FileIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                      <Typography variant="body2" color="text.secondary">
+                        No {activeFileTab} uploaded yet
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+
+                {/* Clear All Button */}
+                {totalNewFiles > 0 && (
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    startIcon={<DeleteIcon />}
+                    fullWidth
+                    onClick={() => {
+                      clearNewFiles();
+                      clearNewVideos();
+                      clearNewAttachments();
+                    }}
+                    disabled={saving}
+                    sx={{ mt: 2 }}
+                  >
+                    Clear All New Files
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+
+        {/* Action Buttons */}
+        <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
+          <Button
+            variant="outlined"
+            size="large"
+            onClick={() => navigate(-1)}
+            disabled={saving}
+            startIcon={<CancelIcon />}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            size="large"
+            type="submit"
+            disabled={saving || uploadingFiles || uploadingVideos || uploadingAttachments}
+            startIcon={saving ? <CircularProgress size={24} /> : <SaveIcon />}
+          >
+            {saving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </Box>
+      </form>
+
+      {/* PDF Viewer Modal */}
+      <Dialog
+        open={!!fileToView}
+        onClose={() => setFileToView(null)}
+        maxWidth="xl"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6">
+              {fileToView?.name || 'PDF Viewer'}
+            </Typography>
+            <IconButton onClick={() => setFileToView(null)}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          {fileToView?.type === 'pdf' && (
+            <iframe
+              src={fileToView.url}
+              style={{
+                width: '100%',
+                height: '80vh',
+                border: 'none',
+              }}
+              title="PDF Viewer"
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => handleDownload(fileToView?.url, fileToView?.name)}>
+            Download
+          </Button>
+          <Button onClick={() => setFileToView(null)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialog}
+        onClose={() => setDeleteDialog(false)}
+      >
+        <DialogTitle>Delete Lesson</DialogTitle>
+        <DialogContent>
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            This action cannot be undone. All lesson content and files will be permanently deleted.
+          </Alert>
+          <Typography variant="body2">
+            Are you sure you want to delete the lesson "{form.title}"?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialog(false)} disabled={saving}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteLesson}
+            color="error"
+            variant="contained"
+            disabled={saving}
+            startIcon={<DeleteIcon />}
+          >
+            Delete Lesson
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Container>
   );
 };
 

@@ -1,5 +1,29 @@
-/* src/pages/teachers/EditLesson.css - UPDATED WITH ALL STYLES */
-/* ===== Page Container ===== */
+/* src/pages/teachers/EditLesson.css - COMPLETE UPDATED VERSION */
+/* ===== VARIABLES & RESET ===== */
+:root {
+  --primary-color: #4caf50;
+  --primary-dark: #43a047;
+  --secondary-color: #1976d2;
+  --danger-color: #ff6b6b;
+  --warning-color: #ffc107;
+  --text-dark: #333;
+  --text-medium: #555;
+  --text-light: #666;
+  --background-light: #eef2f7;
+  --background-white: #fff;
+  --border-color: #ccc;
+  --border-light: #e0e0e0;
+  --shadow-light: rgba(0, 0, 0, 0.12);
+  --shadow-medium: rgba(0, 0, 0, 0.15);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ===== PAGE CONTAINER ===== */
 .edit-lesson-page {
   min-height: 100vh;
   padding: 2rem;
@@ -9,20 +33,20 @@
   align-items: flex-start;
 }
 
-/* ===== Loading Styles ===== */
+/* ===== LOADING STATES ===== */
 .loading-container {
   text-align: center;
   padding: 3rem;
   width: 100%;
   max-width: 720px;
-  background: white;
+  background: var(--background-white);
   border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 25px var(--shadow-light);
 }
 
 .loading-spinner {
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
+  border-top: 4px solid var(--secondary-color);
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -37,7 +61,7 @@
 
 .loading-text {
   font-size: 1.2rem;
-  color: #555;
+  color: var(--text-medium);
   margin-bottom: 0.5rem;
 }
 
@@ -52,14 +76,14 @@
   line-height: 1.4;
 }
 
-/* ===== Card Container ===== */
+/* ===== CARD CONTAINER ===== */
 .edit-lesson-card {
-  background-color: #fff;
+  background-color: var(--background-white);
   width: 100%;
   max-width: 720px;
   padding: 2rem;
   border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 25px var(--shadow-light);
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -70,13 +94,13 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 1rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-light);
   padding-bottom: 1rem;
 }
 
 .edit-lesson-header h2 {
   text-align: left;
-  color: #333;
+  color: var(--text-dark);
   margin: 0;
   font-weight: 600;
   display: flex;
@@ -88,18 +112,18 @@
   background: #f0f8ff;
   padding: 0.5rem 1rem;
   border-radius: 4px;
-  border-left: 3px solid #1976d2;
+  border-left: 3px solid var(--secondary-color);
   max-width: 300px;
 }
 
 .route-info small {
-  color: #555;
+  color: var(--text-medium);
   font-family: monospace;
   font-size: 0.8rem;
   line-height: 1.3;
 }
 
-/* ===== Form Styles ===== */
+/* ===== FORM STYLES ===== */
 .edit-lesson-form {
   display: flex;
   flex-direction: column;
@@ -118,7 +142,7 @@
 .edit-lesson-form select {
   padding: 0.6rem 1rem;
   font-size: 1rem;
-  border: 1.5px solid #ccc;
+  border: 1.5px solid var(--border-color);
   border-radius: 8px;
   outline: none;
   transition: all 0.2s ease-in-out;
@@ -129,7 +153,7 @@
 .edit-lesson-form input:focus,
 .edit-lesson-form textarea:focus,
 .edit-lesson-form select:focus {
-  border-color: #4caf50;
+  border-color: var(--primary-color);
   box-shadow: 0 0 6px rgba(76, 175, 80, 0.3);
 }
 
@@ -138,26 +162,35 @@
   resize: vertical;
 }
 
-/* ===== React Quill Editor ===== */
+/* ===== REACT QUILL EDITOR ===== */
 .quill-editor-container {
   margin-bottom: 1rem;
   border-radius: 8px;
   overflow: hidden;
+  height: 400px;
 }
 
-.ql-container {
-  min-height: 200px;
-  border-radius: 0 0 8px 8px !important;
-  border: 1.5px solid #ccc !important;
-}
-
-.ql-toolbar {
+.quill-editor-container .ql-toolbar {
+  border: none;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--background-white);
   border-radius: 8px 8px 0 0 !important;
-  border: 1.5px solid #ccc !important;
-  border-bottom: none !important;
 }
 
-/* ===== Tabs ===== */
+.quill-editor-container .ql-container {
+  border: none;
+  height: 350px;
+  font-size: 16px;
+  border-radius: 0 0 8px 8px !important;
+  border: 1.5px solid var(--border-color) !important;
+}
+
+.quill-editor-container .ql-editor {
+  min-height: 350px;
+  padding: 20px;
+}
+
+/* ===== TABS ===== */
 .tab-header {
   display: flex;
   gap: 0.5rem;
@@ -169,7 +202,7 @@
   flex: 1;
   min-width: 100px;
   padding: 0.5rem 1rem;
-  border: 1.5px solid #ccc;
+  border: 1.5px solid var(--border-color);
   border-radius: 8px;
   background-color: #f5f5f5;
   cursor: pointer;
@@ -183,13 +216,13 @@
 }
 
 .tab-header button.active {
-  border-color: #4caf50;
-  background: linear-gradient(90deg, #4caf50, #43a047);
+  border-color: var(--primary-color);
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
   color: #fff;
   transform: translateY(-1px);
 }
 
-/* ===== File Upload ===== */
+/* ===== FILE UPLOAD ===== */
 .file-upload-wrapper {
   display: flex;
   align-items: center;
@@ -207,28 +240,28 @@
   cursor: pointer;
   transition: all 0.2s;
   font-weight: 500;
-  color: #555;
+  color: var(--text-medium);
 }
 
 .file-upload-btn:hover {
   background-color: #e0e7ef;
-  border-color: #4caf50;
-  color: #4caf50;
+  border-color: var(--primary-color);
+  color: var(--primary-color);
 }
 
 .upload-icon {
   font-size: 1.2rem;
-  color: #4caf50;
+  color: var(--primary-color);
 }
 
 .helper-text {
   font-size: 0.85rem;
-  color: #666;
+  color: var(--text-light);
   margin: 0.3rem 0 1rem 0;
   font-style: italic;
 }
 
-/* ===== File Items ===== */
+/* ===== FILE ITEMS ===== */
 .file-item {
   display: flex;
   align-items: center;
@@ -238,22 +271,31 @@
   border-radius: 6px;
   margin-bottom: 0.5rem;
   border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.file-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .file-name {
   flex: 1;
   font-weight: 500;
-  color: #333;
+  color: var(--text-dark);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .file-size {
-  color: #666;
+  color: var(--text-light);
   font-size: 0.85rem;
   margin: 0 1rem;
 }
 
 .remove-btn {
-  background: #ff6b6b;
+  background: var(--danger-color);
   color: white;
   border: none;
   border-radius: 4px;
@@ -262,14 +304,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.2s;
 }
 
 .remove-btn:hover {
   background: #ff5252;
+  transform: scale(1.05);
 }
 
-/* ===== Attachment Items ===== */
+/* ===== ATTACHMENT ITEMS ===== */
 .attachment-item {
   display: flex;
   align-items: center;
@@ -279,16 +322,25 @@
   border-radius: 6px;
   margin-bottom: 0.5rem;
   border: 1px solid #cce5ff;
+  transition: all 0.3s ease;
+}
+
+.attachment-item:hover {
+  background: #d8eafc;
+  transform: translateX(4px);
 }
 
 .attachment-link {
   flex: 1;
-  color: #0066cc;
+  color: var(--secondary-color);
   text-decoration: none;
   font-weight: 500;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .attachment-link:hover {
@@ -297,21 +349,22 @@
 }
 
 .delete-attachment-btn {
-  background: #ffc107;
-  color: #333;
+  background: var(--warning-color);
+  color: var(--text-dark);
   border: none;
   border-radius: 4px;
   padding: 0.3rem 0.8rem;
   cursor: pointer;
   font-size: 0.85rem;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.2s;
 }
 
 .delete-attachment-btn:hover {
   background: #e0a800;
+  transform: scale(1.05);
 }
 
-/* ===== Checkbox ===== */
+/* ===== CHECKBOX ===== */
 .checkbox-group {
   margin: 1rem 0;
 }
@@ -321,13 +374,23 @@
   align-items: center;
   gap: 0.5rem;
   font-weight: 500;
-  color: #555;
+  color: var(--text-medium);
   cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.checkbox-label:hover {
+  background: #f5f5f5;
 }
 
 .checkbox-label input[type="checkbox"] {
   width: auto;
   margin: 0;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
 }
 
 .preview-checkbox {
@@ -335,16 +398,25 @@
   align-items: center;
   gap: 0.5rem;
   font-weight: 500;
-  color: #555;
+  color: var(--text-medium);
+  padding: 0.5rem;
+  border-radius: 6px;
+  background: #f0f8ff;
 }
 
-/* ===== Upload Progress ===== */
+/* ===== UPLOAD PROGRESS ===== */
 .upload-progress {
   background: #e8f5e9;
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1rem;
   border: 1px solid #c8e6c9;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .upload-progress p {
@@ -358,6 +430,7 @@
   height: 20px;
   border-radius: 10px;
   overflow: hidden;
+  border: none;
 }
 
 .upload-progress progress::-webkit-progress-bar {
@@ -366,11 +439,12 @@
 }
 
 .upload-progress progress::-webkit-progress-value {
-  background: linear-gradient(90deg, #4caf50, #2e7d32);
+  background: linear-gradient(90deg, var(--primary-color), #2e7d32);
   border-radius: 10px;
+  transition: width 0.3s ease;
 }
 
-/* ===== Video Input ===== */
+/* ===== VIDEO INPUT ===== */
 .video-input {
   margin-bottom: 1rem;
 }
@@ -380,46 +454,55 @@
   margin-bottom: 0.5rem;
 }
 
-/* ===== Course Context ===== */
+/* ===== COURSE CONTEXT ===== */
 .course-context {
   background: #f0f8ff;
   padding: 0.8rem 1rem;
   border-radius: 8px;
   margin-bottom: 1.5rem;
-  border-left: 4px solid #1976d2;
+  border-left: 4px solid var(--secondary-color);
+  animation: slideInLeft 0.5s ease;
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 .course-context p {
   margin: 0;
   font-size: 0.9rem;
-  color: #333;
+  color: var(--text-dark);
+  line-height: 1.4;
 }
 
-/* ===== Form Actions ===== */
+/* ===== FORM ACTIONS ===== */
 .form-actions {
   display: flex;
   gap: 1rem;
   margin-top: 1.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-light);
 }
 
 .cancel-btn {
   padding: 0.7rem 1.5rem;
   font-size: 1rem;
   font-weight: 500;
-  color: #555;
+  color: var(--text-medium);
   background: #f5f5f5;
   border: 1.5px solid #ddd;
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s ease;
   flex: 1;
+  text-align: center;
 }
 
 .cancel-btn:hover {
   background: #e0e0e0;
   transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .save-btn {
@@ -427,12 +510,13 @@
   font-size: 1rem;
   font-weight: 500;
   color: #fff;
-  background: linear-gradient(90deg, #4caf50, #43a047);
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
   border: none;
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s ease;
   flex: 2;
+  text-align: center;
 }
 
 .save-btn:hover {
@@ -447,7 +531,129 @@
   box-shadow: none;
 }
 
-/* ===== Responsive ===== */
+/* ===== FILE PREVIEW GRID (NEW) ===== */
+.file-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+  margin-bottom: 20px;
+}
+
+.file-preview-card {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  background: var(--background-white);
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.file-preview-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+}
+
+.file-preview-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 5px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.file-preview-card:hover .file-preview-actions {
+  opacity: 1;
+}
+
+.file-preview-icon {
+  width: 100%;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 48px;
+}
+
+.file-preview-info {
+  padding: 15px;
+  text-align: center;
+}
+
+.file-preview-name {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-preview-size {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+/* ===== MATERIAL-UI COMPATIBILITY (NEW) ===== */
+.MuiCard-root {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease !important;
+}
+
+.MuiCard-root:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15) !important;
+}
+
+.MuiButton-containedPrimary {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
+}
+
+.MuiButton-outlined {
+  border-width: 1.5px !important;
+}
+
+.MuiAlert-root {
+  border-radius: 8px !important;
+  margin-bottom: 1rem !important;
+}
+
+.MuiTab-root {
+  text-transform: none !important;
+  font-weight: 500 !important;
+}
+
+.MuiLinearProgress-root {
+  height: 8px !important;
+  border-radius: 4px !important;
+}
+
+/* ===== DIALOG/MODAL STYLES (NEW) ===== */
+.MuiDialog-paper {
+  border-radius: 16px !important;
+  padding: 0 !important;
+}
+
+.MuiDialogTitle-root {
+  border-bottom: 1px solid var(--border-light);
+  padding: 20px 24px !important;
+}
+
+.MuiDialogContent-root {
+  padding: 24px !important;
+}
+
+.MuiDialogActions-root {
+  padding: 16px 24px !important;
+  border-top: 1px solid var(--border-light);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
   .edit-lesson-page {
     padding: 1rem;
@@ -455,6 +661,7 @@
   
   .edit-lesson-card {
     padding: 1.5rem;
+    max-width: 100%;
   }
   
   .edit-lesson-header {
@@ -464,6 +671,7 @@
   
   .route-info {
     max-width: 100%;
+    width: 100%;
   }
   
   .tab-header {
@@ -474,6 +682,10 @@
     width: 100%;
   }
   
+  .file-preview-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+  
   .form-actions {
     flex-direction: column;
   }
@@ -481,6 +693,18 @@
   .cancel-btn,
   .save-btn {
     width: 100%;
+  }
+  
+  .quill-editor-container {
+    height: 350px;
+  }
+  
+  .quill-editor-container .ql-container {
+    height: 300px;
+  }
+  
+  .quill-editor-container .ql-editor {
+    min-height: 300px;
   }
 }
 
@@ -503,5 +727,102 @@
   .remove-btn,
   .delete-attachment-btn {
     align-self: flex-end;
+  }
+  
+  .file-preview-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .MuiGrid-container {
+    flex-direction: column;
+  }
+  
+  .MuiGrid-item {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* ===== ANIMATIONS & TRANSITIONS (NEW) ===== */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.edit-lesson-card {
+  animation: slideInUp 0.5s ease;
+}
+
+.file-item,
+.attachment-item {
+  animation: fadeIn 0.3s ease;
+}
+
+/* ===== SCROLLBAR STYLING (NEW) ===== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
+}
+
+/* ===== UTILITY CLASSES (NEW) ===== */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+.p-1 { padding: 0.5rem; }
+.p-2 { padding: 1rem; }
+.p-3 { padding: 1.5rem; }
+.w-100 { width: 100%; }
+.d-flex { display: flex; }
+.d-block { display: block; }
+.d-none { display: none; }
+.justify-between { justify-content: space-between; }
+.align-center { align-items: center; }
+.flex-column { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.gap-1 { gap: 0.5rem; }
+.gap-2 { gap: 1rem; }
+
+/* ===== PRINT STYLES (NEW) ===== */
+@media print {
+  .edit-lesson-page {
+    background: white;
+    padding: 0;
+  }
+  
+  .edit-lesson-card {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+  
+  .form-actions,
+  .file-upload-btn,
+  .remove-btn,
+  .delete-attachment-btn {
+    display: none;
   }
 }
