@@ -1,29 +1,36 @@
-// src/pages/index.js - CORRECT VERSION BASED ON YOUR FILES
+// src/pages/index.js - UPDATED WITH PREVIEW PAGE
 // Export all page components that actually exist in your project
 
 // ==================== PUBLIC PAGES ====================
 export { default as Home } from './Home';
 export { default as Register } from './auth/Register';
 export { default as Login } from './auth/Login';
-export { default as ForgotPassword } from './auth/ForgotPassword';  // ADD THIS
-export { default as ResetPassword } from './auth/ResetPassword';    // AND THIS
+export { default as ForgotPassword } from './auth/ForgotPassword';
+export { default as ResetPassword } from './auth/ResetPassword';
 export { default as ConfirmAccount } from './ConfirmAccount';
 export { default as NotFound } from './NotFound';
 export { default as Unauthorized } from './Unauthorized';
 
 // ==================== COURSE PAGES ====================
 export { default as Courses } from './courses/Courses';
-export { default as CourseDetail } from './courses/CourseDetail'; // fix added
+export { default as CourseDetail } from './courses/CourseDetail';
 export { default as CourseViewer } from './courses/CourseViewer';
 export { default as MyCoursesPage } from './courses/MyCourses';
 export { default as CourseLessons } from './CourseLessons';
 export { default as CoursePreviewPage } from './CoursePreviewPage';
 
+// ==================== PREVIEW PAGES ====================
+// For viewing actual lesson content (PDF, video, text)
+export { default as PreviewPage } from './PreviewPage';
+// Legacy preview pages
+export { default as PreviewLessonPage } from './PreviewLessonPage';
+export { default as PreviewLesson } from './PreviewLesson';
+
 // ==================== PAYMENT PAGES ====================
 export { default as PaymentPage } from './PaymentPage';
 export { default as PaymentSuccess } from './payments/PaymentSuccess';
 export { default as PaymentCancel } from './payments/PaymentCancel';
-export { default as Cancel } from './payments/Cancel'; // fix added
+export { default as Cancel } from './payments/Cancel';
 
 // ==================== ADMIN PAGES ====================
 export { default as AdminDashboard } from './AdminDashboard';
@@ -68,8 +75,6 @@ export { default as ClassPage } from './ClassPage';
 export { default as CourseLessonManager } from './CourseLessonManager';
 export { default as CreateCourseWrapper } from './CreateCourseWrapper';
 export { default as Dashboard } from './Dashboard';
-export { default as PreviewLesson } from './PreviewLesson';
-export { default as PreviewLessonPage } from './PreviewLessonPage';
 export { default as StartCoursePage } from './StartCoursePage';
 
 // ==================== ALIASES FOR BACKWARD COMPATIBILITY ====================

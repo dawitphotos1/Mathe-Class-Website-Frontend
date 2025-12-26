@@ -1,4 +1,5 @@
-// src/App.jsx - UPDATED WITH ALL TEACHER EDIT ROUTES
+
+// src/App.jsx - UPDATED WITH CORRECT PREVIEW PAGE
 import React, { Suspense, useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -28,6 +29,7 @@ const Courses = lazyPage(Pages.Courses);
 const CourseDetail = lazyPage(Pages.CourseDetail);
 const CourseViewer = lazyPage(Pages.CourseViewer);
 const PreviewLessonPage = lazyPage(Pages.PreviewLessonPage);
+const CoursePreviewPage = lazyPage(Pages.CoursePreviewPage); // Add this line
 const PaymentPage = lazyPage(Pages.PaymentPage);
 const PaymentSuccess = lazyPage(Pages.PaymentSuccess);
 const PaymentCancel = lazyPage(Pages.PaymentCancel);
@@ -55,6 +57,9 @@ const MyCoursesPage = lazyPage(Pages.MyCoursesPage);
 const Profile = lazyPage(Pages.Profile);
 const StudentDashboard = lazyPage(Pages.StudentDashboard);
 const FileManager = lazyPage(Pages.FileManager);
+
+// ✅ IMPORT THE NEW PREVIEW PAGE
+const PreviewPage = React.lazy(() => import("./pages/PreviewPage"));
 
 // Admin layout and components that need separate imports
 const AdminLayout = React.lazy(() => import("./components/AdminLayout"));
@@ -183,12 +188,18 @@ function AppContent() {
               <Route path="/courses/:slug" element={<CourseViewer />} />
               <Route path="/courses/id/:id" element={<CourseViewer />} />
 
-              {/* PREVIEW */}
-              <Route path="/preview/:lessonId" element={<PreviewLessonPage />} />
-              <Route path="/courses/:courseId/preview" element={<PreviewLessonPage />} />
+              {/* ✅ UPDATED: CORRECT PREVIEW ROUTES */}
+              {/* For viewing actual lesson content (PDF, video, text) */}
+              <Route path="/preview/:lessonId" element={<PreviewPage />} />
+              
+              {/* For viewing course preview/curriculum (sales page) */}
+              <Route path="/courses/:courseId/preview" element={<CoursePreviewPage />} />
+              
+              {/* Legacy preview routes - keeping for compatibility */}
               <Route path="/lessons/:lessonId/preview" element={
                 <ProtectedRoute allowedRoles={["teacher","student","admin"]}><PreviewLesson /></ProtectedRoute>
               } />
+              <Route path="/courses/:courseId/preview-lesson" element={<PreviewLessonPage />} />
 
               {/* DASHBOARD REDIRECT */}
               <Route path="/dashboard" element={<RoleBasedRedirect />} />
@@ -209,24 +220,23 @@ function AppContent() {
               <Route path="/teacher/courses/:courseId/view" element={<ProtectedRoute allowedRoles={["teacher","admin"]}><TeacherCourseViewer /></ProtectedRoute>} />
               
               {/* ✅ CRITICAL: ALL POSSIBLE EDIT LESSON ROUTES */}
-              
-              // Route 1: From Teacher Dashboard → Manage Lessons
+              {/* Route 1: From Teacher Dashboard → Manage Lessons */}
               <Route path="/teacher/courses/:courseId/lessons/:lessonId/edit" 
                 element={<ProtectedRoute allowedRoles={["teacher","admin"]}><EditLesson /></ProtectedRoute>} />
               
-              // Route 2: From Course Management
+              {/* Route 2: From Course Management */}
               <Route path="/courses/:courseId/lessons/:lessonId/edit" 
                 element={<ProtectedRoute allowedRoles={["teacher","admin"]}><EditLesson /></ProtectedRoute>} />
               
-              // Route 3: Direct lesson edit (legacy)
+              {/* Route 3: Direct lesson edit (legacy) */}
               <Route path="/lessons/:lessonId/edit" 
                 element={<ProtectedRoute allowedRoles={["teacher","admin"]}><EditLesson /></ProtectedRoute>} />
               
-              // Route 4: From preview page
+              {/* Route 4: From preview page */}
               <Route path="/preview/:lessonId/edit" 
                 element={<ProtectedRoute allowedRoles={["teacher","admin"]}><EditLesson /></ProtectedRoute>} />
               
-              // Route 5: From teacher specific path
+              {/* Route 5: From teacher specific path */}
               <Route path="/teacher/lessons/:lessonId/edit" 
                 element={<ProtectedRoute allowedRoles={["teacher","admin"]}><EditLesson /></ProtectedRoute>} />
 

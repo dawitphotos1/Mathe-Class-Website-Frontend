@@ -1,5 +1,4 @@
-
-// src/pages/courses/Courses.jsx - FIXED TEACHER PREVIEW
+// src/pages/courses/Courses.jsx - UPDATED WITH SIMPLIFIED PREVIEW
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -134,7 +133,38 @@ const Courses = () => {
     navigate(`/payment/${course.id}`);
   };
 
-  // ============ FIXED: Teachers can view previews too ============
+  // Helper function to parse URLs (handles array strings)
+  const parseUrl = (url) => {
+    if (!url) return null;
+    
+    // Check if it's a string that looks like an array
+    if (typeof url === 'string' && url.startsWith('[') && url.endsWith(']')) {
+      try {
+        // Try to parse as JSON array
+        const urls = JSON.parse(url);
+        if (Array.isArray(urls) && urls.length > 0) {
+          // Return the first URL
+          return urls[0];
+        }
+      } catch (error) {
+        console.error("Failed to parse URL as JSON array:", error);
+        // If parsing fails, try to extract URL from the string
+        const match = url.match(/https?:\/\/[^\s,"']+/);
+        if (match) {
+          return match[0];
+        }
+      }
+    }
+    
+    // If it's already a proper URL, return it
+    if (typeof url === 'string' && url.startsWith('http')) {
+      return url;
+    }
+    
+    return url;
+  };
+
+  // ============ SIMPLIFIED: Free Preview Function ============
   const handleFreePreview = async (course) => {
     try {
       if (!course?.id) {
@@ -144,15 +174,15 @@ const Courses = () => {
 
       console.log(`📚 Fetching preview for course: ${course.title} (ID: ${course.id})`);
 
-      // ✅ FIX: Teachers can view previews too!
+      // For teachers, always allow preview
       if (user?.role === "teacher") {
         console.log(`👨🏫 Teacher viewing preview for course: ${course.title}`);
         
-        // Get the preview lesson first
+        // Get preview lesson for the course
         try {
           const previewRes = await axiosInstance.get(`/courses/${course.id}/preview-lesson`);
           if (previewRes.data.success && previewRes.data.lesson) {
-            // Navigate to preview page
+            // Navigate to preview page with lesson data
             navigate(`/preview/${previewRes.data.lesson.id}`, {
               state: {
                 lesson: previewRes.data.lesson,
@@ -168,18 +198,22 @@ const Courses = () => {
         }
 
         // If no preview lesson, get first lesson
-        const lessonsRes = await axiosInstance.get(`/courses/${course.id}/lessons`);
-        if (lessonsRes.data.success && lessonsRes.data.lessons?.length > 0) {
-          const firstLesson = lessonsRes.data.lessons[0];
-          navigate(`/preview/${firstLesson.id}`, {
-            state: {
-              lesson: firstLesson,
-              courseId: course.id,
-              courseTitle: course.title,
-              isTeacherPreview: true,
-            },
-          });
-          return;
+        try {
+          const lessonsRes = await axiosInstance.get(`/courses/${course.id}/lessons`);
+          if (lessonsRes.data.success && lessonsRes.data.lessons?.length > 0) {
+            const firstLesson = lessonsRes.data.lessons[0];
+            navigate(`/preview/${firstLesson.id}`, {
+              state: {
+                lesson: firstLesson,
+                courseId: course.id,
+                courseTitle: course.title,
+                isTeacherPreview: true,
+              },
+            });
+            return;
+          }
+        } catch (lessonsError) {
+          console.log("Lessons endpoint failed:", lessonsError);
         }
         
         // If no lessons at all, show course details
@@ -200,6 +234,7 @@ const Courses = () => {
       console.log("📄 Preview API Response:", res.data);
 
       if (res.data.success && res.data.lesson) {
+        // Navigate to the new PreviewPage
         navigate(`/preview/${res.data.lesson.id}`, {
           state: {
             lesson: res.data.lesson,
