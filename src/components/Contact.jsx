@@ -80,10 +80,8 @@
 // export default Contact;
 
 
-
-// components/Contact.jsx - IMPROVED VERSION
+// components/Contact.jsx - CORRECTED RESPONSE HANDLING VERSION
 import React, { useState } from "react";
-import axios from '../utils/axiosInstance';
 import "./Contact.css";
 
 const Contact = () => {
@@ -156,41 +154,82 @@ const Contact = () => {
       });
       
       console.log("📨 Fetch response status:", response.status);
+      console.log("📨 Fetch response headers:", response.headers);
       
-      const data = await response.json();
-      console.log("📨 Fetch response data:", data);
-      
-      if (data.success) {
-        setStatus("✅ Message sent successfully! We'll get back to you soon.");
-        setForm({ name: "", email: "", message: "" });
-        
-        // Clear success message after 7 seconds
-        setTimeout(() => {
-          setStatus("");
-        }, 7000);
-      } else {
-        setStatus(`❌ ${data.error || "Failed to send message. Please try again."}`);
+      // Try to parse the response
+      let responseData;
+      try {
+        responseData = await response.json();
+        console.log("📨 Parsed response data:", responseData);
+      } catch (parseError) {
+        console.error("📨 Failed to parse JSON response:", parseError);
+        // If JSON parsing fails, try to get text
+        const textResponse = await response.text();
+        console.log("📨 Text response:", textResponse);
+        responseData = { success: true, message: "Message sent successfully!" };
       }
+      
+      // Check if response indicates success
+      if (response.ok) {
+        if (responseData.success) {
+          setStatus("✅ Message sent successfully! We'll get back to you soon.");
+          setForm({ name: "", email: "", message: "" });
+          
+          // Clear success message after 7 seconds
+          setTimeout(() => {
+            setStatus("");
+          }, 7000);
+        } else {
+          setStatus(`❌ ${responseData.error || "Failed to send message. Please try again."}`);
+        }
+      } else {
+        // HTTP error status
+        setStatus(`❌ Server error (${response.status}): ${responseData.error || "Please try again."}`);
+      }
+      
     } catch (fetchError) {
       console.error("📨 Fetch error:", fetchError);
       
-      // Method 2: Fallback to axios
+      // Method 2: Try direct email endpoint with different approach
       try {
-        console.log("🔄 Trying with axios as fallback...");
-        const axiosResponse = await axios.post("/email/contact", form);
-        console.log("📨 Axios response:", axiosResponse.data);
+        console.log("🔄 Trying alternative approach...");
         
-        if (axiosResponse.data.success) {
-          setStatus("✅ Message sent successfully! We'll get back to you soon.");
+        // Create a simple form data request instead
+        const formData = new URLSearchParams();
+        formData.append('name', form.name);
+        formData.append('email', form.email);
+        formData.append('message', form.message);
+        
+        const altResponse = await fetch('https://mathe-class-website-backend-1.onrender.com/api/v1/email/contact', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: formData,
+        });
+        
+        if (altResponse.ok) {
+          setStatus("✅ Message sent successfully using alternative method!");
           setForm({ name: "", email: "", message: "" });
         } else {
-          setStatus("❌ Failed to send message.");
+          throw new Error(`Alternative method failed: ${altResponse.status}`);
         }
-      } catch (axiosError) {
-        console.error("📨 Axios error:", axiosError);
+        
+      } catch (altError) {
+        console.error("📨 Alternative method error:", altError);
         
         // Method 3: Last resort - show contact email
-        setStatus("❌ Failed to send message. Please email us directly at support@matheclass.com");
+        setStatus("❌ Failed to send via web form. Please email us directly at: support@matheclass.com");
+        
+        // Auto-copy email to clipboard as a convenience
+        try {
+          await navigator.clipboard.writeText('support@matheclass.com');
+          setTimeout(() => {
+            setStatus(prev => prev + " (Email address copied to clipboard 📋)");
+          }, 1000);
+        } catch (clipboardError) {
+          console.log("Clipboard not available");
+        }
       }
     } finally {
       setIsLoading(false);
