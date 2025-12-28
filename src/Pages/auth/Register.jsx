@@ -1,9 +1,82 @@
-// src/pages/auth/Register.jsx
+// src/pages/auth/Register.jsx - OPTIMIZED VERSION
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { showToast } from "../../utils/toast";
 import { useAuth } from "../../context/AuthContext";
 import "./Register.css";
+
+// Registration Info Popup Component
+const RegistrationInfoPopup = ({ isOpen, onClose }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="help-popup-overlay" onClick={onClose}>
+      <div className="help-popup-content" onClick={(e) => e.stopPropagation()}>
+        <div className="help-popup-header">
+          <h3>📝 Registration Information</h3>
+          <button className="help-popup-close" onClick={onClose}>
+            ✕
+          </button>
+        </div>
+        
+        <div className="help-popup-body">
+          <div className="help-section">
+            <h4>👨‍🎓 Student Accounts</h4>
+            <ul>
+              <li>Require admin approval (1-3 business days)</li>
+              <li>Select from predefined subject list</li>
+              <li>Can enroll in courses</li>
+              <li>Will receive email notification upon approval</li>
+              <li>Cannot create courses</li>
+            </ul>
+          </div>
+          
+          <div className="help-section">
+            <h4>👨‍🏫 Teacher Accounts</h4>
+            <ul>
+              <li>Auto-approved (instant access)</li>
+              <li>Enter your teaching subject</li>
+              <li>Can create and manage courses</li>
+              <li>Can manage enrolled students</li>
+              <li>Access to teacher dashboard</li>
+            </ul>
+          </div>
+          
+          <div className="help-section">
+            <h4>👨‍💼 Admin Accounts</h4>
+            <ul>
+              <li>Auto-approved (instant access)</li>
+              <li>Full system access</li>
+              <li>Approve/Reject student registrations</li>
+              <li>Manage all users and courses</li>
+              <li>Access to admin dashboard</li>
+            </ul>
+          </div>
+          
+          <div className="help-section">
+            <h4>📧 Email Notifications</h4>
+            <div className="support-contact">
+              <p>You'll receive emails for:</p>
+              <ul>
+                <li>Registration confirmation</li>
+                <li>Account approval/rejection</li>
+                <li>Password resets (if requested)</li>
+                <li>Important platform updates</li>
+              </ul>
+              <p><strong>Support:</strong> greenw17@yahoo.com</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="help-popup-footer">
+          <button className="btn-primary" onClick={onClose}>
+            Got it!
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Register = () => {
   const { register } = useAuth();
@@ -22,6 +95,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showInfoPopup, setShowInfoPopup] = useState(false);
 
   const studentSubjects = [
     "Algebra 1",
@@ -171,122 +245,124 @@ const Register = () => {
       <div className="auth-form">
         <h2>Create Your Account</h2>
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Name *</label>
-            <input
-              name="name"
-              type="text"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              disabled={loading}
-              placeholder="Enter your full name"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Email *</label>
-            <input
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              disabled={loading}
-              placeholder="Enter your email"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Confirm Email *</label>
-            <input
-              name="confirmEmail"
-              type="email"
-              value={formData.confirmEmail}
-              onChange={handleChange}
-              required
-              disabled={loading}
-              placeholder="Confirm your email"
-            />
-          </div>
-
-          <div className="form-group password-group">
-            <label>Password *</label>
-            <div className="password-input">
+          <div className="form-row">
+            <div className="form-group">
+              <label>Full Name *</label>
               <input
-                name="password"
-                type={showPassword ? "text" : "password"}
-                value={formData.password}
+                name="name"
+                type="text"
+                value={formData.name}
                 onChange={handleChange}
                 required
                 disabled={loading}
-                placeholder="Enter your password"
-                minLength="6"
+                placeholder="John Doe"
               />
-              <button
-                type="button"
-                className="toggle-password"
-                onClick={() => setShowPassword((v) => !v)}
+            </div>
+
+            <div className="form-group">
+              <label>Role *</label>
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
                 disabled={loading}
               >
-                {showPassword ? "🙈" : "👁️"}
-              </button>
+                <option value="student">Student</option>
+                <option value="teacher">Teacher</option>
+                <option value="admin">Admin</option>
+              </select>
             </div>
-            <small className="password-hint">Minimum 6 characters</small>
           </div>
 
-          <div className="form-group password-group">
-            <label>Confirm Password *</label>
-            <div className="password-input">
+          <div className="form-row">
+            <div className="form-group">
+              <label>Email *</label>
               <input
-                name="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
-                value={formData.confirmPassword}
+                name="email"
+                type="email"
+                value={formData.email}
                 onChange={handleChange}
                 required
                 disabled={loading}
-                placeholder="Confirm your password"
-                minLength="6"
+                placeholder="john@example.com"
               />
-              <button
-                type="button"
-                className="toggle-password"
-                onClick={() => setShowConfirmPassword((v) => !v)}
+            </div>
+
+            <div className="form-group">
+              <label>Confirm Email *</label>
+              <input
+                name="confirmEmail"
+                type="email"
+                value={formData.confirmEmail}
+                onChange={handleChange}
+                required
                 disabled={loading}
-              >
-                {showConfirmPassword ? "🙈" : "👁️"}
-              </button>
+                placeholder="Re-enter your email"
+              />
             </div>
           </div>
 
-          <div className="form-group">
-            <label>Role *</label>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              disabled={loading}
-            >
-              <option value="student">Student</option>
-              <option value="teacher">Teacher</option>
-              <option value="admin">Admin</option>
-            </select>
-            <small className="role-hint">
-              • Students: Need admin approval (1-2 business days)
-              <br />
-              • Teachers: Auto-approved, can create courses
-              <br />• Admin: Auto-approved, full system access
-            </small>
+          <div className="form-row">
+            <div className="form-group password-group">
+              <label>Password *</label>
+              <div className="password-input">
+                <input
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  disabled={loading}
+                  placeholder="••••••"
+                  minLength="6"
+                />
+                <button
+                  type="button"
+                  className="toggle-password"
+                  onClick={() => setShowPassword((v) => !v)}
+                  disabled={loading}
+                >
+                  {showPassword ? "🙈" : "👁️"}
+                </button>
+              </div>
+              <small className="field-hint">Min. 6 characters</small>
+            </div>
+
+            <div className="form-group password-group">
+              <label>Confirm Password *</label>
+              <div className="password-input">
+                <input
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  disabled={loading}
+                  placeholder="••••••"
+                  minLength="6"
+                />
+                <button
+                  type="button"
+                  className="toggle-password"
+                  onClick={() => setShowConfirmPassword((v) => !v)}
+                  disabled={loading}
+                >
+                  {showConfirmPassword ? "🙈" : "👁️"}
+                </button>
+              </div>
+            </div>
           </div>
 
           {(formData.role === "teacher" || formData.role === "student") && (
             <div className="form-group">
-              <label>Subject *</label>
+              <label>
+                {formData.role === "teacher" ? "Teaching Subject *" : "Study Subject *"}
+              </label>
               {formData.role === "teacher" ? (
                 <input
                   name="subject"
                   type="text"
-                  placeholder="e.g., Algebra, Calculus, etc."
+                  placeholder="e.g., Algebra, Calculus, Geometry"
                   value={formData.subject}
                   onChange={handleChange}
                   disabled={loading}
@@ -308,28 +384,39 @@ const Register = () => {
                   ))}
                 </select>
               )}
+              <small className="field-hint">
+                {formData.role === "teacher" 
+                  ? "Enter your primary teaching subject" 
+                  : "Select your primary study interest"}
+              </small>
             </div>
           )}
 
-          <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? "⚡ Processing..." : "Create Account"}
-          </button>
+          <div className="form-actions">
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading ? "⚡ Creating Account..." : "Create Account"}
+            </button>
+            
+            <div className="quick-info-button">
+              <button 
+                type="button" 
+                className="info-btn"
+                onClick={() => setShowInfoPopup(true)}
+              >
+                <span className="info-icon">ℹ️</span>
+                <span className="info-text">Registration Details</span>
+              </button>
+            </div>
+          </div>
         </form>
 
         <div className="auth-footer">
           Already have an account? <Link to="/login">Login here</Link>
         </div>
-
-        <div className="registration-info">
-          <h4>📝 Registration Info:</h4>
-          <ul>
-            <li>✅ Students: Account requires admin approval (check email)</li>
-            <li>✅ Teachers: Auto-approved, can create courses immediately</li>
-            <li>✅ Admins: Auto-approved, full system access</li>
-            <li>📧 You'll receive email notifications for approvals</li>
-          </ul>
-        </div>
       </div>
+
+      {/* Registration Info Popup */}
+      <RegistrationInfoPopup isOpen={showInfoPopup} onClose={() => setShowInfoPopup(false)} />
     </div>
   );
 };

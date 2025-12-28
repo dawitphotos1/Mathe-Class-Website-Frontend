@@ -1,9 +1,14 @@
 // src/pages/courses/CourseDetail.jsx
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import {
+  useParams,
+  useNavigate,
+  useLocation,
+  useSearchParams,
+} from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "react-toastify";
-import axiosInstance from '../../utils/axiosInstance';
+import axiosInstance from "../../utils/axiosInstance";
 import PdfPreviewButton from "../../components/PdfPreviewButton"; // Changed from LessonPreview
 import "./CourseDetail.css";
 
@@ -30,7 +35,8 @@ const CourseDetail = () => {
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [lessons, setLessons] = useState([]);
 
-  const fromPayment = location.state?.fromPayment || searchParams.get('fromPayment') === 'true';
+  const fromPayment =
+    location.state?.fromPayment || searchParams.get("fromPayment") === "true";
 
   useEffect(() => {
     if (!slug) return;
@@ -70,7 +76,9 @@ const CourseDetail = () => {
 
   const checkEnrollmentStatus = async (courseId) => {
     try {
-      const response = await axiosInstance.get(`/enrollments/check/${courseId}`);
+      const response = await axiosInstance.get(
+        `/enrollments/check/${courseId}`
+      );
       setIsEnrolled(response?.data?.enrolled || false);
     } catch {
       setIsEnrolled(false);
@@ -98,9 +106,9 @@ const CourseDetail = () => {
   };
 
   const toggleLesson = (lessonId) => {
-    setExpandedLessons(prev => ({
+    setExpandedLessons((prev) => ({
       ...prev,
-      [lessonId]: !prev[lessonId]
+      [lessonId]: !prev[lessonId],
     }));
   };
 
@@ -108,33 +116,52 @@ const CourseDetail = () => {
     const type = contentType || "text";
     switch (type.toLowerCase()) {
       case "video":
-        return <VideoLibraryIcon className="content-icon" style={{ color: "#e53935" }} />;
+        return (
+          <VideoLibraryIcon
+            className="content-icon"
+            style={{ color: "#e53935" }}
+          />
+        );
       case "pdf":
       case "file":
-        return <PictureAsPdfIcon className="content-icon" style={{ color: "#d81b60" }} />;
+        return (
+          <PictureAsPdfIcon
+            className="content-icon"
+            style={{ color: "#d81b60" }}
+          />
+        );
       default:
-        return <TextFieldsIcon className="content-icon" style={{ color: "#1e88e5" }} />;
+        return (
+          <TextFieldsIcon
+            className="content-icon"
+            style={{ color: "#1e88e5" }}
+          />
+        );
     }
   };
 
   const getContentTypeLabel = (contentType) => {
     const type = (contentType || "text").toLowerCase();
     switch (type) {
-      case "video": return "Video Lesson";
-      case "pdf": return "PDF Document";
-      case "text": return "Text Lesson";
-      default: return contentType || "Content";
+      case "video":
+        return "Video Lesson";
+      case "pdf":
+        return "PDF Document";
+      case "text":
+        return "Text Lesson";
+      default:
+        return contentType || "Content";
     }
   };
 
   const getContentPreview = (lesson) => {
     const contentType = lesson.contentType || lesson.content_type || "text";
     const textContent = lesson.textContent || lesson.content || "";
-    
+
     switch (contentType.toLowerCase()) {
       case "text":
-        return textContent.length > 150 
-          ? `${textContent.substring(0, 150)}...` 
+        return textContent.length > 150
+          ? `${textContent.substring(0, 150)}...`
           : textContent || "Text lesson content";
       case "pdf":
         return "PDF Document - Click 'Preview PDF' to view the file";
@@ -148,22 +175,22 @@ const CourseDetail = () => {
   const isLessonPreviewable = (lesson) => {
     const userRole = user?.role;
     const isPreviewLesson = lesson.isPreview || lesson.is_preview;
-    
+
     // Non-authenticated users can only preview free preview lessons
     if (!user) {
       return isPreviewLesson;
     }
-    
+
     // Students can preview if enrolled OR if it's a free preview lesson
     if (userRole === "student") {
       return isEnrolled || isPreviewLesson;
     }
-    
+
     // Teachers and admins can preview all lessons
     if (userRole === "teacher" || userRole === "admin") {
       return true;
     }
-    
+
     return false;
   };
 
@@ -205,7 +232,9 @@ const CourseDetail = () => {
       <div className="course-detail-container">
         <div className="error-section">
           <h2>Course Not Found</h2>
-          <p>The course you're looking for doesn't exist or has been removed.</p>
+          <p>
+            The course you're looking for doesn't exist or has been removed.
+          </p>
           <button onClick={() => navigate("/courses")} className="btn-primary">
             Browse All Courses
           </button>
@@ -224,13 +253,19 @@ const CourseDetail = () => {
         <div className="payment-success-navigation">
           <div className="success-banner">
             <h3>🎉 Payment Successful!</h3>
-            <p>Your enrollment is pending admin approval. You'll be notified once approved.</p>
+            <p>
+              Your enrollment is pending admin approval. You'll be notified once
+              approved.
+            </p>
           </div>
           <div className="navigation-buttons">
-            <button onClick={() => navigate('/')} className="nav-btn home-btn">
+            <button onClick={() => navigate("/")} className="nav-btn home-btn">
               ← Return to Home
             </button>
-            <button onClick={() => navigate('/my-courses')} className="nav-btn courses-btn">
+            <button
+              onClick={() => navigate("/my-courses")}
+              className="nav-btn courses-btn"
+            >
               View My Courses
             </button>
           </div>
@@ -239,7 +274,9 @@ const CourseDetail = () => {
 
       <div className="course-header">
         <h1>{course.title}</h1>
-        <p className="course-description">{course.description || "No description provided."}</p>
+        <p className="course-description">
+          {course.description || "No description provided."}
+        </p>
         <div className="course-meta">
           <span className="course-price">${displayPrice}</span>
           {isAuthenticated && user && (
@@ -256,7 +293,7 @@ const CourseDetail = () => {
           Course Curriculum
           <span className="lesson-count">({lessons.length} lessons)</span>
         </h2>
-        
+
         {hasLessons ? (
           <div className="lessons-container">
             {lessons.map((lesson, index) => {
@@ -266,25 +303,34 @@ const CourseDetail = () => {
               const lessonStatus = getLessonStatus(lesson);
               const normalizedLesson = normalizeLesson(lesson);
               const contentType = normalizedLesson.contentType?.toLowerCase();
-              const isPdf = contentType === 'pdf' || contentType === 'file';
-              const isVideo = contentType === 'video';
-              
+              const isPdf = contentType === "pdf" || contentType === "file";
+              const isVideo = contentType === "video";
+
               return (
-                <div 
-                  key={lessonId} 
-                  className={`lesson-card ${lessonStatus} ${isExpanded ? 'expanded' : ''}`}
+                <div
+                  key={lessonId}
+                  className={`lesson-card ${lessonStatus} ${
+                    isExpanded ? "expanded" : ""
+                  }`}
                 >
-                  <div className="lesson-header" onClick={() => toggleLesson(lessonId)}>
+                  <div
+                    className="lesson-header"
+                    onClick={() => toggleLesson(lessonId)}
+                  >
                     <div className="lesson-info">
                       <div className="lesson-number">{index + 1}</div>
                       <div className="lesson-title-section">
                         {getContentIcon(contentType)}
-                        <h3 className="lesson-title">{lesson.title || "Untitled Lesson"}</h3>
+                        <h3 className="lesson-title">
+                          {lesson.title || "Untitled Lesson"}
+                        </h3>
                         {lesson.isPreview || lesson.is_preview ? (
                           <span className="preview-badge">Free Preview</span>
                         ) : isEnrolled ? (
                           <span className="enrolled-badge">
-                            <CheckCircleIcon style={{ fontSize: 16, marginRight: 4 }} />
+                            <CheckCircleIcon
+                              style={{ fontSize: 16, marginRight: 4 }}
+                            />
                             Available
                           </span>
                         ) : null}
@@ -292,11 +338,11 @@ const CourseDetail = () => {
                     </div>
                     <div className="lesson-actions">
                       {canPreview && isPdf && normalizedLesson.fileUrl && (
-                        <PdfPreviewButton 
+                        <PdfPreviewButton
                           lesson={normalizedLesson}
                           variant="student"
                           size="small"
-                          style={{ marginRight: '10px' }}
+                          style={{ marginRight: "10px" }}
                         />
                       )}
                       {canPreview && isVideo && (
@@ -307,11 +353,16 @@ const CourseDetail = () => {
                             // For video lessons, you might want to handle differently
                             // This could open video in modal or new tab
                             if (lesson.videoUrl || lesson.video_url) {
-                              window.open(lesson.videoUrl || lesson.video_url, '_blank');
+                              window.open(
+                                lesson.videoUrl || lesson.video_url,
+                                "_blank"
+                              );
                             }
                           }}
                         >
-                          <VisibilityIcon style={{ marginRight: 6, fontSize: 18 }} />
+                          <VisibilityIcon
+                            style={{ marginRight: 6, fontSize: 18 }}
+                          />
                           Watch Video
                         </button>
                       )}
@@ -320,33 +371,40 @@ const CourseDetail = () => {
                       </span>
                     </div>
                   </div>
-                  
+
                   {isExpanded && (
                     <div className="lesson-content">
                       <div className="content-preview">
                         <p>{getContentPreview(lesson)}</p>
-                        
+
                         {canPreview && isPdf && normalizedLesson.fileUrl && (
                           <div className="action-buttons">
-                            <PdfPreviewButton 
+                            <PdfPreviewButton
                               lesson={normalizedLesson}
                               variant="primary"
                               size="medium"
-                              style={{ marginTop: '10px' }}
+                              style={{ marginTop: "10px" }}
                             />
                           </div>
                         )}
-                        
+
                         <div className="lesson-meta">
                           <span className="meta-item">
                             {getContentTypeLabel(contentType)}
                           </span>
                           <span className="meta-item">
-                            Order: {lesson.orderIndex || lesson.order_index || 0}
+                            Order:{" "}
+                            {lesson.orderIndex || lesson.order_index || 0}
                           </span>
                           {normalizedLesson.fileUrl && (
                             <span className="meta-item has-attachment">
-                              <ArticleIcon style={{ fontSize: 16, marginRight: 4, verticalAlign: 'middle' }} />
+                              <ArticleIcon
+                                style={{
+                                  fontSize: 16,
+                                  marginRight: 4,
+                                  verticalAlign: "middle",
+                                }}
+                              />
                               Has Attachment
                             </span>
                           )}
@@ -362,9 +420,11 @@ const CourseDetail = () => {
           <div className="no-lessons">
             <p>No lessons available for this course yet.</p>
             {user?.role === "teacher" && (
-              <button 
+              <button
                 className="btn-primary"
-                onClick={() => navigate(`/teacher-dashboard/courses/${course.id}/manage`)}
+                onClick={() =>
+                  navigate(`/teacher-dashboard/courses/${course.id}/manage`)
+                }
               >
                 Add Lessons as Teacher
               </button>
@@ -394,14 +454,16 @@ const CourseDetail = () => {
                 : `Enroll Now - $${displayPrice}`}
             </button>
           )}
-          
+
           <div className="enrollment-info">
             {isEnrolled ? (
-              <p className="info-text">You are enrolled in this course. Start learning!</p>
+              <p className="info-text">
+                You are enrolled in this course. Start learning!
+              </p>
             ) : (
               <p className="info-text">
-                {displayPrice === "0.00" 
-                  ? "This course is completely free. Enroll now to get started!" 
+                {displayPrice === "0.00"
+                  ? "This course is completely free. Enroll now to get started!"
                   : `Enroll to get full access to all ${lessons.length} lessons and resources.`}
               </p>
             )}

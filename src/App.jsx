@@ -1,4 +1,3 @@
-
 // src/App.jsx - UPDATED WITH CORRECT PREVIEW PAGE
 import React, { Suspense, useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -63,8 +62,12 @@ const PreviewPage = React.lazy(() => import("./pages/PreviewPage"));
 
 // Admin layout and components that need separate imports
 const AdminLayout = React.lazy(() => import("./components/AdminLayout"));
-const PendingStudents = React.lazy(() => import("./components/PendingStudents"));
-const PendingEnrollments = React.lazy(() => import("./components/PendingEnrollments"));
+const PendingStudents = React.lazy(() =>
+  import("./components/PendingStudents")
+);
+const PendingEnrollments = React.lazy(() =>
+  import("./components/PendingEnrollments")
+);
 const AdminLessonLogs = React.lazy(() => import("./pages/AdminLessonLogs"));
 
 /* Public Route */
@@ -114,12 +117,12 @@ const DebugWrapper = ({ children }) => {
   return (
     <>
       {children}
-      <button 
-        onClick={() => setShowDebug(!showDebug)} 
-        style={{ 
-          position: "fixed", 
-          bottom: 20, 
-          right: 20, 
+      <button
+        onClick={() => setShowDebug(!showDebug)}
+        style={{
+          position: "fixed",
+          bottom: 20,
+          right: 20,
           zIndex: 999,
           background: "#1976d2",
           color: "white",
@@ -128,31 +131,35 @@ const DebugWrapper = ({ children }) => {
           width: "40px",
           height: "40px",
           cursor: "pointer",
-          fontSize: "18px"
+          fontSize: "18px",
         }}
       >
         {showDebug ? "×" : "🐛"}
       </button>
       {showDebug && (
-        <div style={{ 
-          position: "fixed", 
-          bottom: 70, 
-          right: 20, 
-          background: "#fff", 
-          border: "1px solid #ddd",
-          padding: "1rem", 
-          zIndex: 999,
-          borderRadius: "8px",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-          maxWidth: "300px"
-        }}>
+        <div
+          style={{
+            position: "fixed",
+            bottom: 70,
+            right: 20,
+            background: "#fff",
+            border: "1px solid #ddd",
+            padding: "1rem",
+            zIndex: 999,
+            borderRadius: "8px",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+            maxWidth: "300px",
+          }}
+        >
           <h4 style={{ margin: "0 0 10px 0" }}>Debug Panel</h4>
-          <pre style={{ 
-            fontSize: "12px", 
-            margin: 0, 
-            whiteSpace: "pre-wrap",
-            fontFamily: "monospace"
-          }}>
+          <pre
+            style={{
+              fontSize: "12px",
+              margin: 0,
+              whiteSpace: "pre-wrap",
+              fontFamily: "monospace",
+            }}
+          >
             User: {JSON.stringify(user, null, 2)}
           </pre>
         </div>
@@ -176,8 +183,22 @@ function AppContent() {
             <Routes>
               {/* PUBLIC */}
               <Route path="/" element={<Home />} />
-              <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
-              <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+              <Route
+                path="/register"
+                element={
+                  <PublicRoute>
+                    <Register />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/login"
+                element={
+                  <PublicRoute>
+                    <Login />
+                  </PublicRoute>
+                }
+              />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/contact" element={<Contact />} />
@@ -191,24 +212,49 @@ function AppContent() {
               {/* ✅ UPDATED: CORRECT PREVIEW ROUTES */}
               {/* For viewing actual lesson content (PDF, video, text) */}
               <Route path="/preview/:lessonId" element={<PreviewPage />} />
-              
+
               {/* For viewing course preview/curriculum (sales page) */}
-              <Route path="/courses/:courseId/preview" element={<CoursePreviewPage />} />
-              
+              <Route
+                path="/courses/:courseId/preview"
+                element={<CoursePreviewPage />}
+              />
+
               {/* Legacy preview routes - keeping for compatibility */}
-              <Route path="/lessons/:lessonId/preview" element={
-                <ProtectedRoute allowedRoles={["teacher","student","admin"]}><PreviewLesson /></ProtectedRoute>
-              } />
-              <Route path="/courses/:courseId/preview-lesson" element={<PreviewLessonPage />} />
+              <Route
+                path="/lessons/:lessonId/preview"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["teacher", "student", "admin"]}
+                  >
+                    <PreviewLesson />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/courses/:courseId/preview-lesson"
+                element={<PreviewLessonPage />}
+              />
 
               {/* DASHBOARD REDIRECT */}
               <Route path="/dashboard" element={<RoleBasedRedirect />} />
 
               {/* ADMIN */}
-              <Route path="/admin/*" element={<ProtectedRoute allowedRoles={["admin"]}><DebugWrapper><AdminLayout /></DebugWrapper></ProtectedRoute>}>
+              <Route
+                path="/admin/*"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <DebugWrapper>
+                      <AdminLayout />
+                    </DebugWrapper>
+                  </ProtectedRoute>
+                }
+              >
                 <Route index element={<AdminDashboard />} />
                 <Route path="pending-students" element={<PendingStudents />} />
-                <Route path="pending-enrollments" element={<PendingEnrollments />} />
+                <Route
+                  path="pending-enrollments"
+                  element={<PendingEnrollments />}
+                />
                 <Route path="manage-courses" element={<ManageCourses />} />
                 <Route path="manage-users" element={<ManageUsers />} />
                 <Route path="lesson-logs" element={<AdminLessonLogs />} />
@@ -216,47 +262,183 @@ function AppContent() {
               </Route>
 
               {/* ✅ FIXED: TEACHER DASHBOARD AND EDIT ROUTES */}
-              <Route path="/teacher-dashboard" element={<ProtectedRoute allowedRoles={["teacher"]}><DebugWrapper><MyTeachingCourses /></DebugWrapper></ProtectedRoute>} />
-              <Route path="/teacher/courses/:courseId/view" element={<ProtectedRoute allowedRoles={["teacher","admin"]}><TeacherCourseViewer /></ProtectedRoute>} />
-              
+              <Route
+                path="/teacher-dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher"]}>
+                    <DebugWrapper>
+                      <MyTeachingCourses />
+                    </DebugWrapper>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/teacher/courses/:courseId/view"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <TeacherCourseViewer />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* ✅ CRITICAL: ALL POSSIBLE EDIT LESSON ROUTES */}
               {/* Route 1: From Teacher Dashboard → Manage Lessons */}
-              <Route path="/teacher/courses/:courseId/lessons/:lessonId/edit" 
-                element={<ProtectedRoute allowedRoles={["teacher","admin"]}><EditLesson /></ProtectedRoute>} />
-              
+              <Route
+                path="/teacher/courses/:courseId/lessons/:lessonId/edit"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <EditLesson />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* Route 2: From Course Management */}
-              <Route path="/courses/:courseId/lessons/:lessonId/edit" 
-                element={<ProtectedRoute allowedRoles={["teacher","admin"]}><EditLesson /></ProtectedRoute>} />
-              
+              <Route
+                path="/courses/:courseId/lessons/:lessonId/edit"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <EditLesson />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* Route 3: Direct lesson edit (legacy) */}
-              <Route path="/lessons/:lessonId/edit" 
-                element={<ProtectedRoute allowedRoles={["teacher","admin"]}><EditLesson /></ProtectedRoute>} />
-              
+              <Route
+                path="/lessons/:lessonId/edit"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <EditLesson />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* Route 4: From preview page */}
-              <Route path="/preview/:lessonId/edit" 
-                element={<ProtectedRoute allowedRoles={["teacher","admin"]}><EditLesson /></ProtectedRoute>} />
-              
+              <Route
+                path="/preview/:lessonId/edit"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <EditLesson />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* Route 5: From teacher specific path */}
-              <Route path="/teacher/lessons/:lessonId/edit" 
-                element={<ProtectedRoute allowedRoles={["teacher","admin"]}><EditLesson /></ProtectedRoute>} />
+              <Route
+                path="/teacher/lessons/:lessonId/edit"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <EditLesson />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* OTHER TEACHER ROUTES */}
-              <Route path="/create-course" element={<ProtectedRoute allowedRoles={["teacher","admin"]}><CreateCourse /></ProtectedRoute>} />
-              <Route path="/create-course-advanced" element={<ProtectedRoute allowedRoles={["teacher","admin"]}><CreateCourseWithUnits /></ProtectedRoute>} />
-              <Route path="/courses/:courseId/edit" element={<ProtectedRoute allowedRoles={["teacher","admin"]}><EditCourse /></ProtectedRoute>} />
-              <Route path="/courses/:courseId/manage-lessons" element={<ProtectedRoute allowedRoles={["teacher","admin"]}><TeacherManageLessons /></ProtectedRoute>} />
-              <Route path="/courses/:courseId/lessons/new" element={<ProtectedRoute allowedRoles={["teacher","admin"]}><CreateLessonPage /></ProtectedRoute>} />
+              <Route
+                path="/create-course"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <CreateCourse />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/create-course-advanced"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <CreateCourseWithUnits />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/courses/:courseId/edit"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <EditCourse />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/courses/:courseId/manage-lessons"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <TeacherManageLessons />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/courses/:courseId/lessons/new"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <CreateLessonPage />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* STUDENT */}
-              <Route path="/my-courses" element={<ProtectedRoute allowedRoles={["student","teacher","admin"]}><MyCoursesPage /></ProtectedRoute>} />
-              <Route path="/courses/:courseId/view" element={<ProtectedRoute allowedRoles={["student","teacher","admin"]}><CourseViewer /></ProtectedRoute>} />
-              <Route path="/courses/:courseId/view-lessons" element={<ProtectedRoute allowedRoles={["student","teacher","admin"]}><CourseLessons /></ProtectedRoute>} />
-              <Route path="/student/courses/:courseId/lessons" element={<ProtectedRoute allowedRoles={["student"]}><StudentLessons /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route
+                path="/my-courses"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["student", "teacher", "admin"]}
+                  >
+                    <MyCoursesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/courses/:courseId/view"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["student", "teacher", "admin"]}
+                  >
+                    <CourseViewer />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/courses/:courseId/view-lessons"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["student", "teacher", "admin"]}
+                  >
+                    <CourseLessons />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/student/courses/:courseId/lessons"
+                element={
+                  <ProtectedRoute allowedRoles={["student"]}>
+                    <StudentLessons />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* PAYMENT */}
-              <Route path="/payment/:courseId" element={<ProtectedRoute allowedRoles={["student"]}><PaymentPage /></ProtectedRoute>} />
-              <Route path="/payment-success" element={<ProtectedRoute allowedRoles={["student"]}><PaymentSuccess /></ProtectedRoute>} />
+              <Route
+                path="/payment/:courseId"
+                element={
+                  <ProtectedRoute allowedRoles={["student"]}>
+                    <PaymentPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/payment-success"
+                element={
+                  <ProtectedRoute allowedRoles={["student"]}>
+                    <PaymentSuccess />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="/payment-cancel" element={<PaymentCancel />} />
               <Route path="/cancel" element={<Cancel />} />
 
@@ -268,18 +450,30 @@ function AppContent() {
         </main>
 
         <FixedToastContainer />
-        <footer style={{ 
-          marginTop: "3rem", 
-          padding: "2rem", 
-          backgroundColor: "#f8f9fa", 
-          textAlign: "center",
-          borderTop: "1px solid #dee2e6"
-        }}>
+        <footer
+          style={{
+            marginTop: "3rem",
+            padding: "2rem",
+            backgroundColor: "#f8f9fa",
+            textAlign: "center",
+            borderTop: "1px solid #dee2e6",
+          }}
+        >
           <p style={{ margin: 0, color: "#6c757d" }}>
-            © {new Date().getFullYear()} Math Class Platform. All rights reserved.
+            © {new Date().getFullYear()} Math Class Platform. All rights
+            reserved.
           </p>
-          <p style={{ margin: "10px 0 0 0", fontSize: "0.9rem", color: "#6c757d" }}>
-            Need help? <a href="/contact" style={{ color: "#1976d2" }}>Contact Support</a>
+          <p
+            style={{
+              margin: "10px 0 0 0",
+              fontSize: "0.9rem",
+              color: "#6c757d",
+            }}
+          >
+            Need help?{" "}
+            <a href="/contact" style={{ color: "#1976d2" }}>
+              Contact Support
+            </a>
           </p>
         </footer>
       </ErrorBoundary>
