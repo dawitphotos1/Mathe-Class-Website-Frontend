@@ -259,7 +259,7 @@ const Contact = () => {
           )}
           
           <div style={{marginTop: '1.5rem', fontSize: '0.875rem', color: '#7f8c8d', textAlign: 'center'}}>
-            <p>Or email us directly: <strong>support@matheclass.com</strong></p>
+            <p>Or email us directly: <strong>greenw17@yahoo.com</strong></p>
             <p>We typically respond within 24-48 hours.</p>
           </div>
         </form>
