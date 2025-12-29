@@ -1,7 +1,8 @@
-// components/Contact.jsx - FIXED VERSION (uses backend API)
+
+// components/Contact.jsx - FINAL CLEAN VERSION
 import React, { useState } from "react";
 import axios from "axios";
-import "./Contact.css";
+ import "./Contact.css";
 
 const Contact = () => {
   const [form, setForm] = useState({ 
@@ -19,19 +20,13 @@ const Contact = () => {
   const validateForm = () => {
     const newErrors = {};
     
-    if (!form.name.trim()) {
-      newErrors.name = "Name is required";
-    }
-    
+    if (!form.name.trim()) newErrors.name = "Name is required";
     if (!form.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       newErrors.email = "Please enter a valid email address";
     }
-    
-    if (!form.message.trim()) {
-      newErrors.message = "Message is required";
-    }
+    if (!form.message.trim()) newErrors.message = "Message is required";
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -41,33 +36,20 @@ const Contact = () => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
     
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: "" }));
-    }
-    
-    // Clear submitted state if user starts typing again
-    if (isSubmitted) {
-      setIsSubmitted(false);
-    }
-    
-    // Clear any API errors
-    if (apiError) {
-      setApiError("");
-    }
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: "" }));
+    if (isSubmitted) setIsSubmitted(false);
+    if (apiError) setApiError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
     
     setIsLoading(true);
     setApiError("");
     
     try {
-      // ✅ FIXED: Send to YOUR backend API, not mailto:
       const response = await axios.post(`${API_URL}/email/contact`, {
         name: form.name,
         email: form.email,
@@ -75,18 +57,9 @@ const Contact = () => {
       });
       
       if (response.data.success) {
-        // Show success message
         setIsSubmitted(true);
-        
-        // CLEAR THE FORM
-        setTimeout(() => {
-          setForm({ name: "", email: "", message: "" });
-        }, 300);
-        
-        // Clear success message after 5 seconds
-        setTimeout(() => {
-          setIsSubmitted(false);
-        }, 5000);
+        setTimeout(() => setForm({ name: "", email: "", message: "" }), 300);
+        setTimeout(() => setIsSubmitted(false), 5000);
       } else {
         setApiError(response.data.error || "Failed to send message");
       }
@@ -102,7 +75,6 @@ const Contact = () => {
     }
   };
 
-  // Remove the handleQuickEmail function since it uses mailto:
   const handleQuickEmail = async () => {
     const email = prompt("Please enter your email address:");
     if (!email) return;
@@ -146,7 +118,6 @@ const Contact = () => {
           We'd love to hear from you! Fill out the form below and we'll get back to you as soon as possible.
         </p>
         
-        {/* Quick Email Button */}
         <div className="quick-email-section">
           <p className="quick-email-text">
             <strong>Quick option:</strong> Don't want to fill the form?
@@ -165,7 +136,6 @@ const Contact = () => {
           <span>or</span>
         </div>
         
-        {/* Contact Form */}
         <form className="contact-form" onSubmit={handleSubmit} noValidate>
           <div className="form-group">
             <label htmlFor="name">Your Name</label>
@@ -179,9 +149,7 @@ const Contact = () => {
               className={errors.name ? "error" : ""}
               disabled={isLoading}
             />
-            {errors.name && (
-              <div className="error-message">{errors.name}</div>
-            )}
+            {errors.name && <div className="error-message">{errors.name}</div>}
           </div>
           
           <div className="form-group">
@@ -196,9 +164,7 @@ const Contact = () => {
               className={errors.email ? "error" : ""}
               disabled={isLoading}
             />
-            {errors.email && (
-              <div className="error-message">{errors.email}</div>
-            )}
+            {errors.email && <div className="error-message">{errors.email}</div>}
           </div>
           
           <div className="form-group">
@@ -213,23 +179,19 @@ const Contact = () => {
               className={errors.message ? "error" : ""}
               disabled={isLoading}
             />
-            {errors.message && (
-              <div className="error-message">{errors.message}</div>
-            )}
+            {errors.message && <div className="error-message">{errors.message}</div>}
           </div>
           
-          {/* API Error Message */}
           {apiError && (
             <div className="api-error-message">
               ❌ {apiError}
             </div>
           )}
           
-          {/* Action Buttons */}
           <div className="action-buttons">
             <button 
               type="submit" 
-              className="submit-btn primary-btn"
+              className="primary-btn"
               disabled={isLoading}
             >
               {isLoading ? "⏳ Sending..." : "✉️ Send Message"}
@@ -247,7 +209,6 @@ const Contact = () => {
             )}
           </div>
           
-          {/* Success Message */}
           {isSubmitted && (
             <div className="success-message">
               ✅ <strong>Message sent successfully!</strong>
@@ -260,7 +221,6 @@ const Contact = () => {
             </div>
           )}
           
-          {/* Instructions - UPDATED */}
           <div className="instructions">
             <p><strong>How it works:</strong></p>
             <ol>
@@ -272,7 +232,6 @@ const Contact = () => {
             </ol>
           </div>
           
-          {/* Direct Contact Info */}
           <div className="contact-info">
             <p><strong>Our response email will come from:</strong> g.mathflam08@gmail.com</p>
             <p><small>Please check your spam folder if you don't see our reply.</small></p>

@@ -282,7 +282,7 @@ const Home = () => {
                 }}
               />
               <div className="testimonial-info">
-                <h3 className="testimonial-name">Daniel W.</h3>
+                <h3 className="testimonial-name">Lidya T.</h3>
                 <p className="testimonial-role">College Freshman</p>
                 <div className="testimonial-meta">
                   <span>
@@ -348,7 +348,7 @@ const Home = () => {
                 }}
               />
               <div className="testimonial-info">
-                <h3 className="testimonial-name">Maria K.</h3>
+                <h3 className="testimonial-name">Tsega k.</h3>
                 <p className="testimonial-role">Working Professional</p>
                 <div className="testimonial-meta">
                   <span>
@@ -518,7 +518,7 @@ const Home = () => {
           </div>
         </div>
         <div className="footer-bottom">
-          <p>© {new Date().getFullYear()} Math Class. All rights reserved.</p>
+          {/* <p>© {new Date().getFullYear()} Math Class. All rights reserved.</p> */}
         </div>
       </footer>
 

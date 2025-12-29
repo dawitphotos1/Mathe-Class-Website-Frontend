@@ -59,14 +59,18 @@ const PaymentPage = lazyPage(Pages.PaymentPage);
 // Dynamically imported components (to avoid circular dependencies)
 const EditLesson = React.lazy(() => import("./pages/teachers/EditLesson"));
 const AdminLayout = React.lazy(() => import("./components/AdminLayout"));
-const PendingStudents = React.lazy(() => import("./components/PendingStudents"));
-const PendingEnrollments = React.lazy(() => import("./components/PendingEnrollments"));
+const PendingStudents = React.lazy(() =>
+  import("./components/PendingStudents")
+);
+const PendingEnrollments = React.lazy(() =>
+  import("./components/PendingEnrollments")
+);
 const AdminLessonLogs = React.lazy(() => import("./pages/AdminLessonLogs"));
 
 /* Public Route Component */
 const PublicRoute = ({ children }) => {
   const { isAuthenticated, loading, checked, user } = useAuth();
-  
+
   if (loading || !checked) return <Loading />;
 
   if (isAuthenticated && user?.role) {
@@ -81,14 +85,14 @@ const PublicRoute = ({ children }) => {
         return <Navigate to="/" replace />;
     }
   }
-  
+
   return children;
 };
 
 /* Role-Based Redirect Component */
 const RoleBasedRedirect = () => {
   const { user } = useAuth();
-  
+
   if (!user) return <Navigate to="/login" replace />;
 
   switch (user.role) {
@@ -108,7 +112,7 @@ const DebugWrapper = ({ children }) => {
   const [showDebug, setShowDebug] = useState(false);
   const { user } = useAuth();
   const isTeacherOrAdmin = user?.role === "teacher" || user?.role === "admin";
-  
+
   if (!isTeacherOrAdmin) return children;
 
   return (
@@ -142,21 +146,31 @@ function AppContent() {
       <CSSDebug />
       <ErrorBoundary>
         <Navbar />
-        
+
         <main className="main-content">
           <Suspense fallback={<Loading />}>
             <Routes>
               {/* ================= PUBLIC ROUTES ================= */}
               <Route path="/" element={<Home />} />
-              
-              <Route path="/register" element={
-                <PublicRoute><Register /></PublicRoute>
-              } />
-              
-              <Route path="/login" element={
-                <PublicRoute><Login /></PublicRoute>
-              } />
-              
+
+              <Route
+                path="/register"
+                element={
+                  <PublicRoute>
+                    <Register />
+                  </PublicRoute>
+                }
+              />
+
+              <Route
+                path="/login"
+                element={
+                  <PublicRoute>
+                    <Login />
+                  </PublicRoute>
+                }
+              />
+
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/contact" element={<Contact />} />
@@ -164,158 +178,232 @@ function AppContent() {
               <Route path="/courses" element={<Courses />} />
               <Route path="/courses/:slug" element={<CourseViewer />} />
               <Route path="/courses/id/:id" element={<CourseViewer />} />
-              
+
               {/* Preview Routes */}
               <Route path="/preview/:lessonId" element={<PreviewPage />} />
-              <Route path="/courses/:courseId/preview" element={<CoursePreviewPage />} />
-              
+              <Route
+                path="/courses/:courseId/preview"
+                element={<CoursePreviewPage />}
+              />
+
               {/* Payment Result Pages */}
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/payment-cancel" element={<PaymentCancel />} />
               <Route path="/cancel" element={<Cancel />} />
-              
+
               {/* ================= DASHBOARD REDIRECT ================= */}
               <Route path="/dashboard" element={<RoleBasedRedirect />} />
-              
+
               {/* ================= ADMIN ROUTES ================= */}
-              <Route path="/admin/*" element={
-                <ProtectedRoute allowedRoles={["admin"]}>
-                  <DebugWrapper>
-                    <AdminLayout />
-                  </DebugWrapper>
-                </ProtectedRoute>
-              }>
+              <Route
+                path="/admin/*"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <DebugWrapper>
+                      <AdminLayout />
+                    </DebugWrapper>
+                  </ProtectedRoute>
+                }
+              >
                 <Route index element={<AdminDashboard />} />
                 <Route path="pending-students" element={<PendingStudents />} />
-                <Route path="pending-enrollments" element={<PendingEnrollments />} />
+                <Route
+                  path="pending-enrollments"
+                  element={<PendingEnrollments />}
+                />
                 <Route path="manage-courses" element={<ManageCourses />} />
                 <Route path="manage-users" element={<ManageUsers />} />
                 <Route path="lesson-logs" element={<AdminLessonLogs />} />
                 <Route path="file-manager" element={<FileManager />} />
               </Route>
-              
+
               {/* ================= TEACHER ROUTES ================= */}
-              <Route path="/teacher-dashboard" element={
-                <ProtectedRoute allowedRoles={["teacher"]}>
-                  <DebugWrapper><MyTeachingCourses /></DebugWrapper>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/teacher/courses/:courseId/view" element={
-                <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                  <TeacherCourseViewer />
-                </ProtectedRoute>
-              } />
-              
+              <Route
+                path="/teacher-dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher"]}>
+                    <DebugWrapper>
+                      <MyTeachingCourses />
+                    </DebugWrapper>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/teacher/courses/:courseId/view"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <TeacherCourseViewer />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* Multiple Edit Lesson Routes for compatibility */}
-              <Route path="/teacher/courses/:courseId/lessons/:lessonId/edit" element={
-                <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                  <EditLesson />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/courses/:courseId/lessons/:lessonId/edit" element={
-                <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                  <EditLesson />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/lessons/:lessonId/edit" element={
-                <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                  <EditLesson />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/preview/:lessonId/edit" element={
-                <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                  <EditLesson />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/teacher/lessons/:lessonId/edit" element={
-                <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                  <EditLesson />
-                </ProtectedRoute>
-              } />
-              
+              <Route
+                path="/teacher/courses/:courseId/lessons/:lessonId/edit"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <EditLesson />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/courses/:courseId/lessons/:lessonId/edit"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <EditLesson />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/lessons/:lessonId/edit"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <EditLesson />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/preview/:lessonId/edit"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <EditLesson />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/teacher/lessons/:lessonId/edit"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <EditLesson />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* Other Teacher Routes */}
-              <Route path="/create-course" element={
-                <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                  <CreateCourse />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/create-course-advanced" element={
-                <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                  <CreateCourseWithUnits />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/courses/:courseId/edit" element={
-                <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                  <EditCourse />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/courses/:courseId/manage-lessons" element={
-                <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                  <TeacherManageLessons />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/courses/:courseId/lessons/new" element={
-                <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                  <CreateLessonPage />
-                </ProtectedRoute>
-              } />
-              
+              <Route
+                path="/create-course"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <CreateCourse />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/create-course-advanced"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <CreateCourseWithUnits />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/courses/:courseId/edit"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <EditCourse />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/courses/:courseId/manage-lessons"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <TeacherManageLessons />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/courses/:courseId/lessons/new"
+                element={
+                  <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                    <CreateLessonPage />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* ================= STUDENT ROUTES ================= */}
-              <Route path="/my-courses" element={
-                <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
-                  <MyCoursesPage />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/courses/:courseId/view" element={
-                <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
-                  <CourseViewer />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/courses/:courseId/view-lessons" element={
-                <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
-                  <CourseLessons />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/student/courses/:courseId/lessons" element={
-                <ProtectedRoute allowedRoles={["student"]}>
-                  <StudentLessons />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/profile" element={
-                <ProtectedRoute><Profile /></ProtectedRoute>
-              } />
-              
-              <Route path="/payment/:courseId" element={
-                <ProtectedRoute allowedRoles={["student"]}>
-                  <PaymentPage />
-                </ProtectedRoute>
-              } />
-              
+              <Route
+                path="/my-courses"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["student", "teacher", "admin"]}
+                  >
+                    <MyCoursesPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/courses/:courseId/view"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["student", "teacher", "admin"]}
+                  >
+                    <CourseViewer />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/courses/:courseId/view-lessons"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["student", "teacher", "admin"]}
+                  >
+                    <CourseLessons />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/student/courses/:courseId/lessons"
+                element={
+                  <ProtectedRoute allowedRoles={["student"]}>
+                    <StudentLessons />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/payment/:courseId"
+                element={
+                  <ProtectedRoute allowedRoles={["student"]}>
+                    <PaymentPage />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* ================= ERROR ROUTES ================= */}
               <Route path="/unauthorized" element={<Unauthorized />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
         </main>
-        
+
         <FixedToastContainer />
-        
+
         <footer className="app-footer">
           <p>
-            © {new Date().getFullYear()} Math Class Platform. All rights reserved.
+            © {new Date().getFullYear()} Math Class Platform. All rights
+            reserved.
           </p>
           <p className="footer-help">
             Need help? <a href="/contact">Contact Support</a>
