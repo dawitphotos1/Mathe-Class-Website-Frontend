@@ -1,152 +1,4 @@
-// // src/context/AuthContext.js
-// import React, { createContext, useState, useContext, useEffect, useRef } from "react";
-// import axiosInstance from '../utils/axiosInstance';
-
-// const AuthContext = createContext();
-
-// export const useAuth = () => {
-//   const context = useContext(AuthContext);
-//   if (!context) {
-//     throw new Error("useAuth must be used within an AuthProvider");
-//   }
-//   return context;
-// };
-
-// export const AuthProvider = ({ children }) => {
-//   const [user, setUser] = useState(null);
-//   const [isAuthenticated, setIsAuthenticated] = useState(false);
-//   const [loading, setLoading] = useState(true);
-//   const [checked, setChecked] = useState(false);
-
-//   const checkingRef = useRef(false);
-//   const lastCheckRef = useRef(0);
-
-//   useEffect(() => {
-//     checkAuthStatus();
-//     // eslint-disable-next-line react-hooks/exhaustive-deps
-//   }, []);
-
-//   const checkAuthStatus = async ({ force = false } = {}) => {
-//     try {
-//       if (checkingRef.current && !force) return;
-//       const now = Date.now();
-//       if (!force && now - lastCheckRef.current < 3000) return;
-
-//       checkingRef.current = true;
-//       lastCheckRef.current = now;
-//       setLoading(true);
-
-//       const token = localStorage.getItem("token");
-//       if (!token) {
-//         setUser(null);
-//         setIsAuthenticated(false);
-//         setLoading(false);
-//         setChecked(true);
-//         checkingRef.current = false;
-//         return;
-//       }
-
-//       const response = await axiosInstance.get("/auth/me");
-//       if (response.data?.success && response.data?.user) {
-//         setUser(response.data.user);
-//         setIsAuthenticated(true);
-//       } else {
-//         localStorage.removeItem("token");
-//         setUser(null);
-//         setIsAuthenticated(false);
-//       }
-//     } catch (error) {
-//       if (error.response?.status === 429) {
-//         console.warn("Auth rate-limited. Will not retry automatically.");
-//       } else {
-//         console.error("Auth check failed:", error);
-//       }
-//       localStorage.removeItem("token");
-//       setUser(null);
-//       setIsAuthenticated(false);
-//     } finally {
-//       setLoading(false);
-//       setChecked(true);
-//       checkingRef.current = false;
-//     }
-//   };
-
-//   const login = async (email, password) => {
-//     try {
-//       const response = await axiosInstance.post("/auth/login", { email, password });
-
-//       if (response.data?.success) {
-//         const { user: loggedUser, token } = response.data;
-//         if (token) localStorage.setItem("token", token);
-//         setUser(loggedUser);
-//         setIsAuthenticated(true);
-//         return { success: true, user: loggedUser };
-//       }
-//       return { success: false, error: response.data?.error || "Login failed" };
-//     } catch (error) {
-//       const errorMessage =
-//         error.response?.data?.error || error.response?.data?.message || error.message || "Login failed";
-//       return { success: false, error: errorMessage };
-//     }
-//   };
-
-//   const register = async (userData) => {
-//     try {
-//       const response = await axiosInstance.post("/auth/register", userData);
-//       if (response.data?.success) {
-//         const { user: newUser, token } = response.data;
-//         if (token) {
-//           localStorage.setItem("token", token);
-//           setUser(newUser);
-//           setIsAuthenticated(true);
-//         }
-//         return { success: true, user: token ? newUser : null };
-//       }
-//       return { success: false, error: response.data?.error || "Registration failed" };
-//     } catch (error) {
-//       const errorMessage =
-//         error.response?.data?.error || error.response?.data?.message || error.message || "Registration failed";
-//       return { success: false, error: errorMessage };
-//     }
-//   };
-
-//   const logoutUser = async () => {
-//     try {
-//       await axiosInstance.post("/auth/logout");
-//     } catch (error) {
-//       console.error("Logout error:", error);
-//     } finally {
-//       localStorage.removeItem("token");
-//       setUser(null);
-//       setIsAuthenticated(false);
-//     }
-//   };
-
-//   const updateUser = (updatedUser) => {
-//     setUser(updatedUser);
-//   };
-
-//   const value = {
-//     user,
-//     isAuthenticated,
-//     loading,
-//     checked,
-//     login,
-//     register,
-//     logoutUser,
-//     updateUser,
-//     checkAuthStatus,
-//   };
-
-//   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-// };
-
-// export default AuthContext;
-
-
-
-
-// src/context/AuthContext.jsx - FIXED VERSION
+// src/context/AuthContext.js
 import React, { createContext, useState, useContext, useEffect, useRef } from "react";
 import axiosInstance from '../utils/axiosInstance';
 
@@ -164,110 +16,83 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [initialized, setInitialized] = useState(false);
+  const [checked, setChecked] = useState(false);
 
   const checkingRef = useRef(false);
+  const lastCheckRef = useRef(0);
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      if (checkingRef.current || initialized) return;
-      
+    checkAuthStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const checkAuthStatus = async ({ force = false } = {}) => {
+    try {
+      if (checkingRef.current && !force) return;
+      const now = Date.now();
+      if (!force && now - lastCheckRef.current < 3000) return;
+
       checkingRef.current = true;
-      console.log("AuthContext: Starting auth check...");
+      lastCheckRef.current = now;
+      setLoading(true);
 
-      try {
-        const token = localStorage.getItem("token");
-        
-        if (!token) {
-          console.log("AuthContext: No token found");
-          setUser(null);
-          setIsAuthenticated(false);
-          setLoading(false);
-          setInitialized(true);
-          return;
-        }
-
-        // Set timeout to prevent hanging
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("Auth check timeout")), 5000)
-        );
-
-        const authPromise = axiosInstance.get("/auth/me", {
-          timeout: 4000,
-          validateStatus: (status) => status < 500
-        });
-
-        const response = await Promise.race([authPromise, timeoutPromise]);
-        
-        if (response.data?.success && response.data?.user) {
-          console.log("AuthContext: User authenticated:", response.data.user.email);
-          setUser(response.data.user);
-          setIsAuthenticated(true);
-        } else {
-          console.log("AuthContext: Invalid auth response");
-          localStorage.removeItem("token");
-          setUser(null);
-          setIsAuthenticated(false);
-        }
-      } catch (error) {
-        console.error("AuthContext: Error checking auth:", error.message);
-        
-        // Don't clear token on network errors during initial load
-        if (!error.message.includes("timeout") && error.response?.status !== 429) {
-          localStorage.removeItem("token");
-        }
-        
+      const token = localStorage.getItem("token");
+      if (!token) {
         setUser(null);
         setIsAuthenticated(false);
-      } finally {
         setLoading(false);
-        setInitialized(true);
+        setChecked(true);
         checkingRef.current = false;
-        console.log("AuthContext: Auth check completed");
+        return;
       }
-    };
 
-    checkAuthStatus();
-  }, []);
+      const response = await axiosInstance.get("/auth/me");
+      if (response.data?.success && response.data?.user) {
+        setUser(response.data.user);
+        setIsAuthenticated(true);
+      } else {
+        localStorage.removeItem("token");
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+    } catch (error) {
+      if (error.response?.status === 429) {
+        console.warn("Auth rate-limited. Will not retry automatically.");
+      } else {
+        console.error("Auth check failed:", error);
+      }
+      localStorage.removeItem("token");
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+      setChecked(true);
+      checkingRef.current = false;
+    }
+  };
 
   const login = async (email, password) => {
     try {
-      const response = await axiosInstance.post("/auth/login", { 
-        email, 
-        password 
-      }, {
-        timeout: 8000
-      });
+      const response = await axiosInstance.post("/auth/login", { email, password });
 
       if (response.data?.success) {
         const { user: loggedUser, token } = response.data;
-        if (token) {
-          localStorage.setItem("token", token);
-        }
+        if (token) localStorage.setItem("token", token);
         setUser(loggedUser);
         setIsAuthenticated(true);
         return { success: true, user: loggedUser };
       }
-      return { 
-        success: false, 
-        error: response.data?.error || "Login failed" 
-      };
+      return { success: false, error: response.data?.error || "Login failed" };
     } catch (error) {
       const errorMessage =
-        error.response?.data?.error || 
-        error.response?.data?.message || 
-        error.message || 
-        "Login failed";
+        error.response?.data?.error || error.response?.data?.message || error.message || "Login failed";
       return { success: false, error: errorMessage };
     }
   };
 
   const register = async (userData) => {
     try {
-      const response = await axiosInstance.post("/auth/register", userData, {
-        timeout: 8000
-      });
-      
+      const response = await axiosInstance.post("/auth/register", userData);
       if (response.data?.success) {
         const { user: newUser, token } = response.data;
         if (token) {
@@ -275,33 +100,21 @@ export const AuthProvider = ({ children }) => {
           setUser(newUser);
           setIsAuthenticated(true);
         }
-        return { 
-          success: true, 
-          user: token ? newUser : null,
-          message: response.data?.message 
-        };
+        return { success: true, user: token ? newUser : null };
       }
-      return { 
-        success: false, 
-        error: response.data?.error || "Registration failed" 
-      };
+      return { success: false, error: response.data?.error || "Registration failed" };
     } catch (error) {
       const errorMessage =
-        error.response?.data?.error || 
-        error.response?.data?.message || 
-        error.message || 
-        "Registration failed";
+        error.response?.data?.error || error.response?.data?.message || error.message || "Registration failed";
       return { success: false, error: errorMessage };
     }
   };
 
   const logoutUser = async () => {
     try {
-      await axiosInstance.post("/auth/logout", {}, {
-        timeout: 5000
-      });
+      await axiosInstance.post("/auth/logout");
     } catch (error) {
-      console.warn("Logout API error:", error.message);
+      console.error("Logout error:", error);
     } finally {
       localStorage.removeItem("token");
       setUser(null);
@@ -313,17 +126,11 @@ export const AuthProvider = ({ children }) => {
     setUser(updatedUser);
   };
 
-  const checkAuthStatus = async () => {
-    // Re-check auth status (for manual refresh)
-    setInitialized(false);
-    checkingRef.current = false;
-    setLoading(true);
-  };
-
   const value = {
     user,
     isAuthenticated,
     loading,
+    checked,
     login,
     register,
     logoutUser,
