@@ -1,4 +1,4 @@
-/* src/pages/auth/Login.css - FANCY VERSION WITH REQUIRED INDICATORS */
+/* src/pages/auth/Login.css - FANCY VERSION WITH SIMPLE LABEL BEHAVIOR */
 :root {
   --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
@@ -127,7 +127,7 @@
 }
 
 /* ======================
-   Header Section - ENHANCED
+   Header Section
 ====================== */
 .form-header {
   text-align: center;
@@ -199,7 +199,7 @@
 }
 
 /* ======================
-   Success Message - ENHANCED
+   Success Message
 ====================== */
 .success-message {
   background: linear-gradient(135deg, 
@@ -257,7 +257,7 @@
 }
 
 /* ======================
-   Form Inputs - CLEAN WITH REQUIRED INDICATORS
+   Form Inputs - SIMPLE LABEL BEHAVIOR (HIDES WHEN TYPING)
 ====================== */
 .form-group {
   margin-bottom: 1.8rem;
@@ -272,7 +272,7 @@
 /* Input styling */
 .floating-input {
   width: 100%;
-  padding: 1.3rem 1.2rem 1.3rem 1.2rem;
+  padding: 1.3rem 1.2rem;
   background: rgba(255, 255, 255, 0.92);
   border: 2px solid rgba(102, 126, 234, 0.2);
   border-radius: var(--radius-md);
@@ -301,58 +301,37 @@
     0 0 0 4px rgba(102, 126, 234, 0.15),
     0 15px 35px rgba(102, 126, 234, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  transform: translateY(-3px);
 }
 
-/* CENTERED LABELS WITH REQUIRED INDICATOR */
+/* SIMPLE LABEL BEHAVIOR: Label disappears when typing */
 .floating-label {
   position: absolute;
   top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  left: 1.2rem;
+  transform: translateY(-50%);
   font-size: 1rem;
   color: #718096;
   font-weight: 500;
   pointer-events: none;
-  transition: var(--transition-smooth);
+  transition: all 0.3s ease;
   z-index: 2;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  width: 100%;
-  text-align: center;
-  justify-content: center;
+  opacity: 1;
 }
 
-/* Add red asterisk after label text */
 .floating-label::after {
   content: '*';
   color: #e53e3e;
   font-size: 1.2rem;
   font-weight: 700;
-  line-height: 1;
-  opacity: 0.8;
   margin-left: 2px;
 }
 
-/* When label floats up (when input has value or is focused) */
+/* Label disappears as you type */
 .floating-input:focus + .floating-label,
 .floating-input:not(:placeholder-shown) + .floating-label {
-  top: -0.7rem;
-  left: 1rem;
-  font-size: 0.85rem;
-  color: #667eea;
-  font-weight: 700;
-  background: white;
-  padding: 0.2rem 0.6rem;
-  border-radius: 14px;
-  z-index: 3;
-  box-shadow: 0 2px 10px rgba(102, 126, 234, 0.15);
-  transform: translateY(0);
-  width: auto;
-  text-align: left;
-  justify-content: flex-start;
+  opacity: 0;
+  transform: translateY(-50%) translateX(10px);
+  visibility: hidden;
 }
 
 /* Hide placeholder when label is present */
@@ -360,18 +339,18 @@
   color: transparent;
 }
 
-/* Placeholder shown on focus */
+/* Show placeholder on focus */
 .floating-input:focus::placeholder {
   color: #a0aec0;
   opacity: 0.7;
 }
 
-/* REMOVED/HIDDEN INPUT ICONS */
+/* Hide input icons */
 .input-icon {
-  display: none; /* Hide the email and lock icons */
+  display: none;
 }
 
-/* Password toggle button - ENHANCED */
+/* Password toggle button */
 .fancy-toggle {
   position: absolute;
   right: 1rem;
@@ -415,7 +394,7 @@
 }
 
 /* ======================
-   Form Options & Links - ENHANCED
+   Form Options & Links
 ====================== */
 .form-options {
   display: flex;
@@ -469,7 +448,7 @@
 }
 
 /* ======================
-   Buttons - SUPER FANCY
+   Buttons
 ====================== */
 .btn-primary {
   width: 100%;
@@ -562,7 +541,7 @@
 }
 
 /* ======================
-   Registration Prompt - ENHANCED
+   Registration Prompt
 ====================== */
 .auth-divider {
   display: flex;
@@ -654,7 +633,7 @@
 }
 
 /* ======================
-   Help Section - ENHANCED
+   Help Section
 ====================== */
 .help-section {
   padding-top: 1.8rem;
@@ -866,7 +845,7 @@
 }
 
 /* ======================
-   HELP POPUP STYLES - NEWLY ADDED
+   HELP POPUP STYLES
 ====================== */
 .help-popup-overlay {
   position: fixed;
@@ -1347,14 +1326,6 @@
   
   .floating-label {
     font-size: 0.9rem;
-  }
-  
-  .floating-input:focus + .floating-label,
-  .floating-input:not(:placeholder-shown) + .floating-label {
-    top: -0.6rem;
-    left: 0.8rem;
-    font-size: 0.75rem;
-    padding: 0.15rem 0.5rem;
   }
   
   .btn-primary {

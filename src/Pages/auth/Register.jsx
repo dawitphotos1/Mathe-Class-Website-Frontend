@@ -1,3 +1,4 @@
+
 // src/pages/auth/Register.jsx - OPTIMIZED VERSION
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -35,10 +36,10 @@ const RegistrationInfoPopup = ({ isOpen, onClose }) => {
             <h4>👨‍🏫 Teacher Accounts</h4>
             <ul>
               <li>Auto-approved (instant access)</li>
-              <li>Enter your teaching subject</li>
               <li>Can create and manage courses</li>
               <li>Can manage enrolled students</li>
               <li>Access to teacher dashboard</li>
+              <li>No subject selection required</li>
             </ul>
           </div>
           
@@ -89,7 +90,7 @@ const Register = () => {
     password: "",
     confirmPassword: "",
     role: "student",
-    subject: "",
+    subject: "", // Only for students
   });
 
   const [loading, setLoading] = useState(false);
@@ -107,7 +108,18 @@ const Register = () => {
   ];
 
   const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    
+    // If role changes, clear subject for non-student roles
+    if (name === "role") {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        subject: value === "student" ? prev.subject : ""
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const validateForm = () => {
@@ -124,18 +136,28 @@ const Register = () => {
     if (!name.trim() || !email.trim() || !password.trim() || !role) {
       return "Please fill in all required fields.";
     }
+    
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      return "Please enter a valid email address.";
+    }
+    
     if (email.trim().toLowerCase() !== confirmEmail.trim().toLowerCase()) {
       return "Emails do not match.";
     }
+    
     if (password !== confirmPassword) {
       return "Passwords do not match.";
     }
+    
     if (password.length < 6) {
       return "Password must be at least 6 characters long.";
     }
-    if ((role === "teacher" || role === "student") && !subject.trim()) {
-      return "Subject is required for this role.";
+    
+    // Only require subject for students
+    if (role === "student" && !subject.trim()) {
+      return "Subject is required for student registration.";
     }
+    
     return null;
   };
 
@@ -149,12 +171,13 @@ const Register = () => {
       return;
     }
 
+    // Prepare payload - only include subject for students
     const payload = {
       name: formData.name.trim(),
       email: formData.email.trim().toLowerCase(),
       password: formData.password,
       role: formData.role.toLowerCase(),
-      subject: formData.subject.trim(),
+      subject: formData.role === "student" ? formData.subject.trim() : null, // Only for students
     };
 
     console.log("📤 Submitting registration:", payload);
@@ -353,42 +376,41 @@ const Register = () => {
             </div>
           </div>
 
-          {(formData.role === "teacher" || formData.role === "student") && (
+          {/* ONLY show subject field for STUDENTS */}
+          {formData.role === "student" && (
             <div className="form-group">
-              <label>
-                {formData.role === "teacher" ? "Teaching Subject *" : "Study Subject *"}
-              </label>
-              {formData.role === "teacher" ? (
-                <input
-                  name="subject"
-                  type="text"
-                  placeholder="e.g., Algebra, Calculus, Geometry"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  disabled={loading}
-                  required
-                />
-              ) : (
-                <select
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  disabled={loading}
-                  required
-                >
-                  <option value="">Select a subject</option>
-                  {studentSubjects.map((subj) => (
-                    <option key={subj} value={subj}>
-                      {subj}
-                    </option>
-                  ))}
-                </select>
-              )}
+              <label>Study Subject *</label>
+              <select
+                name="subject"
+                value={formData.subject}
+                onChange={handleChange}
+                disabled={loading}
+                required={formData.role === "student"}
+              >
+                <option value="">Select a subject</option>
+                {studentSubjects.map((subj) => (
+                  <option key={subj} value={subj}>
+                    {subj}
+                  </option>
+                ))}
+              </select>
               <small className="field-hint">
-                {formData.role === "teacher" 
-                  ? "Enter your primary teaching subject" 
-                  : "Select your primary study interest"}
+                Select your primary study interest (for student accounts only)
               </small>
+            </div>
+          )}
+
+          {/* Optional: Show message for teacher/admin */}
+          {formData.role !== "student" && (
+            <div className="form-group">
+              <div className="role-info-message">
+                <span className="info-icon">ℹ️</span>
+                <span className="info-text">
+                  {formData.role === "teacher" 
+                    ? "Teacher accounts can create and manage courses. No subject selection needed."
+                    : "Admin accounts have full system access. No subject selection needed."}
+                </span>
+              </div>
             </div>
           )}
 
